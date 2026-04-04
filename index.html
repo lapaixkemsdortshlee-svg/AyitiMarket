@@ -1522,15 +1522,15 @@
                         <p class="font-label text-[10px] text-on-surface-variant">An liy</p>
                     </div>
                 </div>
-                <button onclick="toast('Telefòn vandè a')"
+                <button id="chatCallBtn" onclick="callSeller()"
                     class="w-9 h-9 flex items-center justify-center rounded-full bg-surface-container-low active:scale-90 transition-transform">
                     <span class="material-symbols-outlined text-primary" style="font-size:18px">call</span>
                 </button>
-                <a href="#" onclick="toast('WhatsApp ouvè!')"
+                <button id="chatWhatsAppBtn" onclick="openWhatsApp()"
                     class="w-9 h-9 flex items-center justify-center rounded-full active:scale-90 transition-transform"
                     style="background:rgba(37,211,102,.1)">
                     <span class="material-symbols-outlined fi" style="font-size:18px;color:#25D366">chat</span>
-                </a>
+                </button>
             </div>
         </div>
 
@@ -2820,14 +2820,14 @@
         };
 
         const PRODUCTS = [
-            { id: 1, e: "style", ec: "#7c3aed", t: "Wòb Swaré", p: 3500, l: "Pétion-Ville", c: "mode", r: 4.9, b: "Verifye", v: 142, s: 8, desc: "Wòb elegant fèt alamen. Twal kalite, fini swayen. Livrezon PAP disponib.", sizes: ["XS", "S", "M", "L"], sellerId: "seller_marthe" },
-            { id: 2, e: "face_retouching_natural", ec: "#db2777", t: "Sèwom Eklatan", p: 1800, l: "Pétion-Ville", c: "cosmetique", r: 4.8, b: "Reko IA", v: 98, s: 12, desc: "Sèwom natirèl ak plant ayisyen. Klere po an 2 semèn.", sizes: [], sellerId: "seller_marthe" },
-            { id: 3, e: "diamond", ec: "#d97706", t: "Kolye Atizana", p: 2800, l: "Delmas", c: "accessoire", r: 5.0, b: "Nouvo", v: 67, s: 3, desc: "Kolye ò 18 kara, pyes inik. Bijoutye ayisyen.", sizes: [], sellerId: "seller_jeanlouis" },
-            { id: 4, e: "palette", ec: "#059669", t: "Sak Pay", p: 3200, l: "Pétion-Ville", c: "artisanat", r: 4.9, b: null, v: 89, s: 6, desc: "Sak atizanal pay trese, fèt pa artizàn lokal.", sizes: [], sellerId: "seller_jeanlouis" },
-            { id: 5, e: "science", ec: "#0891b2", t: "Krèm Karite", p: 950, l: "Carrefour", c: "cosmetique", r: 4.7, b: "Pwomo", v: 210, s: 24, desc: "Krèm natirèl karite ayisyen. 100% natirèl.", sizes: [], sellerId: "seller_marthe" },
-            { id: 6, e: "checkroom", ec: "#4f46e5", t: "Chemiz Brode", p: 2800, l: "Tabarre", c: "mode", r: 4.6, b: null, v: 55, s: 4, desc: "Chemiz brode alamen. Motif tradisyonèl ayisyen.", sizes: ["S", "M", "L", "XL"], sellerId: "seller_marthe" },
-            { id: 7, e: "child_care", ec: "#db2777", t: "Rad Bebe ×10", p: 1200, l: "Delmas", c: "bebe", r: 4.5, b: "Nouvo", v: 88, s: 15, desc: "Pak 10 rad pou bebe 0-12 mwa. Koton 100%.", sizes: ["0-3M", "3-6M", "6-12M"], sellerId: "seller_jeanlouis" },
-            { id: 8, e: "museum", ec: "#65a30d", t: "Tablo Penti", p: 5200, l: "Pétion-Ville", c: "artisanat", r: 4.6, b: null, v: 34, s: 2, desc: "Tablo atizanal ayisyen, pent alamen. Pyes inik.", sizes: [], sellerId: "seller_jeanlouis" },
+            { id: 1, e: "style", ec: "#7c3aed", t: "Wòb Swaré", p: 3500, l: "Pétion-Ville", c: "mode", r: 4.9, b: "Verifye", v: 142, s: 8, desc: "Wòb elegant fèt alamen. Twal kalite, fini swayen. Livrezon PAP disponib.", sizes: ["XS", "S", "M", "L"], sellerId: "seller_marthe", seller: "Marthe B.", sellerPhone: "+509 3801 2345" },
+            { id: 2, e: "face_retouching_natural", ec: "#db2777", t: "Sèwom Eklatan", p: 1800, l: "Pétion-Ville", c: "cosmetique", r: 4.8, b: "Reko IA", v: 98, s: 12, desc: "Sèwom natirèl ak plant ayisyen. Klere po an 2 semèn.", sizes: [], sellerId: "seller_marthe", seller: "Marthe B.", sellerPhone: "+509 3801 2345" },
+            { id: 3, e: "diamond", ec: "#d97706", t: "Kolye Atizana", p: 2800, l: "Delmas", c: "accessoire", r: 5.0, b: "Nouvo", v: 67, s: 3, desc: "Kolye ò 18 kara, pyes inik. Bijoutye ayisyen.", sizes: [], sellerId: "seller_jeanlouis", seller: "Jean-Louis D.", sellerPhone: "+509 4712 5678" },
+            { id: 4, e: "palette", ec: "#059669", t: "Sak Pay", p: 3200, l: "Pétion-Ville", c: "artisanat", r: 4.9, b: null, v: 89, s: 6, desc: "Sak atizanal pay trese, fèt pa artizàn lokal.", sizes: [], sellerId: "seller_jeanlouis", seller: "Jean-Louis D.", sellerPhone: "+509 4712 5678" },
+            { id: 5, e: "science", ec: "#0891b2", t: "Krèm Karite", p: 950, l: "Carrefour", c: "cosmetique", r: 4.7, b: "Pwomo", v: 210, s: 24, desc: "Krèm natirèl karite ayisyen. 100% natirèl.", sizes: [], sellerId: "seller_marthe", seller: "Marthe B.", sellerPhone: "+509 3801 2345" },
+            { id: 6, e: "checkroom", ec: "#4f46e5", t: "Chemiz Brode", p: 2800, l: "Tabarre", c: "mode", r: 4.6, b: null, v: 55, s: 4, desc: "Chemiz brode alamen. Motif tradisyonèl ayisyen.", sizes: ["S", "M", "L", "XL"], sellerId: "seller_marthe", seller: "Marthe B.", sellerPhone: "+509 3801 2345" },
+            { id: 7, e: "child_care", ec: "#db2777", t: "Rad Bebe ×10", p: 1200, l: "Delmas", c: "bebe", r: 4.5, b: "Nouvo", v: 88, s: 15, desc: "Pak 10 rad pou bebe 0-12 mwa. Koton 100%.", sizes: ["0-3M", "3-6M", "6-12M"], sellerId: "seller_jeanlouis", seller: "Jean-Louis D.", sellerPhone: "+509 4712 5678" },
+            { id: 8, e: "museum", ec: "#65a30d", t: "Tablo Penti", p: 5200, l: "Pétion-Ville", c: "artisanat", r: 4.6, b: null, v: 34, s: 2, desc: "Tablo atizanal ayisyen, pent alamen. Pyes inik.", sizes: [], sellerId: "seller_jeanlouis", seller: "Jean-Louis D.", sellerPhone: "+509 4712 5678" },
         ];
 
         const MKT = { mode: { avg: 3200, med: 3000, min: 2400, max: 3600 }, cosmetique: { avg: 1600, med: 1500, min: 1200, max: 1800 }, accessoire: { avg: 2600, med: 2500, min: 2000, max: 3000 }, artisanat: { avg: 3500, med: 3300, min: 2640, max: 3960 }, maison: { avg: 5200, med: 5000, min: 4000, max: 6000 }, bebe: { avg: 1100, med: 1000, min: 800, max: 1200 } };
@@ -3889,8 +3889,10 @@
             const p = PRODUCTS.find(x => x.id === pid) || PRODUCTS[0];
             if (!A.msgs[pid]) A.msgs[pid] = [...CHAT_INIT];
             A.chatId = pid;
-            document.getElementById("chatAv").innerHTML = '<span class="font-headline font-bold text-white text-xs">MB</span>';
-            document.getElementById("chatName").textContent = "Marthe B.";
+            A.chatSellerPhone = p.sellerPhone || '+509 3801 2345';
+            A.chatSellerName = p.seller || 'Marthe B.';
+            document.getElementById("chatAv").innerHTML = '<span class="font-headline font-bold text-white text-xs">' + (A.chatSellerName.split(' ').map(w=>w[0]).join('').slice(0,2)) + '</span>';
+            document.getElementById("chatName").textContent = A.chatSellerName;
             renderChatMsgs(pid);
             A.stack.push(A.tab);
             document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
@@ -3899,7 +3901,19 @@
             document.getElementById("fab").classList.add("hidden");
             document.getElementById("backbtn").classList.remove("hidden");
             document.getElementById("backbtn").classList.add("flex");
-            document.getElementById("toptitle").textContent = "Marthe B.";
+            document.getElementById("toptitle").textContent = A.chatSellerName;
+        }
+
+        function callSeller() {
+            const phone = (A.chatSellerPhone || '+509 3801 2345').replace(/\s/g, '');
+            window.open('tel:' + phone, '_self');
+        }
+
+        function openWhatsApp() {
+            const phone = (A.chatSellerPhone || '+509 3801 2345').replace(/[\s+]/g, '');
+            const name = A.chatSellerName || 'Vandè';
+            const msg = encodeURIComponent('Bonjou ' + name + '! Mwen enterese nan pwodwi ou sou AyitiMarket.');
+            window.open('https://wa.me/' + phone + '?text=' + msg, '_blank');
         }
 
         function renderChatMsgs(pid) {
