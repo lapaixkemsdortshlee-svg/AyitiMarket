@@ -1033,27 +1033,63 @@
                             <p class="font-body text-sm text-on-surface-variant mt-1">Pibliye pwodwi, resevwa komand, jere boutik ou</p>
                         </div>
                     </div>
-                    <!-- Phone number required for sellers -->
-                    <div class="mt-3 p-4 rounded-xl" style="background:rgba(0,102,111,.04)">
-                        <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-2">Nimewo Telefòn (obligatwa pou vandè)</p>
-                        <div class="flex gap-2 mb-3">
-                            <div class="flex items-center gap-2 px-3 flex-shrink-0" style="background:#e5e2dd;border-radius:.5rem .5rem 0 0;border-bottom:2px solid transparent">
-                                <svg width="22" height="15" viewBox="0 0 22 15" style="border-radius:2px;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.15)">
-                                    <rect width="22" height="7.5" fill="#00209F"/>
-                                    <rect y="7.5" width="22" height="7.5" fill="#D21034"/>
-                                    <rect x="9.5" y="3" width="3" height="9" fill="#006B3F" opacity=".85"/>
-                                    <rect x="7" y="6" width="8" height="2" fill="#006B3F" opacity=".85"/>
-                                </svg>
-                                <span class="font-headline font-bold text-sm">+509</span>
-                            </div>
-                            <input id="sellerPhoneInput" type="tel" class="si flex-1" placeholder="3X XX XXXX" maxlength="8"
-                                oninput="this.value=this.value.replace(/\D/g,'')" />
+                    <!-- Seller form -->
+                    <div class="mt-3 p-4 rounded-xl space-y-3" style="background:rgba(0,102,111,.04)">
+                        <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-primary">Enfòmasyon obligatwa pou vandè</p>
+
+                        <!-- Nom Biznis -->
+                        <div>
+                            <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1">Non Boutik / Biznis</p>
+                            <input id="sellerBizName" class="si" placeholder="Ex: Boutik Marthe, Belle Mode HTI..." />
                         </div>
-                        <p class="font-label text-[10px] text-on-surface-variant mb-3">Kliyan yo ap ka kontakte ou sou nimewo sa a</p>
+
+                        <!-- Phone -->
+                        <div>
+                            <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1">Nimewo Telefòn (Digicel oswa Natcom)</p>
+                            <div class="flex gap-2">
+                                <div class="flex items-center gap-2 px-3 flex-shrink-0" style="background:#e5e2dd;border-radius:.5rem .5rem 0 0;border-bottom:2px solid transparent">
+                                    <svg width="22" height="15" viewBox="0 0 22 15" style="border-radius:2px;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.15)">
+                                        <rect width="22" height="7.5" fill="#00209F"/>
+                                        <rect y="7.5" width="22" height="7.5" fill="#D21034"/>
+                                        <rect x="9.5" y="3" width="3" height="9" fill="#006B3F" opacity=".85"/>
+                                        <rect x="7" y="6" width="8" height="2" fill="#006B3F" opacity=".85"/>
+                                    </svg>
+                                    <span class="font-headline font-bold text-sm">+509</span>
+                                </div>
+                                <input id="sellerPhoneInput" type="tel" class="si flex-1" placeholder="3X XX XXXX" maxlength="8"
+                                    oninput="this.value=this.value.replace(/\D/g,'')" />
+                            </div>
+                        </div>
+
+                        <!-- Lokalizasyon -->
+                        <div>
+                            <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1">Lokalizasyon</p>
+                            <select id="sellerLocation" class="si">
+                                <option value="">Chwazi zòn ou...</option>
+                                <option value="Pétion-Ville">Pétion-Ville</option>
+                                <option value="Delmas">Delmas</option>
+                                <option value="Tabarre">Tabarre</option>
+                                <option value="Carrefour">Carrefour</option>
+                                <option value="Port-au-Prince">Port-au-Prince Centre</option>
+                                <option value="Croix-des-Bouquets">Croix-des-Bouquets</option>
+                                <option value="Cap-Haïtien">Cap-Haïtien</option>
+                                <option value="Les Cayes">Les Cayes</option>
+                                <option value="Autre">Lòt</option>
+                            </select>
+                        </div>
+
+                        <!-- ID notice -->
+                        <div class="flex items-start gap-2 p-3 rounded-lg" style="background:rgba(0,102,111,.06)">
+                            <span class="material-symbols-outlined fi text-primary flex-shrink-0" style="font-size:16px">info</span>
+                            <p class="font-body text-[11px] text-on-surface-variant leading-relaxed">
+                                Apre ou kreye kont vandè ou, ou ap bezwen soumèt yon <strong class="text-on-surface">pyès idantite</strong> (CIN oswa Paspò) pou verifikasyon. Sa pran 24-48h.
+                            </p>
+                        </div>
+
                         <button onclick="selectRole('seller')"
                             class="w-full py-3.5 rounded-xl cta font-headline font-bold text-sm active:scale-[.98] transition-transform flex items-center justify-center gap-2 amb">
                             <span class="material-symbols-outlined fi" style="font-size:18px">storefront</span>
-                            Kontinye kòm Vandè
+                            Kreye Kont Vandè
                         </button>
                     </div>
                 </div>
@@ -2963,21 +2999,35 @@
 
         function selectRole(role) {
             if (role === 'seller') {
+                const bizName = document.getElementById('sellerBizName')?.value?.trim();
                 const phoneInput = document.getElementById('sellerPhoneInput');
                 const phone = phoneInput ? phoneInput.value.replace(/\D/g, '') : '';
+                const location = document.getElementById('sellerLocation')?.value;
+
+                if (!bizName || bizName.length < 2) {
+                    toast('Non boutik ou obligatwa');
+                    document.getElementById('sellerBizName')?.focus();
+                    return;
+                }
                 if (phone.length !== 8 || (phone[0] !== '3' && phone[0] !== '4')) {
-                    toast('Mete yon nimewo Digicel (3X) oswa Natcom (4X) valid');
+                    toast('Nimewo Digicel (3X) oswa Natcom (4X) valid obligatwa');
                     if (phoneInput) phoneInput.focus();
                     return;
                 }
-                // Save phone with role
-                if (A.user) A.user.phone = '+509' + phone;
+                if (!location) {
+                    toast('Chwazi lokalizasyon ou');
+                    return;
+                }
+
+                if (A.user) {
+                    A.user.phone = '+509' + phone;
+                    A.user.name = bizName;
+                }
                 if (typeof supabaseSaveRole === 'function') {
-                    supabaseSaveRole(role, '+509' + phone);
+                    supabaseSaveRole(role, '+509' + phone, bizName, location);
                 }
             } else {
-                // Buyer — pas de phone requis
-                document.getElementById('roleCardBuyer').style.borderColor = '#00666f';
+                // Buyer
                 if (typeof supabaseSaveRole === 'function') {
                     supabaseSaveRole(role);
                 } else {
@@ -6857,28 +6907,34 @@
         const uid = session.user.id;
         const meta = session.user.user_metadata || {};
         const email = session.user.email || '';
+        const createdAt = session.user.created_at;
 
         let profile = null;
-        let isNewUser = false;
+        let needsRoleSelection = false;
 
         try {
-            const { data } = await db.from('profiles').select('*').eq('id', uid).maybeSingle();
-            profile = data;
-        } catch(e) {}
+            const { data, error } = await db.from('profiles').select('*').eq('id', uid).maybeSingle();
+            if (!error) profile = data;
+        } catch(e) { console.warn('[Profile] Fetch erè:', e.message); }
 
         // Kreye profil si li pa egziste
         if (!profile) {
-            isNewUser = true;
+            needsRoleSelection = true;
             const fn = meta.full_name?.split(' ')[0] || meta.name?.split(' ')[0] || meta.first_name || email.split('@')[0] || 'Itilizatè';
             const ln = meta.full_name?.split(' ').slice(1).join(' ') || meta.last_name || '';
             try {
                 const { data } = await db.from('profiles').upsert({
                     id: uid, first_name: fn, last_name: ln,
-                    role: 'buyer',
+                    role: null,
                     avatar_url: meta.avatar_url || meta.picture || null,
                 }, { onConflict: 'id' }).select().single();
                 profile = data;
-            } catch(e) { console.warn('[Profile]', e.message); }
+            } catch(e) { console.warn('[Profile] Kreye erè:', e.message); }
+        }
+
+        // Detekte si wòl pa chwazi (null oswa pa defini)
+        if (!profile?.role || profile.role === '' || localStorage.getItem('aym_needs_role') === uid) {
+            needsRoleSelection = true;
         }
 
         const name = profile?.display_name || profile?.first_name || meta.full_name || meta.name || email.split('@')[0] || 'Itilizatè';
@@ -6893,11 +6949,9 @@
         };
         A.isAuth = true;
         localStorage.setItem('aym_user', JSON.stringify(A.user));
-        console.log('[Auth] ✅', A.user.name, '(' + A.user.role + ')', isNewUser ? '← NOUVO' : '← egziste');
+        console.log('[Auth] ✅', A.user.name, '(' + A.user.role + ')', needsRoleSelection ? '← BEZWEN WÒL' : '← wòl deja chwazi');
 
-        // Nouvo itilizatè → montre role screen
-        // Itilizatè ki deja chwazi wòl → boot dirèk
-        if (isNewUser || localStorage.getItem('aym_needs_role') === uid) {
+        if (needsRoleSelection) {
             localStorage.setItem('aym_needs_role', uid);
             return 'role';
         }
@@ -7014,28 +7068,58 @@
     // ══════════════════════════════════════════════════════════
     //  ROLE SELECTION — Save to Supabase
     // ══════════════════════════════════════════════════════════
-    async function supabaseSaveRole(role, phone) {
+    async function supabaseSaveRole(role, phone, bizName, location) {
         showAuthLoader('Ap anrejistre wòl...');
+        let updateSuccess = false;
+
         try {
             if (db && A.user?.uid) {
                 const updates = { role };
                 if (phone) updates.phone = phone;
-                await db.from('profiles').update(updates).eq('id', A.user.uid);
+                if (bizName) updates.display_name = bizName;
+                if (location) updates.location = location;
+
+                const { data, error } = await db.from('profiles').update(updates).eq('id', A.user.uid).select().single();
+
+                if (error) {
+                    console.error('[Role] Update erè:', error.message);
+                    console.log('[Role] Ap eseye upsert...');
+                    const { data: d2, error: e2 } = await db.from('profiles').upsert({
+                        id: A.user.uid,
+                        role: role,
+                        phone: phone || A.user.phone || null,
+                        display_name: bizName || A.user.name,
+                        first_name: A.user.name?.split(' ')[0] || 'Itilizatè',
+                    }, { onConflict: 'id' }).select().single();
+
+                    if (!e2 && d2) {
+                        updateSuccess = true;
+                        console.log('[Role] ✅ Upsert reyisi:', d2.role);
+                    } else {
+                        console.error('[Role] Upsert echwe tou:', e2?.message);
+                    }
+                } else if (data) {
+                    updateSuccess = true;
+                    console.log('[Role] ✅ Update reyisi:', data.role);
+                }
             }
-            A.user.role = role;
-            if (phone) A.user.phone = phone;
-            localStorage.setItem('aym_user', JSON.stringify(A.user));
-            localStorage.removeItem('aym_needs_role');
-            hideAuthLoader();
-            A.booted = true;
-            bootApp();
-            toast('Wòl ' + (role === 'buyer' ? 'Achtè' : 'Vandè') + ' chwazi!');
         } catch(e) {
-            hideAuthLoader();
-            A.user.role = role;
-            localStorage.removeItem('aym_needs_role');
-            A.booted = true;
-            bootApp();
+            console.error('[Role] Exception:', e.message);
+        }
+
+        A.user.role = role;
+        if (phone) A.user.phone = phone;
+        if (bizName) A.user.name = bizName;
+        localStorage.setItem('aym_user', JSON.stringify(A.user));
+        localStorage.removeItem('aym_needs_role');
+        hideAuthLoader();
+        A.booted = true;
+        bootApp();
+
+        if (updateSuccess) {
+            toast('Wòl ' + (role === 'buyer' ? 'Achtè' : 'Vandè') + ' anrejistre!');
+        } else {
+            toast('Wòl chwazi lokalman. Verifye RLS nan Supabase.');
         }
     }
 
