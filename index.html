@@ -1149,7 +1149,7 @@
     <!-- ══════════════════════════════════════════════════════
      SCREEN 4 — FEED
 ══════════════════════════════════════════════════════ -->
-    <div class="screen" id="s-feed">
+    <div class="screen" id="s-feed" style="max-width:520px;margin:0 auto">
         <div class="px-4 pt-24 pb-6 max-w-lg mx-auto">
             <!-- Welcome -->
             <div class="mb-5">
@@ -1241,7 +1241,7 @@
     <!-- ══════════════════════════════════════════════════════
      SCREEN 5 — DÉTAIL PRODUIT
 ══════════════════════════════════════════════════════ -->
-    <div class="screen pb-32" id="s-detail">
+    <div class="screen pb-32 max-w-lg mx-auto" id="s-detail">
         <div id="detailContent"></div>
         <div id="detailBar"
             class="hidden fixed bottom-[72px] left-0 right-0 z-40 flex items-center gap-3 px-5 py-3 glass"
@@ -1468,7 +1468,7 @@
     <!-- ══════════════════════════════════════════════════════
      SCREEN 8 — CHAT
 ══════════════════════════════════════════════════════ -->
-    <div class="screen" id="s-chat">
+    <div class="screen max-w-lg mx-auto" id="s-chat">
         <!-- Chat Header Premium -->
         <div class="fixed top-0 w-full z-50 glass" style="border-bottom:1px solid rgba(188,201,200,.08)">
             <div class="flex items-center gap-3 px-4 pt-8 pb-3">
@@ -1562,13 +1562,13 @@
      SCREEN 9 — PROFIL
 ══════════════════════════════════════════════════════ -->
     <div class="screen" id="s-profile">
-        <div class="pt-24" id="profileContent"></div>
+        <div class="pt-24 pb-8 max-w-lg mx-auto" id="profileContent"></div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════
      SCREEN — SELLER PROFILE VIEW
 ══════════════════════════════════════════════════════ -->
-    <div class="screen pb-32" id="s-seller">
+    <div class="screen pb-32 max-w-lg mx-auto" id="s-seller">
         <div id="sellerProfileContent"></div>
     </div>
 
@@ -1576,7 +1576,7 @@
      SCREEN 10 — ADMIN PANEL
 ══════════════════════════════════════════════════════ -->
     <div class="screen" id="s-admin">
-        <div class="pt-24 px-5 pb-8">
+        <div class="pt-24 px-5 pb-8 max-w-lg mx-auto">
             <!-- Admin header -->
             <div class="rounded-xl p-5 mb-5" style="background:linear-gradient(135deg,#97422b,#b65a41)">
                 <div class="flex items-center gap-3">
@@ -1653,21 +1653,21 @@
     <!-- ══════════════════════════════════════════════════════
      SCREEN — PANYE (Cart)
 ══════════════════════════════════════════════════════ -->
-    <div class="screen pb-32" id="s-cart">
+    <div class="screen pb-32 max-w-lg mx-auto" id="s-cart">
         <div class="pt-24" id="cartContent"></div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════
      SCREEN — BOUTIK (Espace Vendeur)
 ══════════════════════════════════════════════════════ -->
-    <div class="screen pb-32" id="s-boutique">
+    <div class="screen pb-32 max-w-lg mx-auto" id="s-boutique">
         <div class="pt-24" id="boutiqueContent"></div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════
      SCREEN — KLIYAN ABONNEN (Followers)
 ══════════════════════════════════════════════════════ -->
-    <div class="screen pb-32" id="s-followers">
+    <div class="screen pb-32 max-w-lg mx-auto" id="s-followers">
         <div class="pt-24" id="followersContent"></div>
     </div>
 
@@ -3914,7 +3914,7 @@
         </button>
       </div>
     </div>
-    <!-- Stats — Adapté selon wèl itilizatè a -->
+    <!-- Stats -->
     <div class="mx-5 -mt-8 relative z-10 grid ${u.role==='buyer'&&!u.verifiedSeller ? 'grid-cols-1' : 'grid-cols-3'} bg-surface-container-lowest rounded-xl amb overflow-hidden">
       ${u.role==='buyer'&&!u.verifiedSeller ? `
       <div class="flex flex-col items-center py-5">
@@ -3935,6 +3935,7 @@
         <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">${u.role==='seller'||u.role==='admin' ? 'Nòt' : 'Nivo'}</span>
       </div>
       `}
+    </div>
 
     <!-- Role toggle -->
     <div class="mx-5 mt-5 bg-surface-container-highest rounded-xl p-1 flex gap-1">
@@ -3978,9 +3979,11 @@
     </div>
 
     <!-- Logout -->
-    <button onclick="logout()" class="mx-5 mt-4 mb-8 w-[calc(100%-2.5rem)] py-3 rounded-xl font-label font-bold text-sm text-secondary active:opacity-70" style="background:rgba(152,68,62,.06)">
-      <span class="material-symbols-outlined align-middle" style="font-size:15px">logout</span> Dekonekte
-    </button>`;
+    <div class="mx-5 mt-4 mb-8">
+      <button onclick="logout()" class="w-full py-3 rounded-xl font-label font-bold text-sm text-secondary active:opacity-70" style="background:rgba(152,68,62,.06)">
+        <span class="material-symbols-outlined align-middle" style="font-size:15px">logout</span> Dekonekte
+      </button>
+    </div>`;
         }
 
         // ══════════════════════════════════════════════════════════
