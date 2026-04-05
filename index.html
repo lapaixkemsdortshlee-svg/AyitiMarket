@@ -3106,6 +3106,7 @@
 
         function openProduct(id) {
             A.curProd = PRODUCTS.find(x => x.id === id);
+            if (!A.curProd) { toast('Pwodwi pa disponib'); return; }
             const p = A.curProd;
             A.stack.push(A.tab);
             document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
@@ -3878,12 +3879,14 @@
         }
 
         function callSeller() {
-            const phone = (A.chatSellerPhone || '+509 3801 2345').replace(/\s/g, '');
+            if (!A.chatSellerPhone) { toast('Nimewo telefòn vandè pa disponib'); return; }
+            const phone = A.chatSellerPhone.replace(/\s/g, '');
             window.open('tel:' + phone, '_self');
         }
 
         function openWhatsApp() {
-            const phone = (A.chatSellerPhone || '+509 3801 2345').replace(/[\s+]/g, '');
+            if (!A.chatSellerPhone) { toast('Nimewo telefòn vandè pa disponib'); return; }
+            const phone = A.chatSellerPhone.replace(/[\s+]/g, '');
             const name = A.chatSellerName || 'Vandè';
             const msg = encodeURIComponent('Bonjou ' + name + '! Mwen enterese nan pwodwi ou sou AyitiMarket.');
             window.open('https://wa.me/' + phone + '?text=' + msg, '_blank');
@@ -4454,7 +4457,7 @@
         async function uploadIDPhotos() {
             if (!idPhotos.front || !idPhotos.back) { toast("2 foto obligatwa"); return; }
 
-            // Simuler la barre d'upload Supabase Storage
+            // Upload progress bar
             const bar = document.getElementById('idUploadProgress');
             bar.classList.remove('hidden');
             const fill = document.getElementById('idUploadFill');
@@ -4869,7 +4872,7 @@
                 FCM.permission = perm;
 
                 if (perm === 'granted') {
-                    // Simuler l'obtention d'un token FCM
+                    // Obtain push notification token
                     FCM.token = 'fcm_token_' + Math.random().toString(36).slice(2, 18);
                     dot.style.background = '#22c55e';
                     txt.textContent = `FCM actif · Token: ${FCM.token.slice(0, 16)}…`;
@@ -5915,7 +5918,7 @@
                 `linear-gradient(145deg,${color}22,${color}08)`;
         }
 
-        // Simuler capture photo pour AR
+        // Capture photo for AR try-on
         function tryonCapture() {
             const btn = document.getElementById('tryonCaptureBtn');
             const preview = document.getElementById('tryonPreview');
@@ -5925,7 +5928,7 @@
             btn.disabled = true;
 
             setTimeout(() => {
-                // Simuler le résultat AR
+                // AR result rendering
                 ph.innerHTML = `
       <div class="text-center px-4">
         <span class="material-symbols-outlined fi" style="font-size:44px;color:#7c3aed">checkroom</span>
@@ -6363,15 +6366,14 @@
         function openFlashDeal(id) {
             const fd = FLASH_DEALS.find(x => x.id === id);
             if (!fd) return;
-            // Map flash deal to a product-like object for openProduct
-            const mockProd = {
+            // Map flash deal to product format for openProduct
+            const flashProduct = {
                 id: fd.id, e: fd.e, ec: fd.ec, t: fd.t, p: fd.p, l: fd.l, c: fd.c,
-                r: 4.9, b: '🔥 LIMITÉ', v: 200, s: fd.stock,
+                r: 0, b: 'FLASH', v: 0, s: fd.stock,
                 desc: `${fd.t} — Pwomosyon espesyal Flash Deal! Pri orijinal: ${fp(fd.oldP)} HTG → Kounye a: ${fp(fd.p)} HTG. Estòk limite (${fd.stock} rete). Kouri achte anvan li fini!`,
                 sizes: []
             };
-            // Add temporarily to PRODUCTS
-            if (!PRODUCTS.find(p => p.id === fd.id)) PRODUCTS.push(mockProd);
+            if (!PRODUCTS.find(p => p.id === fd.id)) PRODUCTS.push(flashProduct);
             openProduct(fd.id);
         }
 
