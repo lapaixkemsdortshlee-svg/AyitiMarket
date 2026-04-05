@@ -1,14 +1,50 @@
 {
-  "name": "AyitiMarket",
+  "name": "AyitiMarket — Marketplace Ayiti",
   "short_name": "AyitiMarket",
-  "description": "Marketplace mobile pou Ayiti",
-  "start_url": "/index.html",
+  "description": "Premye marketplace mobil pou achte ak vann an Ayiti. Mòd, kosmetik, atizana, ak plis ankò.",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#fcf9f4",
   "theme_color": "#00666f",
+  "lang": "ht",
+  "dir": "ltr",
+  "categories": ["shopping", "business"],
+  "prefer_related_applications": false,
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Achte Kounye a",
+      "short_name": "Achte",
+      "url": "/",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }

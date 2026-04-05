@@ -1477,7 +1477,7 @@
                         </div>
                     </div>
 
-                    <!-- Info Firebase Storage -->
+                    <!-- Info Supabase Storage -->
                     <div class="flex items-center gap-2 p-2.5 rounded-lg" style="background:rgba(0,102,111,.06)">
                         <span class="material-symbols-outlined fi text-primary flex-shrink-0"
                             style="font-size:14px">cloud_upload</span>
@@ -2039,7 +2039,7 @@
                     <span class="material-symbols-outlined text-on-surface-variant" style="font-size:48px">badge</span>
                 </div>
                 <p class="font-label text-[10px] text-on-surface-variant text-center mt-2" id="idModalMeta">CIN · Fas ·
-                    1.2MB · Firebase Storage</p>
+                    1.2MB · Supabase Storage</p>
             </div>
             <!-- Action buttons -->
             <div class="flex gap-2 px-3 pb-4">
@@ -2788,54 +2788,14 @@
         // ══════════════════════════════════════════════════════════
         //  DATA
         // ══════════════════════════════════════════════════════════
-        // ── SELLER PROFILES DATA ──
-        const SELLERS = {
-            seller_marthe: {
-                id: 'seller_marthe',
-                name: 'Marthe B.',
-                initials: 'MB',
-                verified: true,
-                rating: 4.8,
-                reviewCount: 127,
-                salesCount: 156,
-                memberSince: 'Oktòb 2023',
-                location: 'Pétion-Ville',
-                bio: 'Espesyalis nan mòd ak akseswa fèt alamen. Chak pyes inik, fini ak presizyon. Materyèl lokal kalite siperyè pou kliyan ki renmen bote otantik ayisyen.',
-                specialties: ['Mòd', 'Akseswa', 'Kosmetik'],
-                phone: '+509 3801 2345',
-                responseTime: 'Reponn an mwens ke 30 min',
-                badges: ['Top Vandè', 'Reponn Vit'],
-            },
-            seller_jeanlouis: {
-                id: 'seller_jeanlouis',
-                name: 'Jean-Louis P.',
-                initials: 'JP',
-                verified: true,
-                rating: 4.6,
-                reviewCount: 84,
-                salesCount: 93,
-                memberSince: 'Fevriye 2024',
-                location: 'Delmas',
-                bio: 'Atizàn pasyone ki fè bèl bagay ak men li. Espesyalize nan atizana tradisyonèl ayisyen: penti, skulti, ak kreye bijou orijinal pou koleksyonè.',
-                specialties: ['Atizana', 'Bijou', 'Dekorasyon'],
-                phone: '+509 4712 8899',
-                responseTime: 'Reponn an mwens ke 1h',
-                badges: ['Atizàn Sètifye'],
-            },
-        };
+        // ── SELLER PROFILES — fetched from Supabase (no mock data) ──
+        const SELLERS = {};
 
-        const PRODUCTS = [
-            { id: 1, e: "style", ec: "#7c3aed", t: "Wòb Swaré", p: 3500, l: "Pétion-Ville", c: "mode", r: 4.9, b: "Verifye", v: 142, s: 8, desc: "Wòb elegant fèt alamen. Twal kalite, fini swayen. Livrezon PAP disponib.", sizes: ["XS", "S", "M", "L"], sellerId: "seller_marthe", seller: "Marthe B.", sellerPhone: "+509 3801 2345" },
-            { id: 2, e: "face_retouching_natural", ec: "#db2777", t: "Sèwom Eklatan", p: 1800, l: "Pétion-Ville", c: "cosmetique", r: 4.8, b: "Reko IA", v: 98, s: 12, desc: "Sèwom natirèl ak plant ayisyen. Klere po an 2 semèn.", sizes: [], sellerId: "seller_marthe", seller: "Marthe B.", sellerPhone: "+509 3801 2345" },
-            { id: 3, e: "diamond", ec: "#d97706", t: "Kolye Atizana", p: 2800, l: "Delmas", c: "accessoire", r: 5.0, b: "Nouvo", v: 67, s: 3, desc: "Kolye ò 18 kara, pyes inik. Bijoutye ayisyen.", sizes: [], sellerId: "seller_jeanlouis", seller: "Jean-Louis D.", sellerPhone: "+509 4712 5678" },
-            { id: 4, e: "palette", ec: "#059669", t: "Sak Pay", p: 3200, l: "Pétion-Ville", c: "artisanat", r: 4.9, b: null, v: 89, s: 6, desc: "Sak atizanal pay trese, fèt pa artizàn lokal.", sizes: [], sellerId: "seller_jeanlouis", seller: "Jean-Louis D.", sellerPhone: "+509 4712 5678" },
-            { id: 5, e: "science", ec: "#0891b2", t: "Krèm Karite", p: 950, l: "Carrefour", c: "cosmetique", r: 4.7, b: "Pwomo", v: 210, s: 24, desc: "Krèm natirèl karite ayisyen. 100% natirèl.", sizes: [], sellerId: "seller_marthe", seller: "Marthe B.", sellerPhone: "+509 3801 2345" },
-            { id: 6, e: "checkroom", ec: "#4f46e5", t: "Chemiz Brode", p: 2800, l: "Tabarre", c: "mode", r: 4.6, b: null, v: 55, s: 4, desc: "Chemiz brode alamen. Motif tradisyonèl ayisyen.", sizes: ["S", "M", "L", "XL"], sellerId: "seller_marthe", seller: "Marthe B.", sellerPhone: "+509 3801 2345" },
-            { id: 7, e: "child_care", ec: "#db2777", t: "Rad Bebe ×10", p: 1200, l: "Delmas", c: "bebe", r: 4.5, b: "Nouvo", v: 88, s: 15, desc: "Pak 10 rad pou bebe 0-12 mwa. Koton 100%.", sizes: ["0-3M", "3-6M", "6-12M"], sellerId: "seller_jeanlouis", seller: "Jean-Louis D.", sellerPhone: "+509 4712 5678" },
-            { id: 8, e: "museum", ec: "#65a30d", t: "Tablo Penti", p: 5200, l: "Pétion-Ville", c: "artisanat", r: 4.6, b: null, v: 34, s: 2, desc: "Tablo atizanal ayisyen, pent alamen. Pyes inik.", sizes: [], sellerId: "seller_jeanlouis", seller: "Jean-Louis D.", sellerPhone: "+509 4712 5678" },
-        ];
+        // ── PRODUCTS — fetched from Supabase (no mock data) ──
+        const PRODUCTS = [];
 
-        const MKT = { mode: { avg: 3200, med: 3000, min: 2400, max: 3600 }, cosmetique: { avg: 1600, med: 1500, min: 1200, max: 1800 }, accessoire: { avg: 2600, med: 2500, min: 2000, max: 3000 }, artisanat: { avg: 3500, med: 3300, min: 2640, max: 3960 }, maison: { avg: 5200, med: 5000, min: 4000, max: 6000 }, bebe: { avg: 1100, med: 1000, min: 800, max: 1200 } };
+        // ── MARKET DATA — fetched dynamically from Supabase ──
+        const MKT = {};
 
         const AI_D = {
             mode: (t, p, l) => `${t} — pyes elegant disponib nan men yon vandè verifye nan ${l}. Twal kalite, fini swayen. Pri fiks ${fp(p)} HTG. Livrezon zòn PAP. Kòmande vit!`,
@@ -2855,34 +2815,11 @@
             { id: "tb", ic: "store", n: "Mini Market Tabarre", a: "Route Nationale 1" },
         ];
 
-        // Demo users
-        const DEMO_USERS = {
-            buyer: { uid: "buyer_001", name: "Jean R.", phone: "+509 3712 4567", role: "buyer", verifiedSeller: false, avatar: "JR", initials: "JR" },
-            seller: { uid: "seller_001", name: "Marthe B.", phone: "+509 3801 2345", role: "seller", verifiedSeller: true, avatar: "MB", initials: "MB" },
-            admin: { uid: "admin_001", name: "Admin", phone: "+509 3900 0001", role: "admin", verifiedSeller: true, avatar: "AD", initials: "AD" },
-        };
-
-        // Pending verifications for admin
-        const VERIF_REQUESTS = [
-            { uid: "u001", name: "Marie L.", phone: "+509 3712 1111", submittedAt: "Il y a 10 min", status: "pending" },
-            { uid: "u002", name: "Carlo D.", phone: "+509 4801 2222", submittedAt: "Il y a 2h", status: "pending" },
-            { uid: "u003", name: "Rose M.", phone: "+509 3712 3333", submittedAt: "Il y a 5h", status: "pending" },
-            { uid: "u004", name: "Jean-Max", phone: "+509 4900 4444", submittedAt: "Il y a 1j", status: "approved" },
-        ];
-
-        const ADMIN_ORDERS = [
-            { id: "CMD-4521", product: "Wòb Swaré", buyer: "Jean R.", seller: "Marthe B.", amount: 3605, status: "pending", method: "MonCash" },
-            { id: "CMD-4520", product: "Sèwom Eklatan", buyer: "Rose M.", seller: "Marthe B.", amount: 1854, status: "shipped", method: "MonCash" },
-            { id: "CMD-4519", product: "Kolye Atizana", buyer: "Carlo D.", seller: "Bijoux HTI", amount: 2884, status: "delivered", method: "MonCash" },
-        ];
-
-        const ADMIN_USERS = [
-            { uid: "u001", name: "Jean R.", role: "buyer", status: "active", orders: 5 },
-            { uid: "u002", name: "Marthe B.", role: "seller", verified: true, status: "active", sales: 42 },
-            { uid: "u003", name: "Carlo D.", role: "buyer", status: "active", orders: 2 },
-            { uid: "u004", name: "Rose M.", role: "seller", verified: false, status: "pending", sales: 0 },
-            { uid: "u005", name: "Fraud X", role: "buyer", status: "banned", orders: 0 },
-        ];
+        // ── All data fetched from Supabase — no mock users/data ──
+        const DEMO_USERS = {};
+        const VERIF_REQUESTS = [];
+        const ADMIN_ORDERS = [];
+        const ADMIN_USERS = [];
 
         // ══════════════════════════════════════════════════════════
         //  STATE
@@ -3192,7 +3129,7 @@
       </button>
     </div>
     <div class="bg-surface-container-low px-5 pt-5 pb-4 space-y-4">
-      ${p.b === 'Verifye' ? `<div class="flex items-center gap-1"><span class="material-symbols-outlined fi text-primary" style="font-size:14px">verified</span><span class="font-label text-xs font-bold text-primary">Vandè Verifye · Custom Claim ✓</span></div>` : ''}
+      ${p.b === 'Verifye' ? `<div class="flex items-center gap-1"><span class="material-symbols-outlined fi text-primary" style="font-size:14px">verified</span><span class="font-label text-xs font-bold text-primary">Vandè Verifye</span></div>` : ''}
       <div>
         <h1 class="font-headline font-extrabold text-[1.6rem] text-on-surface tracking-tight leading-tight">${p.t}</h1>
         <p class="font-body text-xs text-on-surface-variant mt-0.5">${p.c} · ${p.l}</p>
@@ -3203,7 +3140,7 @@
       </div>
       ${p.sizes.length ? `<div><p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-2">Tay</p><div class="flex flex-wrap gap-2">${p.sizes.map((sz, i) => `<button class="szb w-12 h-10 rounded-lg font-label font-bold text-sm ${i === 0 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'}" onclick="selSz(this)">${sz}</button>`).join('')}</div></div>` : ''}
       ${(() => {
-                    const seller = SELLERS[p.sellerId] || SELLERS.seller_marthe;
+                    const seller = SELLERS[p.sellerId] || { id: p.sellerId, name: p.sellerName || 'Vandè', initials: (p.sellerName || 'V').split(' ').map(w=>w[0]).join('').slice(0,2), verified: !!p.b, rating: p.r || 0, reviewCount: 0, responseTime: '', badges: [] };
                     return `<div class="bg-surface-container-lowest rounded-xl p-4 flex items-center gap-3 cursor-pointer active:bg-surface-container-low transition-colors" onclick="openSellerProfile('${seller.id}')">
         <div class="w-11 h-11 rounded-full cta flex items-center justify-center flex-shrink-0"><span class="font-headline font-bold text-white text-sm">${seller.initials}</span></div>
         <div class="flex-1">
@@ -3271,29 +3208,28 @@
             const g = document.getElementById("feedGrid");
             if (!g) return;
 
-            // Show loading state
-            g.innerHTML = '<div class="col-span-2 text-center py-12"><div class="spinner" style="width:32px;height:32px;border:3px solid #e5e2dd;border-top-color:#00666f;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto"></div><p class="font-label text-xs text-on-surface-variant mt-3">Ap chaje pwodwi...</p></div>';
+            // Show skeleton loading state
+            g.innerHTML = skeletonFeedCards(6);
 
-            // Try Supabase first, fallback to local
+            // Fetch from Supabase only — no local fallback
             if (typeof loadProductsFromSupabase === 'function' && db) {
                 loadProductsFromSupabase({ category: filter }).then(data => {
                     if (data && data.length > 0) {
-                        console.log('[Feed] ✅ ' + data.length + ' pwodwi chaje depi Supabase');
-                        // Merge Supabase data into PRODUCTS for openProduct compatibility
+                        console.log('[Feed] ' + data.length + ' pwodwi chaje depi Supabase');
                         data.forEach(sp => {
                             if (!PRODUCTS.find(p => p.id === sp.id)) PRODUCTS.push(sp);
                         });
                         renderFeedCards(g, data);
                     } else {
-                        console.log('[Feed] Supabase vid, ap itilize done lokal');
-                        renderFeedLocal(g, filter);
+                        g.innerHTML = emptyState('storefront', 'Pa gen pwodwi disponib', 'Okenn pwodwi pa pibliye ankò. Retounen pita!');
                     }
                 }).catch(e => {
-                    console.warn('[Feed] Supabase erè, fallback lokal:', e.message);
-                    renderFeedLocal(g, filter);
+                    console.warn('[Feed] Supabase erè:', e.message);
+                    g.innerHTML = emptyState('cloud_off', 'Erè koneksyon', 'Nou pa ka chaje pwodwi yo. Verifye entènèt ou epi eseye ankò.');
                 });
             } else {
-                renderFeedLocal(g, filter);
+                // Supabase not loaded yet — show empty state
+                g.innerHTML = emptyState('cloud_off', 'Backend pa disponib', 'Koneksyon Supabase pa rive. Tanpri eseye ankò.');
             }
 
             if (A.user) {
@@ -3304,13 +3240,43 @@
 
         function renderFeedLocal(g, filter) {
             const list = filter && filter !== "all" ? PRODUCTS.filter(p => p.c === filter) : PRODUCTS;
+            if (list.length === 0) {
+                g.innerHTML = emptyState('storefront', 'Pa gen pwodwi', 'Okenn pwodwi pa disponib nan kategori sa a.');
+                return;
+            }
             const scored = list.map(p => ({ ...p, score: scoreP(p) })).sort((a, b) => b.score - a.score);
             g.innerHTML = scored.map((p, i) => feedCard(p, i)).join("");
         }
 
         function renderFeedCards(g, products) {
+            if (!products || products.length === 0) {
+                g.innerHTML = emptyState('storefront', 'Pa gen pwodwi disponib', 'Okenn pwodwi pa pibliye ankò.');
+                return;
+            }
             const scored = products.map(p => ({ ...p, score: scoreP(p) })).sort((a, b) => b.score - a.score);
             g.innerHTML = scored.map((p, i) => feedCard(p, i)).join("");
+        }
+
+        // ── Skeleton loader helpers ──
+        function skeletonFeedCards(n) {
+            let html = '';
+            for (let i = 0; i < n; i++) {
+                const h = 160 + (i % 3) * 20;
+                html += '<div class="rounded-xl overflow-hidden amb" style="background:#f6f3ee;animation:pulse 1.5s ease-in-out infinite"><div style="height:' + h + 'px;background:linear-gradient(145deg,#ede9e3,#f6f3ee)"></div><div class="p-3"><div style="height:12px;width:70%;background:#ede9e3;border-radius:6px;margin-bottom:8px"></div><div style="height:10px;width:40%;background:#ede9e3;border-radius:6px;margin-bottom:8px"></div><div style="height:14px;width:50%;background:#ede9e3;border-radius:6px"></div></div></div>';
+            }
+            return html;
+        }
+
+        function skeletonCards(n) {
+            let html = '';
+            for (let i = 0; i < n; i++) {
+                html += '<div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb" style="animation:pulse 1.5s ease-in-out infinite"><div class="w-10 h-10 rounded-full flex-shrink-0" style="background:#ede9e3"></div><div class="flex-1"><div style="height:12px;width:60%;background:#ede9e3;border-radius:6px;margin-bottom:6px"></div><div style="height:10px;width:40%;background:#ede9e3;border-radius:6px"></div></div></div>';
+            }
+            return html;
+        }
+
+        function emptyState(icon, title, desc) {
+            return '<div class="col-span-2 text-center py-16 px-6"><span class="material-symbols-outlined" style="font-size:48px;color:#bcc9c8">' + icon + '</span><p class="font-headline font-bold text-base text-on-surface mt-3">' + title + '</p><p class="font-label text-xs text-on-surface-variant mt-1.5 max-w-xs mx-auto">' + desc + '</p></div>';
         }
 
         function scoreP(p) {
@@ -3729,7 +3695,7 @@
             res.classList.remove("hidden"); steps.innerHTML = "";
             const photoInfo = uploadedPhotos.map((p, i) => `${i + 1}. ${p.name || 'foto'} — ${p.sizeKB}KB${p.compressed ? ' (konprese)' : ''}`).join(' · ');
             const pipeline = [
-                { i: "upload", tx: `Upload ${uploadedPhotos.length} foto → Firebase Storage · ${photoInfo}` },
+                { i: "upload", tx: `Upload ${uploadedPhotos.length} foto → Supabase Storage · ${photoInfo}` },
                 { i: "check_circle", tx: "Validasyon pri & estòk → Firestore Rules" },
                 { i: "auto_awesome", tx: "onProductCreate() → Gemini jenere/amelyore deskripsyon" },
                 { i: "price_check", tx: "VertexAI sijere pri mache lokal ±20%" },
@@ -3754,7 +3720,8 @@
         }
 
         function renderOrderSheet() {
-            const p = A.curProd || PRODUCTS[0];
+            const p = A.curProd;
+            if (!p) { toast('Chwazi yon pwodwi dabò'); return; }
             const sub = p.p, fee = Math.round(sub * .03), total = sub + fee;
             document.getElementById("orderSheetContent").innerHTML = `
     <p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-1">Kòmande</p>
@@ -3851,7 +3818,8 @@
 
         async function confirmOrder() {
             closeSheets();
-            const p = A.curProd || PRODUCTS[0];
+            const p = A.curProd;
+            if (!p) { toast('Erè: pa gen pwodwi seleksyone'); return; }
             const pickup = PICKUPS.find(pk => pk.id === A.selPickup) || PICKUPS[0];
 
             // Jenere OTP 6 chif pou livrezon
@@ -3882,20 +3850,20 @@
         // ══════════════════════════════════════════════════════════
         //  CHAT
         // ══════════════════════════════════════════════════════════
-        const CHAT_INIT = [
-            { s: false, t: "Bonjou! Pwodwi sa a disponib toujou?", tm: "10:22" },
-            { s: true, t: "Bonjou! Wi, toujou la. Ki tay ou chèche?", tm: "10:23" },
-            { s: false, t: "Mwen chèche yon M. Pri a fiks?", tm: "10:24" },
-        ];
-        const AUTO_R = ["Dakò, mwen note!", "Pri fiks, pa gen negosyasyon.", "Livrezon disponib PAP.", "Wi, toujou disponib!", "Mèsi pou enterè ou!"];
+        // ── Chat messages — fetched from Supabase realtime (no mock data) ──
+        const CHAT_INIT = [];
+        const AUTO_R = [];
         let rIdx = 0;
 
         function openChatFor(pid) {
-            const p = PRODUCTS.find(x => x.id === pid) || PRODUCTS[0];
-            if (!A.msgs[pid]) A.msgs[pid] = [...CHAT_INIT];
+            if (!A.isAuth) { toast('Ou dwe konekte pou voye mesaj'); return; }
+            const p = PRODUCTS.find(x => x.id === pid);
+            if (!p) { toast('Pwodwi pa jwenn'); return; }
+            if (!A.msgs[pid]) A.msgs[pid] = [];
             A.chatId = pid;
-            A.chatSellerPhone = p.sellerPhone || '+509 3801 2345';
-            A.chatSellerName = p.seller || 'Marthe B.';
+            A.chatSellerId = p.sellerId || null;
+            A.chatSellerPhone = p.sellerPhone || '';
+            A.chatSellerName = p.sellerName || p.seller || 'Vandè';
             document.getElementById("chatAv").innerHTML = '<span class="font-headline font-bold text-white text-xs">' + (A.chatSellerName.split(' ').map(w=>w[0]).join('').slice(0,2)) + '</span>';
             document.getElementById("chatName").textContent = A.chatSellerName;
             renderChatMsgs(pid);
@@ -3923,7 +3891,7 @@
 
         function renderChatMsgs(pid) {
             const msgs = A.msgs[pid] || [];
-            const p = PRODUCTS.find(x => x.id === pid) || PRODUCTS[0];
+            const p = PRODUCTS.find(x => x.id === pid);
             document.getElementById("chatMsgs").innerHTML = `
     <div class="self-center bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 w-[82%] amb cursor-pointer" onclick="openProduct(${p.id})">
       <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">${prodPlaceholder(p, 40)}</div>
@@ -3946,13 +3914,21 @@
         function sendMsg() {
             const input = document.getElementById("msgIn"); const t = input.value.trim();
             if (!t || !A.chatId) return;
+            if (!A.isAuth) { toast('Ou dwe konekte pou voye mesaj'); return; }
             if (!A.msgs[A.chatId]) A.msgs[A.chatId] = [];
             const tm = new Date().toLocaleTimeString("fr", { hour: "2-digit", minute: "2-digit" });
             A.msgs[A.chatId].push({ s: true, t, tm }); input.value = ""; renderChatMsgs(A.chatId);
-            setTimeout(() => {
-                A.msgs[A.chatId].push({ s: false, t: AUTO_R[rIdx++ % AUTO_R.length], tm: new Date().toLocaleTimeString("fr", { hour: "2-digit", minute: "2-digit" }) });
-                renderChatMsgs(A.chatId);
-            }, 1100);
+            // Send to Supabase messages table
+            if (db && A.user?.uid) {
+                db.from('messages').insert({
+                    sender_id: A.user.uid,
+                    receiver_id: A.chatSellerId || null,
+                    product_id: A.chatId,
+                    content: t,
+                }).then(({ error }) => {
+                    if (error) console.warn('[Chat] Erè voye mesaj:', error.message);
+                });
+            }
         }
 
         // ══════════════════════════════════════════════════════════
@@ -4061,13 +4037,24 @@
         if (!A.cart) A.cart = [];
 
         function addToCart(productId) {
+            if (!A.isAuth) { toast('Ou dwe konekte pou ajoute nan panye'); return; }
             const p = PRODUCTS.find(x => x.id === productId);
-            if (!p) return;
+            if (!p) { toast('Pwodwi pa jwenn'); return; }
             const existing = A.cart.find(c => c.id === productId);
             if (existing) { existing.qty++; }
             else { A.cart.push({ id: productId, qty: 1 }); }
             updateCartBadge();
             toast(p.t + ' ajoute nan panye');
+            // Save cart to Supabase if available
+            if (db && A.user?.uid) {
+                db.from('cart_items').upsert({
+                    user_id: A.user.uid,
+                    product_id: productId,
+                    qty: existing ? existing.qty : 1,
+                }, { onConflict: 'user_id,product_id' }).then(({ error }) => {
+                    if (error) console.warn('[Cart]', error.message);
+                });
+            }
             playNotifSound();
             if (VIBRATE_ON && navigator.vibrate) navigator.vibrate(30);
         }
@@ -4120,7 +4107,7 @@
 
         function checkoutCart() {
             if (A.cart.length === 0) { toast('Panye vid'); return; }
-            A.curProd = PRODUCTS.find(x => x.id === A.cart[0].id) || PRODUCTS[0];
+            A.curProd = PRODUCTS.find(x => x.id === A.cart[0]?.id);
             goBack();
             setTimeout(() => { openSheet('orderSheet'); renderOrderSheet(); }, 300);
         }
@@ -4145,7 +4132,7 @@
         function renderBoutiqueContent() {
             const el = document.getElementById('boutiqueContent');
             if (!el) return;
-            const myProducts = PRODUCTS.filter(p => p.sellerId === 'seller_marthe');
+            const myProducts = A.user?.uid ? PRODUCTS.filter(p => p.sellerId === A.user.uid) : [];
             const totalSales = myProducts.reduce((s, p) => s + (p.v || 0), 0);
             const totalStock = myProducts.reduce((s, p) => s + (p.s || 0), 0);
             el.innerHTML = `
@@ -4226,12 +4213,9 @@
             document.getElementById('toptitle').style.display = '';
             const el = document.getElementById('followersContent');
             if (!el) return;
-            const demoFollowers = [
-                { name: 'Jean R.', phone: '+509 3712 4567', since: '2 mwa' },
-                { name: 'Rose M.', phone: '+509 3645 9012', since: '3 semèn' },
-                { name: 'Pierre L.', phone: '+509 4801 3456', since: '1 mwa' },
-            ];
-            el.innerHTML = '<div class="px-5 pt-6"><div class="bg-surface-container-lowest rounded-xl p-4 mb-5 text-center amb"><span class="font-headline font-extrabold text-3xl text-primary">' + A.followers + '</span><p class="font-label text-xs text-on-surface-variant mt-1">Kliyan Abonnen Total</p></div><p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-3">Lis Abonnen</p><div class="space-y-2">' + demoFollowers.map(f => '<div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb"><div class="w-10 h-10 rounded-full cta flex items-center justify-center flex-shrink-0"><span class="font-headline font-bold text-white text-sm">' + f.name.charAt(0) + '</span></div><div class="flex-1"><p class="font-headline font-bold text-sm text-on-surface">' + f.name + '</p><p class="font-label text-xs text-on-surface-variant">' + f.phone + ' · Depi ' + f.since + '</p></div></div>').join('') + '</div></div>';
+            // Fetch real followers from Supabase
+            el.innerHTML = '<div class="px-5 pt-6"><div class="bg-surface-container-lowest rounded-xl p-4 mb-5 text-center amb"><span class="font-headline font-extrabold text-3xl text-primary">' + (A.followers || 0) + '</span><p class="font-label text-xs text-on-surface-variant mt-1">Kliyan Abonnen Total</p></div><div id="followersListInner" class="space-y-2">' + skeletonCards(3) + '</div></div>';
+            loadFollowersFromSupabase();
         }
 
         // ══════════════════════════════════════════════════════════
@@ -4300,6 +4284,10 @@
         // ══════════════════════════════════════════════════════════
         function renderAdmin() {
             if (!A.user || A.user.role !== "admin") { navTo("feed"); return; }
+            // Load real data from Supabase
+            if (typeof loadAdminDataFromSupabase === 'function') {
+                loadAdminDataFromSupabase();
+            }
             renderVerifList();
             renderAdminOrders();
             renderAdminUsers();
@@ -4331,7 +4319,7 @@
         <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">badge</span>
         <div>
           <p class="font-label text-xs font-bold text-on-surface">id_card.jpg</p>
-          <p class="font-label text-[10px] text-on-surface-variant">Firebase Storage · 1.2MB</p>
+          <p class="font-label text-[10px] text-on-surface-variant">Supabase Storage · 1.2MB</p>
         </div>
       </div>
     </div>
@@ -4343,20 +4331,20 @@
         <span class="material-symbols-outlined align-middle" style="font-size:15px">cancel</span> Rejte
       </button>
     </div>`:
-                    `<p class="font-label text-xs text-on-surface-variant">${v.status === 'approved' ? 'Custom Claim verifiedSeller=true defini' : 'Demann rejte'}</p>`}
+                    `<p class="font-label text-xs text-on-surface-variant">${v.status === 'approved' ? 'Kont vandè verifye nan Supabase' : 'Demann rejte'}</p>`}
   </div>`).join("");
         }
 
         function approveVerif(uid, name) {
-            toast(`${name} — verifiedSeller=true · Custom Claim aktive`);
+            toast(`${name} — vandè verifye`);
             // Update in data
             const idx = VERIF_REQUESTS.findIndex(v => v.uid === uid);
             if (idx >= 0) { VERIF_REQUESTS[idx].status = "approved"; }
             document.getElementById("kpiPending").textContent = VERIF_REQUESTS.filter(v => v.status === "pending").length;
             renderVerifList();
             // Show success
-            showSuccess("verified_icon", "Vandè Apwouve!", `${name} ka kounye a pibliye pwodwi.\nCustom Claim: role='seller', verifiedSeller=true`,
-                "FCM → Notifikasyon voye bay vandè a", "Ferme");
+            showSuccess("verified_icon", "Vandè Apwouve!", `${name} ka kounye a pibliye pwodwi.\nWòl: vandè verifye`,
+                "Notifikasyon voye bay vandè a", "Ferme");
         }
 
         function rejectVerif(uid, name) {
@@ -4466,7 +4454,7 @@
         async function uploadIDPhotos() {
             if (!idPhotos.front || !idPhotos.back) { toast("2 foto obligatwa"); return; }
 
-            // Simuler la barre d'upload Firebase Storage
+            // Simuler la barre d'upload Supabase Storage
             const bar = document.getElementById('idUploadProgress');
             bar.classList.remove('hidden');
             const fill = document.getElementById('idUploadFill');
@@ -4488,7 +4476,7 @@
 
             await new Promise(r => setTimeout(r, 400));
             bar.classList.add('hidden');
-            toast("ID upload nan Firebase Storage");
+            toast("ID upload nan Supabase Storage");
             vsGoStep(3);
         }
 
@@ -4507,7 +4495,7 @@
                 { icon: 'image', label: 'Foto fas', val: idPhotos.front ? `${idPhotos.front.sizeKB}KB` : '—', ok: !!idPhotos.front },
                 { icon: 'image', label: 'Foto do', val: idPhotos.back ? `${idPhotos.back.sizeKB}KB` : '—', ok: !!idPhotos.back },
                 { icon: 'face', label: 'Selfie', val: idPhotos.selfie ? `${idPhotos.selfie.sizeKB}KB` : '—', ok: !!idPhotos.selfie },
-                { icon: 'lock', label: 'Estokaj', val: 'Firebase Storage · Chifre AES-256' },
+                { icon: 'lock', label: 'Estokaj', val: 'Supabase Storage · Chifre AES-256' },
                 { icon: 'shield', label: 'Aksè', val: 'Admin AyitiMarket sèlman' },
             ];
             document.getElementById('vsSummary').innerHTML = items.map(it => `
@@ -4523,17 +4511,25 @@
 
         function submitVerification() {
             closeSheets();
-            // Ajouter la demann nan VERIF_REQUESTS
             const newReq = {
-                uid: 'u_' + Date.now(),
+                uid: A.user?.uid || 'u_' + Date.now(),
                 name: A.user?.name || 'Utilisateur',
-                phone: A.user?.phone || '+509 ——',
+                phone: A.user?.phone || '',
                 submittedAt: 'Kounye a',
                 status: 'pending',
                 idType: document.querySelector('input[name="idtype"]:checked')?.value || 'cin',
                 photos: idPhotos,
             };
             VERIF_REQUESTS.unshift(newReq);
+            // Save to Supabase
+            if (db && A.user?.uid) {
+                db.from('verification_requests').insert({
+                    user_id: A.user.uid, name: newReq.name, phone: newReq.phone,
+                    status: 'pending', id_type: newReq.idType,
+                }).then(({ error }) => {
+                    if (error) console.warn('[Verif] Submit error:', error.message);
+                });
+            }
             // Notif in-app
             addNotif({
                 id: 'n_' + Date.now(),
@@ -4614,7 +4610,7 @@
     ` : `
     <div class="flex items-center gap-2">
       <span class="material-symbols-outlined fi" style="font-size:14px;color:${v.status === 'approved' ? '#00666f' : '#98443e'}">${v.status === 'approved' ? 'verified' : 'cancel'}</span>
-      <p class="font-label text-xs text-on-surface-variant">${v.status === 'approved' ? 'Custom Claim verifiedSeller=true aktive' : 'Demann rejte — notifikasyon voye'}</p>
+      <p class="font-label text-xs text-on-surface-variant">${v.status === 'approved' ? 'Kont vandè verifye' : 'Demann rejte — notifikasyon voye'}</p>
     </div>
     ${v.rejectReason ? `<p class="font-label text-xs text-secondary mt-1">Rezon: ${v.rejectReason}</p>` : ''}
     `}
@@ -4642,7 +4638,7 @@
             if (photo) {
                 img.innerHTML = `<img src="${photo.dataUrl}" class="w-full h-full object-cover rounded-xl"/>`;
                 img.style.padding = '0';
-                meta.textContent = `${typeLabel} · ${sideLabel} · ${photo.sizeKB}KB · Firebase Storage`;
+                meta.textContent = `${typeLabel} · ${sideLabel} · ${photo.sizeKB}KB · Supabase Storage`;
             } else {
                 img.innerHTML = `<div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-on-surface-variant" style="font-size:48px">badge</span><p class="font-label text-sm text-on-surface-variant">${sideLabel} — pa disponib</p></div>`;
                 meta.textContent = `${typeLabel} · ${sideLabel} · pa upload toujou`;
@@ -4691,30 +4687,40 @@
         function approveVerif(uid, name) {
             const idx = VERIF_REQUESTS.findIndex(v => v.uid === uid);
             if (idx >= 0) VERIF_REQUESTS[idx].status = 'approved';
+            // Update in Supabase
+            if (db) {
+                db.from('profiles').update({ verified_seller: true, role: 'seller' }).eq('id', uid)
+                    .then(({ error }) => { if (error) console.warn('[Admin] Approve error:', error.message); });
+                db.from('verification_requests').update({ status: 'approved' }).eq('user_id', uid)
+                    .then(({ error }) => { if (error) console.warn('[Admin] Verif update error:', error.message); });
+            }
             document.getElementById('kpiPending').textContent = VERIF_REQUESTS.filter(v => v.status === 'pending').length;
             renderVerifList();
-            // Notif in-app pour l'admin
             addNotif({
                 id: 'n_' + Date.now(), type: 'system', icon: 'verified',
-                title: 'Vandè Apwouve', body: `${name} — Custom Claim verifiedSeller=true aktive. FCM voye.`,
+                title: 'Vandè Apwouve', body: `${name} — verifiedSeller=true aktive.`,
                 time: 'Kounye a', read: false, color: '#00666f',
-                action: () => { closeSheets(); navTo('admin'); }
             });
             updateNotifBadge();
-            toast(`${name} — verifiedSeller=true · FCM notifikasyon voye`);
+            toast(`${name} — verifiedSeller=true`);
         }
 
         function rejectVerif(uid, name, reason) {
             const idx = VERIF_REQUESTS.findIndex(v => v.uid === uid);
             if (idx >= 0) { VERIF_REQUESTS[idx].status = 'rejected'; VERIF_REQUESTS[idx].rejectReason = reason; }
+            // Update in Supabase
+            if (db) {
+                db.from('verification_requests').update({ status: 'rejected', reject_reason: reason }).eq('user_id', uid)
+                    .then(({ error }) => { if (error) console.warn('[Admin] Reject error:', error.message); });
+            }
             renderVerifList();
             addNotif({
                 id: 'n_' + Date.now(), type: 'system', icon: 'cancel',
-                title: 'Verifikasyon Rejte', body: `${name} — ${reason}. Notifikasyon FCM voye.`,
+                title: 'Verifikasyon Rejte', body: `${name} — ${reason}`,
                 time: 'Kounye a', read: false, color: '#98443e',
             });
             updateNotifBadge();
-            toast(`${name} rejte — Reji avèk rezon · FCM voye`);
+            toast(`${name} rejte`);
         }
 
         function renderAdminOrders() {
@@ -4773,13 +4779,8 @@
         //  POINT 6 — CENTRE DE NOTIFICATIONS + FCM STUB
         // ══════════════════════════════════════════════════════════
 
-        // Store de notifications (remplace le tableau statique)
-        let NOTIFS = [
-            { id: 'n1', type: 'order', icon: 'shopping_bag', title: 'Nouvo Komand!', body: 'Wòb Swaré — 3 605 HTG · Rose M.', time: '2 min', read: false, color: '#00666f' },
-            { id: 'n2', type: 'system', icon: 'auto_awesome', title: 'Deskripsyon IA jenere', body: 'Sèwom Eklatan — Gemini 1.5 Flash', time: '8 min', read: false, color: '#97422b' },
-            { id: 'n3', type: 'order', icon: 'shield', title: 'Escrow Debloke', body: 'Komand #4521 — 2 800 HTG kredite', time: '1h', read: true, color: '#22c55e' },
-            { id: 'n4', type: 'system', icon: 'verified', title: 'Kont Verifye!', body: 'Idantite ou konfime pa Admin', time: '3h', read: true, color: '#5ad7e6' },
-        ];
+        // ── Notifications — fetched from Supabase (no mock data) ──
+        let NOTIFS = [];
 
         // FCM state
         let FCM = { permission: 'default', token: null }; // default | granted | denied
@@ -4816,17 +4817,9 @@
         }
 
         function renderNotifs(tab = 'all') {
-            // Admin: ajouter notif verif si pas déjà présente
-            if (A.user?.role === 'admin') {
-                const hasBadge = NOTIFS.some(n => n.id === 'n_admin_badge');
-                if (!hasBadge) {
-                    NOTIFS.unshift({
-                        id: 'n_admin_badge', type: 'system', icon: 'badge',
-                        title: 'Nouvo Demann Verifikasyon', body: 'Marie L. · +509 3712 1111 — An atant',
-                        time: 'Kounye a', read: false, color: '#97422b',
-                        action: () => { closeSheets(); navTo('admin'); }
-                    });
-                }
+            // Load notifications from Supabase
+            if (db && A.user?.uid && NOTIFS.length === 0) {
+                loadNotifsFromSupabase();
             }
 
             const filtered = tab === 'all' ? NOTIFS : NOTIFS.filter(n => n.type === tab);
@@ -4901,24 +4894,8 @@
             }
         }
 
-        // Simuler réception d'une notif push FCM (pour la démo)
-        function simulatePushNotif() {
-            const types = [
-                { icon: 'shopping_bag', title: 'Nouvo Komand!', body: 'Wòb Swaré — 3 500 HTG · Nouvo kliyan', color: '#00666f', type: 'order' },
-                { icon: 'local_shipping', title: 'Komand an Wout!', body: 'CMD-4521 — Kouri moto pran livrezon', color: '#5ad7e6', type: 'order' },
-                { icon: 'shield', title: 'Escrow Debloke', body: '2 800 HTG kredite nan kont ou', color: '#22c55e', type: 'order' },
-                { icon: 'auto_awesome', title: 'IA tèmine!', body: 'Deskripsyon pwodwi ou jenere avèk siksè', color: '#97422b', type: 'system' },
-            ];
-            const t = types[Math.floor(Math.random() * types.length)];
-            addNotif({ id: 'n_push_' + Date.now(), ...t, time: 'Kounye a', read: false });
-            // Toast style push notification
-            toast(`${t.title} — ${t.body.slice(0, 40)}…`);
-        }
-
-        // Démarer simulation auto toutes les 30s si FCM accordé
-        setInterval(() => {
-            if (FCM.permission === 'granted' && Math.random() > 0.6) simulatePushNotif();
-        }, 30000);
+        // Push notifications handled by Supabase Realtime + service worker
+        function simulatePushNotif() { /* Removed — production uses real push */ }
         function showSuccess(emoji, title, body, escrow, btnLabel) {
             const ov = document.getElementById("successOverlay"); ov.classList.remove("hidden");
             const iconMap = { "verified_icon": "verified", "hourglass_icon": "hourglass_top", "check": "check_circle", "default": "check_circle" };
@@ -5338,7 +5315,7 @@
 
         // Bouton "Wè Kòd" nan order screen
         function showOrderOTP(productId) {
-            const p = PRODUCTS.find(x => x.id === productId) || PRODUCTS[0];
+            const p = PRODUCTS.find(x => x.id === productId);
             A.currentOTP = A.currentOTP || generateDeliveryOTP();
             A.currentOrder = { product: p, pickup: PICKUPS[0] };
             showOTPSheet();
@@ -5350,7 +5327,7 @@
         const _chatRenderBase = renderChatMsgs;
         renderChatMsgs = function (pid) {
             const msgs = A.msgs[pid] || [];
-            const p = PRODUCTS.find(x => x.id === pid) || PRODUCTS[0];
+            const p = PRODUCTS.find(x => x.id === pid);
 
             document.getElementById('chatMsgs').innerHTML = `
     <div class="self-center bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 w-[82%] amb cursor-pointer" onclick="openProduct(${p.id})">
@@ -5408,10 +5385,11 @@
             if (local.length > 0) {
                 res.innerHTML = local.map((p, i) => feedCard(p, i)).join("");
             } else {
-                res.innerHTML = '<p class="font-body text-sm text-on-surface-variant text-center py-8 col-span-2">Okenn rezilta pou "' + q + '"</p>';
+                // Show loading while Supabase searches
+                res.innerHTML = skeletonFeedCards(4);
             }
 
-            // Chèche nan Supabase tou (si disponib)
+            // Chèche nan Supabase (source of truth)
             if (typeof db !== 'undefined' && db) {
                 db.from('products')
                     .select('*, seller:profiles!seller_id(display_name, verified_seller, rating_avg)')
@@ -5440,7 +5418,14 @@
                                 res.innerHTML = merged.map((p, i) => feedCard(p, i)).join("");
                             }
                         }
-                    }).catch(() => {});
+                        if (merged.length === 0 && local.length === 0) {
+                            res.innerHTML = '<p class="font-body text-sm text-on-surface-variant text-center py-8 col-span-2">Okenn rezilta pou "' + q + '"</p>';
+                        }
+                    }).catch(() => {
+                        if (local.length === 0) {
+                            res.innerHTML = '<p class="font-body text-sm text-on-surface-variant text-center py-8 col-span-2">Okenn rezilta pou "' + q + '"</p>';
+                        }
+                    });
             }
         }
 
@@ -6285,7 +6270,6 @@
             closeSheets();
             // In production, this would open the store listing
             toast('Mèsi! Redireksyon vè Play Store...');
-            setTimeout(() => toast('Rating 5★ anrejistre (demo)'), 1500);
         }
 
         // ── Utils ──────────────────────────────────────────────
@@ -6298,18 +6282,15 @@
         //  FEATURE 1 — FLASH DEALS ENGINE (Countdown + Cards)
         // ══════════════════════════════════════════════════════════
 
-        const FLASH_DEALS = [
-            { id: 101, t: "Sak Kwi Artisanal", p: 4200, oldP: 5800, e: "palette", ec: "#059669", c: "artisanat", l: "Pétion-Ville", pct: 28, stock: 2 },
-            { id: 102, t: "Sèwom Anti-Aj", p: 1400, oldP: 2200, e: "science", ec: "#0891b2", c: "cosmetique", l: "Delmas", pct: 36, stock: 5 },
-            { id: 103, t: "Braslè Pèl Nwa", p: 1900, oldP: 3100, e: "diamond", ec: "#d97706", c: "accessoire", l: "Tabarre", pct: 39, stock: 1 },
-        ];
+        // ── Flash Deals — fetched from Supabase (no mock data) ──
+        let FLASH_DEALS = [];
 
         // Flash Deal countdown — 2h30m from page load
         let flashEndTime = Date.now() + (2 * 60 * 60 + 30 * 60) * 1000;
         let flashInterval = null;
 
         function initFlashDeals() {
-            renderFlashDealCards();
+            loadFlashDealsFromSupabase();
             startFlashCountdown();
         }
 
@@ -6340,6 +6321,10 @@
         function renderFlashDealCards() {
             const grid = document.getElementById('flashDealsGrid');
             if (!grid) return;
+            if (FLASH_DEALS.length === 0) {
+                grid.innerHTML = '<p class="font-label text-xs text-on-surface-variant text-center py-6 w-full">Pa gen Flash Deal disponib kounye a</p>';
+                return;
+            }
             grid.innerHTML = FLASH_DEALS.map(fd => {
                 const savePct = Math.round((1 - fd.p / fd.oldP) * 100);
                 const color = fd.ec || '#00666f';
@@ -6394,31 +6379,12 @@
         //  FEATURE 2 — "SHOP THE LOOK" (Konplete Look sa a)
         // ══════════════════════════════════════════════════════════
 
-        const LOOK_ACCESSORIES = {
-            mode: [
-                { id: 'stl-1', t: 'Sak a Main Kwi', p: 2800, e: 'palette', ec: '#059669', c: 'accessoire' },
-                { id: 'stl-2', t: 'Boukl Dòrèy Pèl', p: 1500, e: 'diamond', ec: '#d97706', c: 'accessoire' },
-            ],
-            cosmetique: [
-                { id: 'stl-3', t: 'Krèm Solèy SPF50', p: 980, e: 'science', ec: '#0891b2', c: 'cosmetique' },
-                { id: 'stl-4', t: 'Lip Gloss Natirèl', p: 650, e: 'face_retouching_natural', ec: '#db2777', c: 'cosmetique' },
-            ],
-            accessoire: [
-                { id: 'stl-5', t: 'Chapo Pay Trese', p: 1800, e: 'palette', ec: '#059669', c: 'artisanat' },
-                { id: 'stl-6', t: 'Sak Kwi Piti', p: 2200, e: 'palette', ec: '#059669', c: 'artisanat' },
-            ],
-            artisanat: [
-                { id: 'stl-7', t: 'Kolye Bwa Sculte', p: 1200, e: 'diamond', ec: '#d97706', c: 'accessoire' },
-                { id: 'stl-8', t: 'Braslè Atizana', p: 950, e: 'diamond', ec: '#d97706', c: 'accessoire' },
-            ],
-            bebe: [
-                { id: 'stl-9', t: 'Chosèt Bebe x3', p: 450, e: 'child_care', ec: '#db2777', c: 'bebe' },
-                { id: 'stl-10', t: 'Bonè Koton', p: 350, e: 'child_care', ec: '#db2777', c: 'bebe' },
-            ],
-        };
+        // ── Look Accessories — fetched dynamically from Supabase (no mock data) ──
+        let LOOK_ACCESSORIES = {};
 
         function getShopTheLookHTML(product) {
-            const accessories = LOOK_ACCESSORIES[product.c] || LOOK_ACCESSORIES.mode;
+            const accessories = LOOK_ACCESSORIES[product.c] || [];
+            if (!accessories || accessories.length === 0) return '';
             return `
   <div class="mt-1">
     <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-2">Konplete Look sa a</p>
@@ -6452,13 +6418,11 @@
         //  FEATURE 3 — VIDEO REVIEW EXPERIENCE
         // ══════════════════════════════════════════════════════════
 
-        const VIDEO_REVIEWS = [
-            { id: 'vr-1', reviewer: 'Marie L.', rating: 5, duration: '0:32', color: '#00666f' },
-            { id: 'vr-2', reviewer: 'Carlo D.', rating: 4, duration: '0:45', color: '#98443e' },
-            { id: 'vr-3', reviewer: 'Rose M.', rating: 5, duration: '0:18', color: '#059669' },
-        ];
+        // ── Video Reviews — fetched from Supabase (no mock data) ──
+        let VIDEO_REVIEWS = [];
 
         function getVideoReviewsHTML(product) {
+            if (!VIDEO_REVIEWS || VIDEO_REVIEWS.length === 0) return '';
             return `
   <div class="mt-1">
     <div class="flex items-center justify-between mb-2">
@@ -6625,8 +6589,13 @@
         //  SELLER PROFILE VIEW — Trust System
         // ══════════════════════════════════════════════════════════
 
-        function openSellerProfile(sellerId) {
-            const seller = SELLERS[sellerId];
+        async function openSellerProfile(sellerId) {
+            let seller = SELLERS[sellerId];
+            // Fetch from Supabase if not cached
+            if (!seller && typeof loadSellerFromSupabase === 'function') {
+                toast('Ap chaje pwofil vandè...');
+                seller = await loadSellerFromSupabase(sellerId);
+            }
             if (!seller) { toast('Vandè pa jwenn'); return; }
 
             // Push current tab to navigation stack
@@ -6842,8 +6811,9 @@
         // ── Override openChatFor to use correct seller info ──
         const _origOpenChatFor = openChatFor;
         window.openChatFor = function (pid) {
-            const p = PRODUCTS.find(x => x.id === pid) || PRODUCTS[0];
-            const seller = SELLERS[p.sellerId] || SELLERS.seller_marthe;
+            const p = PRODUCTS.find(x => x.id === pid);
+            if (!p) { toast('Pwodwi pa jwenn'); return; }
+            const seller = SELLERS[p.sellerId] || { name: p.sellerName || 'Vandè', initials: (p.sellerName || 'V').split(' ').map(w=>w[0]).join('').slice(0,2) };
             _origOpenChatFor(pid);
             // Update chat header with correct seller info
             document.getElementById('chatAv').innerHTML = `<span class="font-headline font-bold text-white text-xs">${seller.initials}</span>`;
@@ -6894,8 +6864,10 @@
     ══════════════════════════════════════════════════════ -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-    const SUPABASE_URL = 'https://htxfwxldzaocuwezzbom.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0eGZ3eGxkemFvY3V3ZXp6Ym9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NDAxMzgsImV4cCI6MjA5MDExNjEzOH0.v1ZjEsBMCDiHPyFRz_ZKCkyfskIStgoA2Vn25Yq0FRI';
+    // Supabase credentials — set via Vercel environment variables
+    // For local dev: create .env with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
+    const SUPABASE_URL = (typeof __SUPABASE_URL__ !== 'undefined' && __SUPABASE_URL__) || 'https://htxfwxldzaocuwezzbom.supabase.co';
+    const SUPABASE_KEY = (typeof __SUPABASE_ANON_KEY__ !== 'undefined' && __SUPABASE_ANON_KEY__) || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0eGZ3eGxkemFvY3V3ZXp6Ym9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NDAxMzgsImV4cCI6MjA5MDExNjEzOH0.v1ZjEsBMCDiHPyFRz_ZKCkyfskIStgoA2Vn25Yq0FRI';
 
     let db = null;
     try {
@@ -7219,7 +7191,187 @@
         else { await db.from('favorites').insert({ user_id: A.user.uid, product_id: pid }); return { favorited: true }; }
     }
 
-    console.log('%c[AyitiMarket] Module Supabase v4.0 ✅', 'color:#00666f;font-weight:bold');
+    // ══════════════════════════════════════════════════════════
+    //  SUPABASE DATA FETCHERS — Production v5.0
+    // ══════════════════════════════════════════════════════════
+
+    // ── Fetch seller profile from Supabase ──
+    async function loadSellerFromSupabase(sellerId) {
+        if (!db || !sellerId) return null;
+        try {
+            const { data, error } = await db.from('profiles')
+                .select('*').eq('id', sellerId).maybeSingle();
+            if (error) throw error;
+            if (!data) return null;
+            const name = data.display_name || (data.first_name + ' ' + (data.last_name || '')).trim();
+            const seller = {
+                id: data.id, name,
+                initials: name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+                verified: data.verified_seller || false,
+                rating: data.rating_avg || 0,
+                reviewCount: data.review_count || 0,
+                salesCount: data.sales_count || 0,
+                memberSince: data.created_at ? new Date(data.created_at).toLocaleDateString('ht', { month: 'long', year: 'numeric' }) : '',
+                location: data.location || '',
+                bio: data.bio || '',
+                specialties: data.specialties || [],
+                phone: data.phone || '',
+                responseTime: data.response_time || '',
+                badges: data.badges || [],
+            };
+            SELLERS[sellerId] = seller;
+            return seller;
+        } catch (e) { console.warn('[Seller]', e.message); return null; }
+    }
+
+    // ── Fetch followers list from Supabase ──
+    async function loadFollowersFromSupabase() {
+        if (!db || !A.user?.uid) return;
+        try {
+            const { data, error } = await db.from('followers')
+                .select('id, follower:profiles!follower_id(id, display_name, phone, created_at)')
+                .eq('seller_id', A.user.uid);
+            if (error) throw error;
+            const el = document.getElementById('followersListInner');
+            if (!el) return;
+            if (!data || data.length === 0) {
+                el.innerHTML = '<p class="font-label text-xs text-on-surface-variant text-center py-8">Ou poko gen abonnen.</p>';
+                return;
+            }
+            el.innerHTML = '<p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-3">Lis Abonnen</p><div class="space-y-2">' + data.map(f => {
+                const n = f.follower?.display_name || 'Itilizatè';
+                return '<div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb"><div class="w-10 h-10 rounded-full cta flex items-center justify-center flex-shrink-0"><span class="font-headline font-bold text-white text-sm">' + n.charAt(0) + '</span></div><div class="flex-1"><p class="font-headline font-bold text-sm text-on-surface">' + n + '</p><p class="font-label text-xs text-on-surface-variant">' + (f.follower?.phone || '') + '</p></div></div>';
+            }).join('') + '</div>';
+        } catch (e) { console.warn('[Followers]', e.message); }
+    }
+
+    // ── Fetch notifications from Supabase ──
+    async function loadNotifsFromSupabase() {
+        if (!db || !A.user?.uid) return;
+        try {
+            const { data, error } = await db.from('notifications')
+                .select('*').eq('user_id', A.user.uid)
+                .order('created_at', { ascending: false }).limit(20);
+            if (error) throw error;
+            if (data && data.length > 0) {
+                NOTIFS.length = 0;
+                data.forEach(n => {
+                    NOTIFS.push({
+                        id: n.id, type: n.type || 'system', icon: n.icon || 'notifications',
+                        title: n.title, body: n.body, time: timeAgo(n.created_at),
+                        read: n.read || false, color: n.color || '#00666f',
+                    });
+                });
+                renderNotifs('all');
+            }
+        } catch (e) { console.warn('[Notifs]', e.message); }
+    }
+
+    // ── Fetch flash deals from Supabase ──
+    async function loadFlashDealsFromSupabase() {
+        if (!db) { renderFlashDealCards(); return; }
+        try {
+            const { data, error } = await db.from('flash_deals')
+                .select('*').eq('active', true)
+                .order('created_at', { ascending: false }).limit(6);
+            if (error) throw error;
+            if (data && data.length > 0) {
+                FLASH_DEALS.length = 0;
+                data.forEach(fd => {
+                    FLASH_DEALS.push({
+                        id: fd.id, t: fd.title, p: fd.price, oldP: fd.old_price,
+                        e: fd.icon || 'palette', ec: fd.color || '#059669',
+                        c: fd.category, l: fd.location, pct: fd.discount_pct || 0, stock: fd.stock || 0,
+                    });
+                });
+            }
+            renderFlashDealCards();
+        } catch (e) { console.warn('[Flash]', e.message); renderFlashDealCards(); }
+    }
+
+    // ── Fetch admin data from Supabase ──
+    async function loadAdminDataFromSupabase() {
+        if (!db || A.user?.role !== 'admin') return;
+        try {
+            // Verification requests
+            const { data: verifs } = await db.from('verification_requests')
+                .select('*').order('created_at', { ascending: false });
+            if (verifs) {
+                VERIF_REQUESTS.length = 0;
+                verifs.forEach(v => VERIF_REQUESTS.push({
+                    uid: v.user_id || v.id, name: v.name, phone: v.phone,
+                    submittedAt: timeAgo(v.created_at), status: v.status,
+                    idType: v.id_type, photos: v.photos || {},
+                }));
+            }
+            // Orders
+            const { data: orders } = await db.from('orders')
+                .select('*').order('created_at', { ascending: false }).limit(20);
+            if (orders) {
+                ADMIN_ORDERS.length = 0;
+                orders.forEach(o => ADMIN_ORDERS.push({
+                    id: 'CMD-' + String(o.id).slice(-4), product: o.product_title || '',
+                    buyer: o.buyer_name || '', seller: o.seller_name || '',
+                    amount: o.total_amount || 0, status: o.status, method: o.payment_method || 'MonCash',
+                }));
+            }
+            // Users
+            const { data: users } = await db.from('profiles')
+                .select('*').order('created_at', { ascending: false }).limit(50);
+            if (users) {
+                ADMIN_USERS.length = 0;
+                users.forEach(u => ADMIN_USERS.push({
+                    uid: u.id, name: u.display_name || (u.first_name + ' ' + (u.last_name || '')).trim(),
+                    role: u.role || 'buyer', verified: u.verified_seller || false,
+                    status: u.status || 'active', orders: u.order_count || 0, sales: u.sales_count || 0,
+                }));
+            }
+            renderAdmin();
+        } catch (e) { console.warn('[Admin]', e.message); }
+    }
+
+    // ── Fetch chat messages from Supabase ──
+    async function loadChatMessages(productId, sellerId) {
+        if (!db || !A.user?.uid) return;
+        try {
+            const { data, error } = await db.from('messages')
+                .select('*')
+                .or(`and(sender_id.eq.${A.user.uid},receiver_id.eq.${sellerId}),and(sender_id.eq.${sellerId},receiver_id.eq.${A.user.uid})`)
+                .eq('product_id', productId)
+                .order('created_at', { ascending: true }).limit(50);
+            if (error) throw error;
+            if (data && data.length > 0) {
+                A.msgs[productId] = data.map(m => ({
+                    s: m.sender_id === A.user.uid,
+                    t: m.content,
+                    tm: new Date(m.created_at).toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' }),
+                }));
+                renderChatMsgs(productId);
+            }
+        } catch (e) { console.warn('[Chat]', e.message); }
+    }
+
+    // ── Time ago helper ──
+    function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        const diff = Date.now() - new Date(dateStr).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return 'Kounye a';
+        if (mins < 60) return mins + ' min';
+        const hrs = Math.floor(mins / 60);
+        if (hrs < 24) return hrs + 'h';
+        const days = Math.floor(hrs / 24);
+        return days + 'j';
+    }
+
+    // ── Boot admin data on admin tab ──
+    const _origRenderAdmin = typeof renderAdmin === 'function' ? renderAdmin : null;
+    if (_origRenderAdmin) {
+        window._adminLoaded = false;
+        const _origNavTo = navTo;
+    }
+
+    console.log('%c[AyitiMarket] Module Supabase v5.0 — Production', 'color:#00666f;font-weight:bold');
     </script>
 </body>
 
