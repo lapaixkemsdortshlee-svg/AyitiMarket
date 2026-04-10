@@ -6911,7 +6911,10 @@
         let needsRoleSelection = false;
 
         try {
-            const { data, error } = await db.from('profiles').select('*').eq('id', uid).maybeSingle();
+            const { data, error } = await Promise.race([
+                db.from('profiles').select('*').eq('id', uid).maybeSingle(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+            ]);
             if (!error) profile = data;
         } catch(e) { console.warn('[Profile] Fetch erè:', e.message); }
 
@@ -6921,11 +6924,14 @@
             const fn = meta.full_name?.split(' ')[0] || meta.name?.split(' ')[0] || meta.first_name || email.split('@')[0] || 'Itilizatè';
             const ln = meta.full_name?.split(' ').slice(1).join(' ') || meta.last_name || '';
             try {
-                const { data } = await db.from('profiles').upsert({
-                    id: uid, first_name: fn, last_name: ln,
-                    role: null,
-                    avatar_url: meta.avatar_url || meta.picture || null,
-                }, { onConflict: 'id' }).select().single();
+                const { data } = await Promise.race([
+                    db.from('profiles').upsert({
+                        id: uid, first_name: fn, last_name: ln,
+                        role: null,
+                        avatar_url: meta.avatar_url || meta.picture || null,
+                    }, { onConflict: 'id' }).select().single(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+                ]);
                 profile = data;
             } catch(e) { console.warn('[Profile] Kreye erè:', e.message); }
         }
@@ -6965,29 +6971,62 @@
 
             if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
                 showAuthLoader('Ap konekte...');
-                const result = await handleAuthSession(session);
-                hideAuthLoader();
-                if (result === 'role' && !A.booted) {
-                    // Nouvo kont — montre role selection
-                    hideSplash();
-                    document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
-                    document.getElementById('s-role').classList.add('on');
-                } else if (result === 'boot' && !A.booted) {
-                    A.booted = true; hideSplash(); bootApp();
-                    toast('Byenveni ' + A.user.name + '!');
+                // Safety timeout
+                const safetyTimer = setTimeout(() => {
+                    console.warn('[Auth] Safety timeout');
+                    hideAuthLoader();
+                    if (!A.booted) { hideSplash(); if (A.user) { A.booted = true; bootApp(); } else { goTo('s-login'); } }
+                }, 10000);
+                try {
+                    const result = await handleAuthSession(session);
+                    clearTimeout(safetyTimer);
+                    hideAuthLoader();
+                    if (result === 'role' && !A.booted) {
+                        hideSplash();
+                        document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+                        document.getElementById('s-role').classList.add('on');
+                    } else if (result === 'boot' && !A.booted) {
+                        A.booted = true; hideSplash(); bootApp();
+                        toast('Byenveni ' + A.user.name + '!');
+                    }
+                } catch(e) {
+                    clearTimeout(safetyTimer);
+                    console.error('[Auth] Erè nan SIGNED_IN:', e.message);
+                    hideAuthLoader(); hideSplash();
+                    if (!A.booted) goTo('s-login');
                 }
             }
 
-            if (event === 'INITIAL_SESSION' && session) {
-                showAuthLoader('Ap restare sesyon...');
-                const result = await handleAuthSession(session);
-                hideAuthLoader();
-                if (result === 'boot' && !A.booted) {
-                    A.booted = true; hideSplash(); bootApp();
-                } else if (result === 'role' && !A.booted) {
-                    hideSplash();
-                    document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
-                    document.getElementById('s-role').classList.add('on');
+            if (event === 'INITIAL_SESSION') {
+                if (session) {
+                    showAuthLoader('Ap restare sesyon...');
+                    const safetyTimer = setTimeout(() => {
+                        console.warn('[Auth] Safety timeout');
+                        hideAuthLoader();
+                        if (!A.booted) { hideSplash(); if (A.user) { A.booted = true; bootApp(); } else { goTo('s-login'); } }
+                    }, 10000);
+                    try {
+                        const result = await handleAuthSession(session);
+                        clearTimeout(safetyTimer);
+                        hideAuthLoader();
+                        if (result === 'boot' && !A.booted) {
+                            A.booted = true; hideSplash(); bootApp();
+                        } else if (result === 'role' && !A.booted) {
+                            hideSplash();
+                            document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+                            document.getElementById('s-role').classList.add('on');
+                        }
+                    } catch(e) {
+                        clearTimeout(safetyTimer);
+                        console.error('[Auth] Erè nan INITIAL_SESSION:', e.message);
+                        hideAuthLoader(); hideSplash();
+                        if (!A.booted) goTo('s-login');
+                    }
+                } else {
+                    // Pa gen sesyon
+                    console.log('[Auth] INITIAL_SESSION san sesyon → Login');
+                    hideAuthLoader(); hideSplash();
+                    if (!A.booted) goTo('s-login');
                 }
             }
 
@@ -7172,7 +7211,10 @@
             let q = db.from('products').select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg)')
                 .eq('status', 'active').order('created_at', { ascending: false }).limit(filters.limit || 20);
             if (filters.category && filters.category !== 'all') q = q.eq('category', filters.category);
-            const { data, error } = await q;
+            const { data, error } = await Promise.race([
+                q,
+                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+            ]);
             if (error) throw error;
             return data.map(p => ({
                 id: p.id, t: p.title, p: p.price, oldP: p.old_price, c: p.category, l: p.location,
