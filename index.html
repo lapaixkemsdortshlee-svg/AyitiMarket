@@ -3401,7 +3401,7 @@
             const offset = [0, 32, -16, 24, -8, 40, -24, 16][i % 8];
             const imgHeight = 160 + (i % 3) * 40;
             const imgHtml = p.img
-                ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}" style="object-fit:cover"/>`
+                ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}" style="object-fit:cover" onerror="this.onerror=null;this.style.display='none';this.parentElement.insertAdjacentHTML('afterbegin','${prodPlaceholder(p, imgHeight).replace(/'/g,"\\'")}')"/>`
                 : prodPlaceholder(p, imgHeight);
             const badgeHtml = p.b
                 ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full" style="font-size:9px;background:${p.b === 'Verifye' ? 'rgba(0,102,111,.88)' : p.b === 'Reko IA' ? 'rgba(151,66,43,.88)' : 'rgba(90,215,230,.88)'};color:#fff">${p.b}</span>`
@@ -5520,16 +5520,20 @@
                     .limit(12)
                     .then(({ data, error }) => {
                         if (!error && data && data.length > 0) {
-                            const sbProducts = data.map(p => ({
-                                id: p.id, t: p.title, p: p.price, oldP: p.old_price,
-                                c: p.category, l: p.location, desc: p.description,
-                                s: p.stock, v: p.views, r: p.seller?.rating_avg || 0,
-                                b: p.seller?.verified_seller ? 'Verifye' : '',
-                                sellerId: p.seller_id, sellerName: p.seller?.display_name || 'Vandè',
-                                sizes: p.sizes || [],
-                                e: p.category === 'mode' ? 'style' : p.category === 'cosmetique' ? 'spa' : 'palette',
-                                ec: p.category === 'mode' ? '#7c3aed' : p.category === 'cosmetique' ? '#0891b2' : '#059669',
-                            }));
+                            const sbProducts = data.map(p => {
+                                const imgs = p.images || [];
+                                return {
+                                    id: p.id, t: p.title, p: p.price, oldP: p.old_price,
+                                    c: p.category, l: p.location, desc: p.description,
+                                    img: imgs.length > 0 ? imgs[0] : null, images: imgs,
+                                    s: p.stock, v: p.views, r: p.seller?.rating_avg || 0,
+                                    b: p.seller?.verified_seller ? 'Verifye' : '',
+                                    sellerId: p.seller_id, sellerName: p.seller?.display_name || 'Vandè',
+                                    sizes: p.sizes || [],
+                                    e: p.category === 'mode' ? 'style' : p.category === 'cosmetique' ? 'spa' : 'palette',
+                                    ec: p.category === 'mode' ? '#7c3aed' : p.category === 'cosmetique' ? '#0891b2' : '#059669',
+                                };
+                            });
                             // Merge ak done lokal (san doub)
                             const merged = [...local];
                             sbProducts.forEach(sp => {
@@ -7334,13 +7338,17 @@
                 new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
             ]);
             if (error) throw error;
-            return data.map(p => ({
-                id: p.id, t: p.title, p: p.price, oldP: p.old_price, c: p.category, l: p.location,
-                desc: p.description, s: p.stock, v: p.views, r: p.seller?.rating_avg || 0,
-                b: p.seller?.verified_seller ? 'Verifye' : '', sellerId: p.seller_id,
-                sellerName: p.seller?.display_name || 'Vandè', sizes: p.sizes || [],
-                e: 'palette', ec: '#7c3aed',
-            }));
+            return data.map(p => {
+                const imgs = p.images || [];
+                return {
+                    id: p.id, t: p.title, p: p.price, oldP: p.old_price, c: p.category, l: p.location,
+                    desc: p.description, img: imgs.length > 0 ? imgs[0] : null, images: imgs,
+                    s: p.stock, v: p.views, r: p.seller?.rating_avg || 0,
+                    b: p.seller?.verified_seller ? 'Verifye' : '', sellerId: p.seller_id,
+                    sellerName: p.seller?.display_name || 'Vandè', sizes: p.sizes || [],
+                    e: 'palette', ec: '#7c3aed',
+                };
+            });
         } catch(e) { console.warn('[Products]', e.message); return null; }
     }
 
