@@ -2018,6 +2018,20 @@
     <!-- ID Preview modal -->
     <div id="idModal" class="hidden fixed inset-0 z-[150] flex items-center justify-center px-5"
         style="background:rgba(28,28,25,.7);backdrop-filter:blur(6px)">
+
+    <!-- Product Image Lightbox -->
+    <div id="productLightbox" class="fixed inset-0 z-[200] flex items-center justify-center"
+        style="background:rgba(0,0,0,.92);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .25s ease"
+        onclick="closeProductLightbox()">
+        <button onclick="event.stopPropagation();closeProductLightbox()"
+            class="absolute top-12 right-5 w-10 h-10 flex items-center justify-center rounded-full active:scale-90 z-10"
+            style="background:rgba(255,255,255,.15)">
+            <span class="material-symbols-outlined" style="font-size:22px;color:#fff">close</span>
+        </button>
+        <img id="lightboxImg" src="" alt="" onclick="event.stopPropagation()"
+            class="max-w-[95vw] max-h-[85vh] rounded-xl"
+            style="object-fit:contain;transition:transform .3s ease;transform:scale(.92)"/>
+    </div>
         <div class="bg-surface-container-lowest rounded-2xl overflow-hidden w-full max-w-sm amb">
             <div class="flex items-center justify-between px-4 py-3"
                 style="border-bottom:1px solid rgba(188,201,200,.15)">
@@ -3115,6 +3129,24 @@
             window.scrollTo({ top: 0, behavior: "instant" });
         }
 
+        function openProductLightbox(imgSrc) {
+            if (!imgSrc) return;
+            const lb = document.getElementById('productLightbox');
+            const img = document.getElementById('lightboxImg');
+            img.src = imgSrc;
+            lb.style.pointerEvents = 'auto';
+            lb.style.opacity = '1';
+            setTimeout(() => { img.style.transform = 'scale(1)'; }, 30);
+        }
+
+        function closeProductLightbox() {
+            const lb = document.getElementById('productLightbox');
+            const img = document.getElementById('lightboxImg');
+            img.style.transform = 'scale(.92)';
+            lb.style.opacity = '0';
+            setTimeout(() => { lb.style.pointerEvents = 'none'; img.src = ''; }, 250);
+        }
+
         function goBack() {
             const prev = A.stack.pop() || "feed";
             navTo(prev);
@@ -3138,7 +3170,7 @@
 
             document.getElementById("detailContent").innerHTML = `
     <div class="relative">
-      <div class="w-full flex items-center justify-center" style="height:340px;overflow:hidden;background:#f0ede8">${detailImg || prodPlaceholder(p, 340)}</div>
+      <div class="w-full flex items-center justify-center ${p.img ? 'cursor-pointer' : ''}" style="height:340px;overflow:hidden;background:#f0ede8" ${p.img ? `onclick="openProductLightbox('${p.img.replace(/'/g, "\\'")}')"` : ''}>${detailImg || prodPlaceholder(p, 340)}</div>
       <button onclick="goBack()" class="absolute top-10 left-4 w-9 h-9 flex items-center justify-center rounded-full active:scale-90" style="background:rgba(252,249,244,.88);backdrop-filter:blur(6px)">
         <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">arrow_back</span>
       </button>
