@@ -3046,7 +3046,10 @@
             updateCartBadge();
 
             updateTopBar();
-            renderNotifs('all');
+            // Load notifications and badge count from Supabase on login
+            if (db && A.user?.uid) {
+                loadNotifsFromSupabase();
+            }
             updateNotifBadge();
             navTo("feed");
             showAuthBanner();
@@ -3999,6 +4002,7 @@
             closeSheets();
             const p = A.curProd;
             if (!p) { toast('Erè: pa gen pwodwi seleksyone'); return; }
+            if (!A.isAuth || !A.user?.uid) { toast('Konekte pou kòmande'); return; }
             const pickup = PICKUPS.find(pk => pk.id === A.selPickup) || PICKUPS[0];
 
             // Jenere OTP 6 chif pou livrezon
@@ -4006,15 +4010,86 @@
             A.currentOTP = otp;
             A.currentOrder = { product: p, pickup, payMethod: A.selPay };
 
+            const unitPrice = p.p;
+            const feeAmount = Math.round(unitPrice * 0.03);
+            const totalAmount = unitPrice + feeAmount;
+            const sellerName = p.sellerName || p.seller || 'Vandè';
+
+            // Insert order in Supabase
+            if (db && p.sellerId) {
+                try {
+                    const { error: ordErr } = await db.from('orders').insert({
+                        buyer_id: A.user.uid,
+                        seller_id: p.sellerId,
+                        product_id: p.id,
+                        product_title: p.t,
+                        buyer_name: A.user.name,
+                        seller_name: sellerName,
+                        quantity: 1,
+                        unit_price: unitPrice,
+                        total_amount: totalAmount,
+                        fee_amount: feeAmount,
+                        status: 'pending',
+                        payment_method: (A.selPay || 'moncash').toUpperCase(),
+                        pickup_location: pickup.n,
+                        otp_code: otp,
+                    });
+                    if (ordErr) console.warn('[Order insert]', ordErr.message);
+
+                    // Decrement stock if > 0
+                    if (typeof p.s === 'number' && p.s > 0) {
+                        const newStock = p.s - 1;
+                        const newStatus = newStock <= 0 ? 'sold' : 'active';
+                        await db.from('products').update({
+                            stock: newStock,
+                            status: newStatus,
+                        }).eq('id', p.id);
+                        p.s = newStock;
+                        // Hide only when stock reaches 0
+                        if (newStock <= 0) {
+                            const idx = PRODUCTS.findIndex(x => x.id === p.id);
+                            if (idx >= 0) PRODUCTS[idx].s = 0;
+                        }
+                    }
+
+                    // Notify seller of new order
+                    db.from('notifications').insert({
+                        user_id: p.sellerId,
+                        type: 'order',
+                        icon: 'shopping_bag',
+                        title: 'Nouvo komand!',
+                        body: (A.user.name || 'Yon kliyan') + ' kòmande ' + p.t + ' — ' + fp(totalAmount) + ' HTG',
+                        color: '#00666f',
+                    });
+
+                    // Notify buyer (self) of order confirmation
+                    db.from('notifications').insert({
+                        user_id: A.user.uid,
+                        type: 'order',
+                        icon: 'check_circle',
+                        title: 'Komand konfime',
+                        body: 'Ou kòmande ' + p.t + '. Kòd OTP: ' + otp,
+                        color: '#059669',
+                    });
+                } catch(e) {
+                    console.warn('[Order]', e.message);
+                    toast('Erè anrejistre komand la, eseye ankò');
+                }
+            } else if (!p.sellerId) {
+                console.warn('[Order] Pwodwi a pa gen sellerId — komand pa ka sove');
+                toast('Erè: pwodwi sa a pa ka kòmande');
+                return;
+            }
+
             const ov = document.getElementById("successOverlay");
             ov.classList.remove("hidden");
             document.getElementById("succEmoji").innerHTML = '<span class="material-symbols-outlined fi" style="font-size:72px;color:#00666f">check_circle</span>';
             document.getElementById("succTitle").textContent = "Komand Konfime!";
             document.getElementById("succBody").innerHTML = `
-    Marthe B. ap kontakte ou nan <strong>30 minit</strong>.<br/>
+    ${sellerName} ap kontakte ou nan <strong>30 minit</strong>.<br/>
     <strong>Pwen kolekte:</strong> ${pickup.n}<br/>
-    <strong>Peman:</strong> ${A.selPay.toUpperCase()}<br/>
-    <strong>Total:</strong> ${fp(p.p + Math.round(p.p * .03))} HTG<br/><br/>
+    <strong>Peman:</strong> ${(A.selPay || 'moncash').toUpperCase()}<br/>
+    <strong>Total:</strong> ${fp(totalAmount)} HTG<br/><br/>
     <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:12px;background:rgba(0,102,111,.08);margin-top:4px">
       <span style="font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;color:#3d4949">Kòd Livrezon ou:</span>
       <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800;color:#00666f;letter-spacing:.2em">${otp}</span>
@@ -4022,6 +4097,7 @@
             document.getElementById("succEscrow").textContent = "Bay kòd sa bay kousye a lè li rive pou debloke peman Escrow la";
             document.getElementById("succBtn").textContent = "Wè Kòd OTP Konplè →";
             document.getElementById("succBtn").onclick = () => { closeSuccess(); showOTPSheet(); };
+            updateNotifBadge();
         }
 
         function closeSuccess() { document.getElementById("successOverlay").classList.add("hidden"); }
@@ -4073,9 +4149,15 @@
         function renderChatMsgs(pid) {
             const msgs = A.msgs[pid] || [];
             const p = PRODUCTS.find(x => x.id === pid);
+            if (!p) { document.getElementById("chatMsgs").innerHTML = ''; return; }
+            const pidAttr = typeof p.id === 'string' ? `'${String(p.id).replace(/'/g, "\\'")}'` : p.id;
+            const imgSrc = p.img || (p.images && p.images[0]) || null;
+            const thumb = imgSrc
+                ? `<img src="${imgSrc}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=window.prodPlaceholder?prodPlaceholder(${JSON.stringify({e:p.e,ec:p.ec}).replace(/"/g,'&quot;')},40):''"/>`
+                : prodPlaceholder(p, 40);
             document.getElementById("chatMsgs").innerHTML = `
-    <div class="self-center bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 w-[82%] amb cursor-pointer" onclick="openProduct(${p.id})">
-      <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">${prodPlaceholder(p, 40)}</div>
+    <div class="self-center bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 w-[82%] amb cursor-pointer" onclick="openProduct(${pidAttr})">
+      <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style="background:#f0ede8">${thumb}</div>
       <div class="flex-1 min-w-0">
         <p class="font-headline font-bold text-xs text-on-surface truncate">${p.t}</p>
         <p class="font-headline font-extrabold text-sm text-primary">${fp(p.p)} HTG</p>
@@ -4101,23 +4183,63 @@
             A.msgs[A.chatId].push({ s: true, t, tm }); input.value = ""; renderChatMsgs(A.chatId);
             // Send to Supabase messages table
             if (db && A.user?.uid) {
+                if (!A.chatSellerId) {
+                    console.warn('[Chat] chatSellerId pa disponib — mesaj pa sove');
+                    return;
+                }
                 db.from('messages').insert({
                     sender_id: A.user.uid,
-                    receiver_id: A.chatSellerId || null,
+                    receiver_id: A.chatSellerId,
                     product_id: A.chatId,
                     content: t,
                 }).then(({ error }) => {
                     if (error) console.warn('[Chat] Erè voye mesaj:', error.message);
                 });
+                // Notify the receiver
+                db.from('notifications').insert({
+                    user_id: A.chatSellerId,
+                    type: 'chat',
+                    icon: 'chat',
+                    title: 'Nouvo mesaj',
+                    body: (A.user.name || 'Yon kliyan') + ': ' + t.slice(0, 80),
+                    color: '#00666f',
+                }).then(({ error }) => { if (error) console.warn('[Notif msg]', error.message); });
             }
         }
 
         // ══════════════════════════════════════════════════════════
         //  PROFILE
         // ══════════════════════════════════════════════════════════
+        async function refreshUserStats() {
+            if (!db || !A.user?.uid) return;
+            try {
+                const uid = A.user.uid;
+                const [followersRes, salesRes, ordersRes, unreadMsgsRes] = await Promise.all([
+                    db.from('followers').select('id', { count: 'exact', head: true }).eq('seller_id', uid),
+                    db.from('orders').select('id', { count: 'exact', head: true }).eq('seller_id', uid),
+                    db.from('orders').select('id', { count: 'exact', head: true }).eq('buyer_id', uid),
+                    db.from('messages').select('id', { count: 'exact', head: true }).eq('receiver_id', uid).eq('read', false),
+                ]);
+                A.followers = followersRes.count || 0;
+                A.user.salesCount = salesRes.count || 0;
+                A.user.orderCount = ordersRes.count || 0;
+                A.unreadMsgCount = unreadMsgsRes.count || 0;
+            } catch(e) {
+                console.warn('[Stats]', e.message);
+            }
+        }
+
         function renderProfile() {
             if (!A.user) { navTo("feed"); return; }
             const u = A.user;
+            // Refresh counts from DB before rendering (async, re-renders when done)
+            if (db && u.uid && !u._statsLoadedAt) {
+                u._statsLoadedAt = Date.now();
+                refreshUserStats().then(() => renderProfile());
+            } else if (db && u.uid && Date.now() - (u._statsLoadedAt || 0) > 30000) {
+                u._statsLoadedAt = Date.now();
+                refreshUserStats().then(() => renderProfile());
+            }
             document.getElementById("profileContent").innerHTML = `
     <!-- Profile hero -->
     <div class="relative mx-5 rounded-xl overflow-hidden mb-0" style="background:linear-gradient(135deg,#00666f,#00818c)">
@@ -4511,12 +4633,29 @@
         if (!A.followers) A.followers = 0;
         if (!A.followedSellers) A.followedSellers = new Set();
 
-        function toggleFollowSeller(sellerId) {
-            if (A.followedSellers.has(sellerId)) {
-                A.followedSellers.delete(sellerId);
-                toast('Ou dezabone');
-            } else {
-                A.followedSellers.add(sellerId);
+        async function toggleFollowSeller(sellerId) {
+            if (!A.isAuth || !A.user?.uid) { toast('Konekte premye'); return; }
+            if (sellerId === A.user.uid) { toast('Ou pa ka swiv tèt ou'); return; }
+
+            const wasFollowing = A.followedSellers.has(sellerId);
+            // Optimistic UI update
+            if (wasFollowing) A.followedSellers.delete(sellerId);
+            else A.followedSellers.add(sellerId);
+
+            // Persist to Supabase
+            let result = null;
+            try {
+                result = await supabaseToggleFollow(sellerId);
+            } catch(e) {
+                console.warn('[Follow]', e.message);
+            }
+
+            // Reconcile UI with actual DB result
+            const isFollowing = result ? result.following : !wasFollowing;
+            if (isFollowing) A.followedSellers.add(sellerId);
+            else A.followedSellers.delete(sellerId);
+
+            if (isFollowing) {
                 toast('Ou abonnen! Wap resevwa nouvo pwodwi');
                 playNotifSound();
                 addNotif({
@@ -4524,17 +4663,30 @@
                     title: 'Nouvo Abonnman', body: 'Ou swiv yon nouvo vandè. Wap resevwa dènye pwodwi yo!',
                     time: 'Kounye a', read: false, color: '#00666f',
                 });
+                // Notify the seller they got a new follower
+                if (db) {
+                    db.from('notifications').insert({
+                        user_id: sellerId,
+                        type: 'system',
+                        icon: 'person_add',
+                        title: 'Nouvo abonnen!',
+                        body: (A.user.name || 'Yon moun') + ' kounye a swiv boutik ou.',
+                        color: '#00666f',
+                    }).then(({ error }) => { if (error) console.warn('[Notif follow]', error.message); });
+                }
                 updateNotifBadge();
+            } else {
+                toast('Ou dezabone');
             }
-            // Re-render if on seller profile
+
+            // Re-render follow button if visible
             const followBtn = document.getElementById('followBtn_' + sellerId);
             if (followBtn) {
-                const isFollowing = A.followedSellers.has(sellerId);
                 followBtn.innerHTML = isFollowing
                     ? '<span class="material-symbols-outlined fi" style="font-size:16px">check</span> Abonnen'
                     : '<span class="material-symbols-outlined" style="font-size:16px">person_add</span> Swiv';
                 followBtn.className = isFollowing
-                    ? 'flex-1 py-3 rounded-xl font-headline font-bold text-sm active:scale-95 flex items-center justify-center gap-2' 
+                    ? 'flex-1 py-3 rounded-xl font-headline font-bold text-sm active:scale-95 flex items-center justify-center gap-2'
                     : 'flex-1 py-3 rounded-xl cta font-headline font-bold text-sm active:scale-95 flex items-center justify-center gap-2 amb';
                 followBtn.style.background = isFollowing ? '#e5e2dd' : '';
                 followBtn.style.color = isFollowing ? '#1c1c19' : '';
@@ -5177,6 +5329,12 @@
             updateNotifBadge();
             renderNotifs('all');
             toast("Tout notifikasyon mete lu");
+            // Persist to DB
+            if (db && A.user?.uid) {
+                db.from('notifications').update({ read: true })
+                    .eq('user_id', A.user.uid).eq('read', false)
+                    .then(({ error }) => { if (error) console.warn('[MarkRead]', error.message); });
+            }
         }
 
         function switchNotifTab(tab) {
@@ -5193,8 +5351,8 @@
         }
 
         function renderNotifs(tab = 'all') {
-            // Load notifications from Supabase
-            if (db && A.user?.uid && NOTIFS.length === 0) {
+            // Load notifications from Supabase (always fetch fresh when opening)
+            if (db && A.user?.uid) {
                 loadNotifsFromSupabase();
             }
 
@@ -5226,6 +5384,12 @@
             const n = NOTIFS.find(x => x.id === id);
             if (n) {
                 n.read = true;
+                // Persist to DB
+                if (db && A.user?.uid) {
+                    db.from('notifications').update({ read: true })
+                        .eq('id', id).eq('user_id', A.user.uid)
+                        .then(({ error }) => { if (error) console.warn('[ReadNotif]', error.message); });
+                }
                 if (n.action) { closeSheets(); n.action(); return; }
             }
             renderNotifs(document.querySelector('.notif-tab.bg-surface-container-lowest')?.id?.replace('nt-', '') || 'all');
@@ -7307,7 +7471,7 @@
             }
         }
 
-        // ── Override openChatFor to use correct seller info ──
+        // ── Override openChatFor to use correct seller info & load history ──
         const _origOpenChatFor = openChatFor;
         window.openChatFor = function (pid) {
             const p = PRODUCTS.find(x => x.id === pid);
@@ -7318,6 +7482,30 @@
             document.getElementById('chatAv').innerHTML = `<span class="font-headline font-bold text-white text-xs">${seller.initials}</span>`;
             document.getElementById('chatName').textContent = seller.name;
             document.getElementById('toptitle').textContent = seller.name;
+
+            // Load chat history for this product from Supabase
+            if (db && A.user?.uid && p.sellerId) {
+                db.from('messages')
+                    .select('*')
+                    .eq('product_id', pid)
+                    .or(`and(sender_id.eq.${A.user.uid},receiver_id.eq.${p.sellerId}),and(sender_id.eq.${p.sellerId},receiver_id.eq.${A.user.uid})`)
+                    .order('created_at', { ascending: true })
+                    .limit(100)
+                    .then(({ data, error }) => {
+                        if (error) { console.warn('[Chat history]', error.message); return; }
+                        if (data) {
+                            A.msgs[pid] = data.map(m => ({
+                                s: m.sender_id === A.user.uid,
+                                t: m.content,
+                                tm: new Date(m.created_at).toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' }),
+                            }));
+                            renderChatMsgs(pid);
+                        }
+                        // Mark received messages as read
+                        db.from('messages').update({ read: true })
+                            .eq('product_id', pid).eq('receiver_id', A.user.uid).eq('read', false);
+                    });
+            }
         };
 
 
@@ -7795,25 +7983,49 @@
     }
 
     // ── Fetch notifications from Supabase ──
+    let _notifLoading = false;
     async function loadNotifsFromSupabase() {
-        if (!db || !A.user?.uid) return;
+        if (!db || !A.user?.uid || _notifLoading) return;
+        _notifLoading = true;
         try {
             const { data, error } = await db.from('notifications')
                 .select('*').eq('user_id', A.user.uid)
-                .order('created_at', { ascending: false }).limit(20);
+                .order('created_at', { ascending: false }).limit(30);
             if (error) throw error;
-            if (data && data.length > 0) {
-                NOTIFS.length = 0;
-                data.forEach(n => {
-                    NOTIFS.push({
-                        id: n.id, type: n.type || 'system', icon: n.icon || 'notifications',
-                        title: n.title, body: n.body, time: timeAgo(n.created_at),
-                        read: n.read || false, color: n.color || '#00666f',
-                    });
+            NOTIFS.length = 0;
+            (data || []).forEach(n => {
+                NOTIFS.push({
+                    id: n.id, type: n.type || 'system', icon: n.icon || 'notifications',
+                    title: n.title, body: n.body, time: timeAgo(n.created_at),
+                    read: n.read || false, color: n.color || '#00666f',
                 });
-                renderNotifs('all');
+            });
+            updateNotifBadge();
+            // Re-render the list if the sheet is open
+            const listEl = document.getElementById('notifList');
+            if (listEl) {
+                const activeTab = document.querySelector('.notif-tab.bg-surface-container-lowest')?.id?.replace('nt-', '') || 'all';
+                const filtered = activeTab === 'all' ? NOTIFS : NOTIFS.filter(n => n.type === activeTab);
+                const ct = document.getElementById('nt-all-ct');
+                if (ct) { const u = NOTIFS.filter(n => !n.read).length; ct.textContent = u > 0 ? `(${u})` : ''; }
+                listEl.innerHTML = filtered.length === 0
+                    ? `<p class="font-body text-sm text-on-surface-variant text-center py-8">Pa gen notifikasyon.</p>`
+                    : filtered.map(n => `
+  <div class="flex items-start gap-3 p-3.5 rounded-xl cursor-pointer transition-colors active:bg-surface-container-low ${n.read ? 'bg-surface-container-low' : 'bg-surface-container-lowest amb'}"
+       onclick="readNotif('${n.id}')">
+    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 relative" style="background:${n.color}18">
+      <span class="material-symbols-outlined fi" style="font-size:18px;color:${n.color}">${n.icon}</span>
+      ${!n.read ? `<span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full" style="background:#f99188;border:2px solid #fcf9f4"></span>` : ''}
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="font-headline font-bold text-sm text-on-surface ${n.read ? 'opacity-70' : ''}">${n.title}</p>
+      <p class="font-body text-xs text-on-surface-variant mt-0.5 leading-relaxed">${n.body}</p>
+    </div>
+    <span class="font-label text-[10px] text-on-surface-variant flex-shrink-0 mt-0.5">${n.time}</span>
+  </div>`).join('');
             }
         } catch (e) { console.warn('[Notifs]', e.message); }
+        finally { _notifLoading = false; }
     }
 
     // ── Fetch flash deals from Supabase ──
