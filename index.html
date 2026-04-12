@@ -1640,15 +1640,15 @@
                 <!-- Admin KPIs -->
                 <div class="grid grid-cols-3 gap-2 mt-4">
                     <div class="rounded-lg p-2.5 text-center" style="background:rgba(255,255,255,.12)">
-                        <p class="font-headline font-extrabold text-xl text-white" id="kpiPending">3</p>
+                        <p class="font-headline font-extrabold text-xl text-white" id="kpiPending">0</p>
                         <p class="font-label text-[9px] text-white/70 uppercase tracking-[.08em]">An Atant</p>
                     </div>
                     <div class="rounded-lg p-2.5 text-center" style="background:rgba(255,255,255,.12)">
-                        <p class="font-headline font-extrabold text-xl text-white">12</p>
+                        <p class="font-headline font-extrabold text-xl text-white" id="kpiVerified">0</p>
                         <p class="font-label text-[9px] text-white/70 uppercase tracking-[.08em]">Verifye</p>
                     </div>
                     <div class="rounded-lg p-2.5 text-center" style="background:rgba(255,255,255,.12)">
-                        <p class="font-headline font-extrabold text-xl text-white">2</p>
+                        <p class="font-headline font-extrabold text-xl text-white" id="kpiBlocked">0</p>
                         <p class="font-label text-[9px] text-white/70 uppercase tracking-[.08em]">Bloke</p>
                     </div>
                 </div>
@@ -3708,24 +3708,92 @@
             const t = document.getElementById("fTitle").value.trim();
             if (!t) { toast("Ranpli non pwodwi a"); return; }
             if (uploadedPhotos.length === 0) { toast("Ajoute omwen 1 foto"); document.getElementById("fileInput").click(); return; }
+            const cat = document.getElementById("fCat").value;
+            const desc = document.getElementById("fDesc").value.trim();
+            const price = parseInt(document.getElementById("fPrice").value) || 0;
+            const loc = document.getElementById("fLoc")?.value?.trim() || '';
+            if (price <= 0) { toast("Mete yon pri valid"); return; }
+
             const res = document.getElementById("pipeResult"), steps = document.getElementById("pipeSteps");
             res.classList.remove("hidden"); steps.innerHTML = "";
-            const photoInfo = uploadedPhotos.map((p, i) => `${i + 1}. ${p.name || 'foto'} — ${p.sizeKB}KB${p.compressed ? ' (konprese)' : ''}`).join(' · ');
-            const pipeline = [
-                { i: "upload", tx: `Upload ${uploadedPhotos.length} foto → Supabase Storage · ${photoInfo}` },
-                { i: "check_circle", tx: "Validasyon pri & estòk → Firestore Rules" },
-                { i: "auto_awesome", tx: "onProductCreate() → Gemini jenere/amelyore deskripsyon" },
-                { i: "price_check", tx: "VertexAI sijere pri mache lokal ±20%" },
-                { i: "key", tx: "Mo-kle rechèch jenere (×38 keywords)" },
-                { i: "notifications", tx: "FCM → vandè notifye · status: 'active'" },
-            ];
-            for (const s of pipeline) {
-                await sl(370);
+
+            const addStep = (icon, text) => {
                 const d = document.createElement("div"); d.className = "flex items-center gap-2";
-                d.innerHTML = `<span class="material-symbols-outlined fi text-primary flex-shrink-0" style="font-size:14px">${s.i}</span><span class="font-label text-xs text-on-surface-variant">${s.tx}</span>`;
+                d.innerHTML = `<span class="material-symbols-outlined fi text-primary flex-shrink-0" style="font-size:14px">${icon}</span><span class="font-label text-xs text-on-surface-variant">${text}</span>`;
                 steps.appendChild(d);
+            };
+
+            try {
+                if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
+
+                // Step 1: Upload images to Supabase Storage
+                addStep('upload', `Upload ${uploadedPhotos.length} foto → Supabase Storage...`);
+                await sl(200);
+                const imageUrls = [];
+                const ts = Date.now();
+                for (let i = 0; i < uploadedPhotos.length; i++) {
+                    const photo = uploadedPhotos[i];
+                    const path = `products/${A.user.uid}/${ts}_${i}.jpg`;
+                    const { error } = await db.storage.from('product-images').upload(path, photo.file, { upsert: true });
+                    if (error) {
+                        console.warn('[Upload] Image ' + i + ':', error.message);
+                        // Use dataUrl as fallback
+                        imageUrls.push(photo.dataUrl);
+                    } else {
+                        const { data: urlData } = db.storage.from('product-images').getPublicUrl(path);
+                        imageUrls.push(urlData?.publicUrl || photo.dataUrl);
+                    }
+                }
+                addStep('check_circle', `${imageUrls.length} foto upload ✓`);
+
+                // Step 2: Insert product in Supabase
+                await sl(200);
+                addStep('inventory_2', 'Anrejistre pwodwi nan baz done...');
+                const { data: newProduct, error: insertErr } = await db.from('products').insert({
+                    seller_id: A.user.uid,
+                    title: t,
+                    description: desc || null,
+                    price: price,
+                    category: cat,
+                    location: loc || null,
+                    images: imageUrls,
+                    status: 'active',
+                }).select('*').single();
+
+                if (insertErr) throw new Error(insertErr.message);
+                addStep('check_circle', 'Pwodwi anrejistre ✓');
+
+                // Step 3: Add to local PRODUCTS array
+                await sl(200);
+                if (newProduct) {
+                    PRODUCTS.unshift({
+                        id: newProduct.id, t: newProduct.title, p: newProduct.price,
+                        oldP: newProduct.old_price, c: newProduct.category, l: newProduct.location,
+                        desc: newProduct.description, img: imageUrls, s: newProduct.stock || 1,
+                        v: 0, r: 0, sellerId: A.user.uid, sellerName: A.user.name,
+                        sellerVerified: A.user.verifiedSeller,
+                    });
+                }
+                addStep('storefront', 'Pwodwi vizib nan feed ✓');
+                addStep('notifications', 'Status: active — Pibliye!');
+
+                toast("Pwodwi pibliye avèk siksè!");
+
+                // Reset form
+                uploadedPhotos = [];
+                document.getElementById("fTitle").value = '';
+                document.getElementById("fDesc").value = '';
+                document.getElementById("fPrice").value = '';
+                renderPhotoGrid();
+
+                // Refresh feed after short delay
+                setTimeout(() => { navTo('feed'); }, 1500);
+
+            } catch(e) {
+                console.error('[Publish]', e.message);
+                addStep('error', 'Erè: ' + e.message);
+                toast('Erè piblikasyon: ' + e.message);
             }
-            toast("Pwodwi pibliye! Pipeline IA fini");
         }
 
         // ══════════════════════════════════════════════════════════
@@ -7407,6 +7475,13 @@
                         selfie: v.selfie_photo_url ? { publicUrl: v.selfie_photo_url, dataUrl: v.selfie_photo_url, sizeKB: 0 } : null,
                     },
                 }));
+                // Update KPIs from real data
+                const kpiP = document.getElementById('kpiPending');
+                const kpiV = document.getElementById('kpiVerified');
+                const kpiB = document.getElementById('kpiBlocked');
+                if (kpiP) kpiP.textContent = verifs.filter(v => v.status === 'pending').length;
+                if (kpiV) kpiV.textContent = verifs.filter(v => v.status === 'approved').length;
+                if (kpiB) kpiB.textContent = verifs.filter(v => v.status === 'rejected').length;
             }
             // Orders
             const { data: orders } = await db.from('orders')
@@ -7430,7 +7505,9 @@
                     status: u.status || 'active', orders: u.order_count || 0, sales: u.sales_count || 0,
                 }));
             }
-            renderAdmin();
+            renderVerifList();
+            renderAdminOrders();
+            renderAdminUsers();
         } catch (e) { console.warn('[Admin]', e.message); }
     }
 
