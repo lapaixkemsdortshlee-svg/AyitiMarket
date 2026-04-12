@@ -3133,16 +3133,17 @@
             document.getElementById("backbtn").classList.add("flex");
             document.getElementById("toptitle").textContent = p.t;
 
-            const detailImg = p.img ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}"/>` : null;
+            const detailImg = p.img ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}" onerror="this.onerror=null;this.style.display='none'"/>` : null;
+            const dpid = typeof p.id === 'string' ? `'${p.id}'` : p.id;
 
             document.getElementById("detailContent").innerHTML = `
     <div class="relative">
-      <div class="w-full flex items-center justify-center" style="height:340px;overflow:hidden">${detailImg || prodPlaceholder(p, 340)}</div>
+      <div class="w-full flex items-center justify-center" style="height:340px;overflow:hidden;background:#f0ede8">${detailImg || prodPlaceholder(p, 340)}</div>
       <button onclick="goBack()" class="absolute top-10 left-4 w-9 h-9 flex items-center justify-center rounded-full active:scale-90" style="background:rgba(252,249,244,.88);backdrop-filter:blur(6px)">
         <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">arrow_back</span>
       </button>
-      <button onclick="toggleFav(${p.id})" class="absolute top-10 right-4 w-9 h-9 flex items-center justify-center rounded-full active:scale-90" style="background:rgba(252,249,244,.88);backdrop-filter:blur(6px)">
-        <span class="material-symbols-outlined" class="material-symbols-outlined fi" style="font-size:17px;color:${A.favs.has(p.id) ? '#f99188' : '#3d4949'}">favorite</span>
+      <button onclick="toggleFav(${dpid})" class="absolute top-10 right-4 w-9 h-9 flex items-center justify-center rounded-full active:scale-90" style="background:rgba(252,249,244,.88);backdrop-filter:blur(6px)">
+        <span class="material-symbols-outlined fi" style="font-size:17px;color:${A.favs.has(p.id) ? '#f99188' : '#3d4949'}">favorite</span>
       </button>
     </div>
     <div class="bg-surface-container-low px-5 pt-5 pb-4 space-y-4">
@@ -3202,12 +3203,12 @@
       <span class="material-symbols-outlined fi text-primary" style="font-size:20px">add_shopping_cart</span>
     </button>
     ${(p.c === 'mode' || p.c === 'cosmetique' || p.c === 'accessoire') ? `
-    <button onclick="openTryon(${p.id})"
+    <button onclick="openTryon(${dpid})"
             class="w-12 h-12 ml-2 flex-shrink-0 flex items-center justify-center rounded-xl active:scale-90 transition-transform"
             style="background:linear-gradient(135deg,#7c3aed,#4f46e5)" title="Eseyaj Vityèl">
       <span class="material-symbols-outlined fi text-white" style="font-size:20px">try</span>
     </button>`: ''}
-    <button onclick="startOrder(${p.id})" class="flex-[2] ml-2 flex items-center justify-center gap-2 py-3.5 rounded-xl cta font-headline font-bold text-base active:scale-[.98] amb">
+    <button onclick="startOrder(${dpid})" class="flex-[2] ml-2 flex items-center justify-center gap-2 py-3.5 rounded-xl cta font-headline font-bold text-base active:scale-[.98] amb">
       <span class="material-symbols-outlined" style="font-size:18px">shopping_bag</span>Kòmande
     </button>`;
 
@@ -3363,16 +3364,17 @@
             const offset = [0, 24, -12, 18, -8, 20][i] || 0;
             const isFav = A.favs.has(p.id);
             const imgHtml = p.img
-                ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}"/>`
+                ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}" onerror="this.onerror=null;this.style.display='none'"/>`
                 : prodPlaceholder(p, 140 + (i % 2) * 20);
+            const spid = typeof p.id === 'string' ? `'${p.id}'` : p.id;
 
             return `
   <div class="mi cursor-pointer" style="${i % 2 === 1 ? 'margin-top:' + offset + 'px' : ''}">
     <div class="bg-surface-container-lowest rounded-xl overflow-hidden amb active:scale-[.97] transition-transform"
-         onclick="openProduct(${p.id})">
-      <div class="relative w-full" style="height:${140 + (i % 2) * 20}px;overflow:hidden">
+         onclick="openProduct(${spid})">
+      <div class="relative w-full" style="height:${140 + (i % 2) * 20}px;overflow:hidden;background:#f0ede8">
         ${imgHtml}
-        <button onclick="event.stopPropagation();toggleFav(${p.id})"
+        <button onclick="event.stopPropagation();toggleFav(${spid})"
                 class="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full"
                 style="background:rgba(252,249,244,.88);backdrop-filter:blur(4px)">
           <span class="material-symbols-outlined fi" style="font-size:15px;color:${isFav ? '#f99188' : '#3d4949'}">favorite</span>
@@ -3385,7 +3387,7 @@
         <p class="font-headline font-extrabold text-primary" style="font-size:.8125rem">${fp(p.p)}</p>
         <div class="flex items-center justify-between mt-1.5">
           <p class="font-label text-on-surface-variant" style="font-size:9px">${p.l}</p>
-          <button onclick="event.stopPropagation();startOrder(${p.id})"
+          <button onclick="event.stopPropagation();startOrder(${spid})"
                   class="flex items-center gap-1 px-2 py-1 rounded-full cta active:scale-90"
                   style="font-size:9px;font-family:'Manrope',sans-serif;font-weight:700">
             Achte
@@ -3401,19 +3403,19 @@
             const offset = [0, 32, -16, 24, -8, 40, -24, 16][i % 8];
             const imgHeight = 160 + (i % 3) * 40;
             const imgHtml = p.img
-                ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}" style="object-fit:cover" onerror="this.onerror=null;this.style.display='none';this.parentElement.insertAdjacentHTML('afterbegin','${prodPlaceholder(p, imgHeight).replace(/'/g,"\\'")}')"/>`
+                ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}" onerror="this.onerror=null;this.style.display='none'"/>`
                 : prodPlaceholder(p, imgHeight);
             const badgeHtml = p.b
                 ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full" style="font-size:9px;background:${p.b === 'Verifye' ? 'rgba(0,102,111,.88)' : p.b === 'Reko IA' ? 'rgba(151,66,43,.88)' : 'rgba(90,215,230,.88)'};color:#fff">${p.b}</span>`
                 : '';
-            const favFill = fav ? 1 : 0;
             const favColor = fav ? '#f99188' : '#3d4949';
+            const pid = typeof p.id === 'string' ? `'${p.id}'` : p.id;
             return `
   <div class="mi cursor-pointer group" style="${i % 2 === 1 ? 'margin-top:' + offset + 'px' : ''}">
-    <div class="bg-surface-container-lowest rounded-xl overflow-hidden amb active:scale-[.97] transition-transform" onclick="openProduct(${p.id})">
-      <div class="relative w-full" style="height:${imgHeight}px;overflow:hidden">
+    <div class="bg-surface-container-lowest rounded-xl overflow-hidden amb active:scale-[.97] transition-transform" onclick="openProduct(${pid})">
+      <div class="relative w-full" style="height:${imgHeight}px;overflow:hidden;background:#f0ede8">
         ${imgHtml}
-        <button onclick="event.stopPropagation();toggleFav(${p.id})"
+        <button onclick="event.stopPropagation();toggleFav(${pid})"
                 class="absolute top-2.5 right-2.5 w-8 h-8 flex items-center justify-center rounded-full"
                 style="background:rgba(252,249,244,.88);backdrop-filter:blur(4px)"
                 id="fav${p.id}">
