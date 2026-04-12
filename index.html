@@ -826,6 +826,23 @@
             color: #5ad7e6 !important;
         }
 
+        /* Dark mode — inactive nav tabs & labels visible */
+        body.dark .ntab:not(.on) {
+            color: rgba(230, 235, 238, .62) !important;
+        }
+        body.dark .ntab:not(.on) .material-symbols-outlined {
+            color: rgba(230, 235, 238, .62) !important;
+        }
+        body.dark #bottomNav {
+            background: rgba(18, 26, 30, .92) !important;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, .5) !important;
+        }
+        body.dark #fab {
+            background: #00666f !important;
+            color: #fff !important;
+        }
+
         /* Logo dark mode — Ayiti reste rouge, Market devient teal clair */
         body.dark #logoTextMarket {
             fill: #5ad7e6 !important;
@@ -1241,8 +1258,8 @@
                 <span class="material-symbols-outlined absolute right-3 bottom-2 opacity-[.1] pointer-events-none"
                     style="font-size:64px;font-variation-settings:'FILL' 1">storefront</span>
             </div>
-            <!-- ══ FLASH DEALS ENGINE ══ -->
-            <div id="flashDealsSection" class="mb-5">
+            <!-- ══ FLASH DEALS ENGINE — hidden by default; shown only when active deals exist ══ -->
+            <div id="flashDealsSection" class="mb-5 hidden">
                 <div class="flex items-center justify-between mb-3">
                     <div>
                         <p
@@ -3102,9 +3119,13 @@
             A.tab = tab; A.stack = [];
             document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
             document.getElementById("s-" + tab).classList.add("on");
-            document.querySelectorAll(".ntab").forEach(b => { b.classList.remove("on"); b.style.color = "rgba(28,28,25,.4)"; });
+            const isDark = document.body.classList.contains('dark');
+            document.querySelectorAll(".ntab").forEach(b => {
+                b.classList.remove("on");
+                b.style.color = isDark ? 'rgba(230,235,238,.62)' : 'rgba(28,28,25,.4)';
+            });
             const n = document.getElementById("nav-" + tab);
-            if (n) { n.classList.add("on"); n.style.color = "#001f23"; }
+            if (n) { n.classList.add("on"); n.style.color = isDark ? '#5ad7e6' : '#001f23'; }
             document.getElementById("backbtn").classList.add("hidden");
             document.getElementById("backbtn").classList.remove("flex");
             document.getElementById("bottomNav").classList.remove("hidden");
@@ -6350,6 +6371,15 @@
             const feedGrid = document.getElementById('feedGrid');
             if (feedGrid && feedGrid.children.length > 0) renderFeed();
 
+            // Re-tint bottom nav tabs for current theme
+            document.querySelectorAll('.ntab').forEach(b => {
+                if (b.classList.contains('on')) {
+                    b.style.color = DARK_MODE ? '#5ad7e6' : '#001f23';
+                } else {
+                    b.style.color = DARK_MODE ? 'rgba(230,235,238,.62)' : 'rgba(28,28,25,.4)';
+                }
+            });
+
             // Re-render pwodwi similè si détail ouvert
             if (A.curProd) {
                 const sg = document.getElementById('similarGrid');
@@ -6411,7 +6441,101 @@
             return TRANSLATIONS[LANG]?.[key] || TRANSLATIONS.ht[key] || key;
         }
 
+        // ── HT ⇄ FR dictionary for live DOM translation ──
+        const I18N_HT_FR = {
+            'Dekouvri': 'Découvrir', 'atizana ayisyen': 'l\'artisanat haïtien', 'atizana': 'artisanat',
+            'Bonjou': 'Bonjour', 'Bonswa': 'Bonsoir',
+            'Pibliye': 'Publier', 'Pibliye Pwodwi': 'Publier un Produit',
+            'Komand': 'Commandes', 'Kòmande': 'Commander', 'Komand Mwen': 'Mes Commandes',
+            'Pwofil': 'Profil', 'Pwofil Mwen': 'Mon Profil', 'Modifye Pwofil': 'Modifier le Profil',
+            'Mesaj': 'Message', 'Mesaj yo': 'Messages',
+            'Paramèt': 'Paramètres', 'Paramèt Aplikasyon': 'Paramètres de l\'Application',
+            'Dekonekte': 'Déconnexion', 'Konekte': 'Se connecter',
+            'Chèche pwodwi, vandè…': 'Rechercher produits, vendeurs…',
+            'Chèche pwodwi ou vandè': 'Rechercher un produit ou vendeur',
+            'Flash Deals': 'Offres Flash', 'Òf Espesyal': 'Offres Spéciales',
+            'Pa gen Flash Deal disponib kounye a': 'Aucune offre flash disponible pour le moment',
+            'Kategori': 'Catégories', 'Tout': 'Tous',
+            'Mòd': 'Mode', 'Kosmetik': 'Cosmétique', 'Aksesyar': 'Accessoire',
+            'Atizana': 'Artisanat', 'Kay': 'Maison', 'Bebe': 'Bébé',
+            'Mòd Sombre': 'Mode Sombre', 'Mòd klè': 'Mode clair',
+            'Midnight Teal — Prim & Repo je': 'Midnight Teal — Premium & Repose les yeux',
+            'Lang / Langue': 'Langue / Lang', 'Chwazi lang ou prefere': 'Choisissez votre langue préférée',
+            'Mode Lite aktif — foto yo p ap chaje': 'Mode Lite activé — images non chargées',
+            'Mode nòmal — foto yo ap chaje': 'Mode normal — images chargées',
+            'Pwodwi': 'Produits', 'Nan Stòk': 'En Stock', 'Lavant': 'Ventes', 'Vizit': 'Visites',
+            'Pwodwi Mwen': 'Mes Produits',
+            'Modifye': 'Modifier', 'Efase': 'Supprimer', 'Rediksyon': 'Réduction',
+            'Ajoute Nouvo Pwodwi': 'Ajouter un Nouveau Produit',
+            'Boutik Mwen': 'Ma Boutique', 'Boutik': 'Boutique',
+            'Kliyan Abonnen': 'Abonnés', 'Swiv': 'Suivre', 'Abonnen': 'Abonné',
+            'Favori': 'Favoris', 'Favori yo': 'Favoris',
+            'Panye': 'Panier', 'Panye mwen': 'Mon Panier',
+            'Vin yon Vandè': 'Devenir Vendeur', 'Vandè': 'Vendeur', 'Achtè': 'Acheteur',
+            'Admin': 'Admin', 'Panel Admin': 'Panneau Admin', 'Aksè konplè': 'Accès Complet',
+            'Verifye': 'Vérifié', 'Pa Verifye': 'Non Vérifié',
+            'Istorik Komand': 'Historique Commandes',
+            'Metòd Peman': 'Méthode de Paiement',
+            'Non pwodwi': 'Nom du Produit', 'Ranpli non pwodwi a': 'Veuillez remplir le nom du produit',
+            'Ajoute omwen 1 foto': 'Ajoutez au moins 1 photo',
+            'Pri': 'Prix', 'Mete yon pri valid': 'Entrez un prix valide',
+            'Deskripsyon': 'Description', 'Jenere ak IA': 'Générer avec IA',
+            'Kantite': 'Quantité', 'Stòk': 'Stock', 'Stòk Limité': 'Stock Limité',
+            'Pwomosyon / Rediksyon': 'Promotion / Réduction',
+            '% Rediksyon': '% Réduction', 'Pri Apre Rediksyon': 'Prix Après Réduction',
+            'Dire Flash Deal': 'Durée Flash Deal', 'èdtan': 'heures',
+            'Pibliye pwodwi': 'Publier le produit', 'Pibliye!': 'Publié!',
+            'Pwodwi pibliye avèk siksè!': 'Produit publié avec succès!',
+            'Pwodwi efase': 'Produit supprimé', 'Pwodwi modifye': 'Produit modifié',
+            'Ou poko gen pwodwi': 'Vous n\'avez pas encore de produit',
+            'Pa konekte': 'Non connecté',
+            'Chaje...': 'Chargement...',
+            'Retounen': 'Retour', 'Ale': 'Aller', 'Anile': 'Annuler', 'Konfime': 'Confirmer',
+            'Sove': 'Enregistrer', 'Fèmen': 'Fermer', 'OK': 'OK',
+            'Kounye a': 'À l\'instant',
+            'Notifikasyon': 'Notifications', 'Pa gen notifikasyon': 'Aucune notification',
+            'Tèm': 'Thème', 'Tèm Sonore': 'Thème Sonore',
+            'Mode Lite': 'Mode Lite', 'Mode Lite — Ekonomize Done': 'Mode Lite — Économiser les données',
+            'Vizyon Vandè': 'Vision Vendeur', 'Vizyon Achtè': 'Vision Acheteur',
+            'Rezilta': 'Résultats', 'Pa gen rezilta': 'Aucun résultat',
+            'Pwodwi ak bon pri pou ou': 'Produits à bons prix pour vous',
+            'Pwodwi Tandans': 'Produits Tendance',
+            'Pwodwi Popilè': 'Produits Populaires',
+            'Plis...': 'Plus...', 'Wè plis': 'Voir plus',
+        };
+        const I18N_FR_HT = Object.fromEntries(Object.entries(I18N_HT_FR).map(([k, v]) => [v, k]));
+
+        function applyLangToDom(targetLang) {
+            const map = targetLang === 'fr' ? I18N_HT_FR : I18N_FR_HT;
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+                acceptNode: (node) => {
+                    const p = node.parentNode;
+                    if (!p) return NodeFilter.FILTER_REJECT;
+                    const tag = p.nodeName;
+                    if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return NodeFilter.FILTER_REJECT;
+                    if (p.closest && p.closest('[data-no-i18n]')) return NodeFilter.FILTER_REJECT;
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+            });
+            const nodes = [];
+            let n; while ((n = walker.nextNode())) nodes.push(n);
+            nodes.forEach(node => {
+                const txt = node.nodeValue;
+                const trimmed = txt.trim();
+                if (!trimmed) return;
+                if (map[trimmed]) {
+                    node.nodeValue = txt.replace(trimmed, map[trimmed]);
+                }
+            });
+            // Placeholders on inputs
+            document.querySelectorAll('input[placeholder]').forEach(inp => {
+                const ph = inp.placeholder.trim();
+                if (map[ph]) inp.placeholder = map[ph];
+            });
+        }
+
         function setLang(lang) {
+            const prev = LANG;
             LANG = lang;
             localStorage.setItem('aym_lang', lang);
             // Update toggle buttons
@@ -6428,7 +6552,10 @@
             // Re-render feed greeting
             const greet = document.getElementById('feedGreet');
             if (greet && A.user) greet.textContent = t('greet') + ', ' + A.user.name.split(' ')[0];
-            toast(lang === 'fr' ? '🇫🇷 Langue: Français' : '🇭🇹 Lang: Kreyòl');
+            // Apply translation to DOM
+            if (prev !== lang) applyLangToDom(lang);
+            document.documentElement.setAttribute('lang', lang === 'fr' ? 'fr' : 'ht');
+            toast(lang === 'fr' ? 'Langue: Français' : 'Lang: Kreyòl');
         }
 
         // ══════════════════════════════════════════════════════════
@@ -6547,6 +6674,8 @@
                 const qb = document.getElementById('quietBg');
                 if (qb) qb.style.background = '#00666f';
             }
+            // Force DOM translation on init if stored lang is FR
+            if (LANG === 'fr') applyLangToDom('fr');
             setLang(LANG);
         }, 300);
 
@@ -6644,18 +6773,26 @@
         // ── Flash Deals — fetched from Supabase (no mock data) ──
         let FLASH_DEALS = [];
 
-        // Flash Deal countdown — 2h30m from page load
-        let flashEndTime = Date.now() + (2 * 60 * 60 + 30 * 60) * 1000;
+        // Flash Deal countdown — driven by real ends_at from DB; null when no active deals
+        let flashEndTime = null;
         let flashInterval = null;
 
         function initFlashDeals() {
             loadFlashDealsFromSupabase();
-            startFlashCountdown();
+        }
+
+        function stopFlashCountdown() {
+            if (flashInterval) { clearInterval(flashInterval); flashInterval = null; }
+            const section = document.getElementById('flashDealsSection');
+            if (section) section.classList.add('hidden');
         }
 
         function startFlashCountdown() {
             if (flashInterval) clearInterval(flashInterval);
+            const section = document.getElementById('flashDealsSection');
+            if (section) section.classList.remove('hidden');
             flashInterval = setInterval(() => {
+                if (!flashEndTime) { stopFlashCountdown(); return; }
                 const now = Date.now();
                 let diff = Math.max(0, Math.floor((flashEndTime - now) / 1000));
                 const hh = Math.floor(diff / 3600);
@@ -6669,21 +6806,25 @@
                 if (elM) elM.textContent = String(mm).padStart(2, '0');
                 if (elS) elS.textContent = String(ss).padStart(2, '0');
                 if (diff <= 0) {
+                    // Timer expired — reload deals from DB to check for remaining active ones
                     clearInterval(flashInterval);
-                    // Reset to a new 2h30 cycle
-                    flashEndTime = Date.now() + (2 * 60 * 60 + 30 * 60) * 1000;
-                    startFlashCountdown();
+                    flashInterval = null;
+                    flashEndTime = null;
+                    loadFlashDealsFromSupabase();
                 }
             }, 1000);
         }
 
         function renderFlashDealCards() {
             const grid = document.getElementById('flashDealsGrid');
+            const section = document.getElementById('flashDealsSection');
             if (!grid) return;
             if (FLASH_DEALS.length === 0) {
-                grid.innerHTML = '<p class="font-label text-xs text-on-surface-variant text-center py-6 w-full">Pa gen Flash Deal disponib kounye a</p>';
+                grid.innerHTML = '';
+                if (section) section.classList.add('hidden');
                 return;
             }
+            if (section) section.classList.remove('hidden');
             grid.innerHTML = FLASH_DEALS.map(fd => {
                 const savePct = Math.round((1 - fd.p / fd.oldP) * 100);
                 const color = fd.ec || '#00666f';
@@ -7677,24 +7818,39 @@
 
     // ── Fetch flash deals from Supabase ──
     async function loadFlashDealsFromSupabase() {
-        if (!db) { renderFlashDealCards(); return; }
+        FLASH_DEALS.length = 0;
+        if (!db) { renderFlashDealCards(); stopFlashCountdown(); return; }
         try {
+            const nowIso = new Date().toISOString();
             const { data, error } = await db.from('flash_deals')
                 .select('*').eq('active', true)
-                .order('created_at', { ascending: false }).limit(6);
+                .gt('ends_at', nowIso)
+                .order('ends_at', { ascending: true }).limit(6);
             if (error) throw error;
             if (data && data.length > 0) {
-                FLASH_DEALS.length = 0;
                 data.forEach(fd => {
                     FLASH_DEALS.push({
                         id: fd.id, t: fd.title, p: fd.price, oldP: fd.old_price,
                         e: fd.icon || 'palette', ec: fd.color || '#059669',
                         c: fd.category, l: fd.location, pct: fd.discount_pct || 0, stock: fd.stock || 0,
+                        ends_at: fd.ends_at,
                     });
                 });
+                // Use the earliest ends_at as the countdown target
+                const earliest = Math.min(...data.map(fd => new Date(fd.ends_at).getTime()));
+                flashEndTime = earliest;
+                startFlashCountdown();
+            } else {
+                flashEndTime = null;
+                stopFlashCountdown();
             }
             renderFlashDealCards();
-        } catch (e) { console.warn('[Flash]', e.message); renderFlashDealCards(); }
+        } catch (e) {
+            console.warn('[Flash]', e.message);
+            flashEndTime = null;
+            stopFlashCountdown();
+            renderFlashDealCards();
+        }
     }
 
     // ── Fetch admin data from Supabase ──
