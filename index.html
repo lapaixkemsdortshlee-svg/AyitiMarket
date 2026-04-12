@@ -2015,11 +2015,7 @@
         </div>
     </div>
 
-    <!-- ID Preview modal -->
-    <div id="idModal" class="hidden fixed inset-0 z-[150] flex items-center justify-center px-5"
-        style="background:rgba(28,28,25,.7);backdrop-filter:blur(6px)">
-
-    <!-- Product Image Lightbox -->
+    <!-- Product Image Lightbox (top-level modal, accessible to all roles) -->
     <div id="productLightbox" class="fixed inset-0 z-[200] flex items-center justify-center"
         style="background:rgba(0,0,0,.92);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .25s ease"
         onclick="closeProductLightbox()">
@@ -2032,6 +2028,10 @@
             class="max-w-[95vw] max-h-[85vh] rounded-xl"
             style="object-fit:contain;transition:transform .3s ease;transform:scale(.92)"/>
     </div>
+
+    <!-- ID Preview modal -->
+    <div id="idModal" class="hidden fixed inset-0 z-[150] flex items-center justify-center px-5"
+        style="background:rgba(28,28,25,.7);backdrop-filter:blur(6px)">
         <div class="bg-surface-container-lowest rounded-2xl overflow-hidden w-full max-w-sm amb">
             <div class="flex items-center justify-between px-4 py-3"
                 style="border-bottom:1px solid rgba(188,201,200,.15)">
@@ -3748,6 +3748,15 @@
             const loc = document.getElementById("fLoc")?.value?.trim() || '';
             if (price <= 0) { toast("Mete yon pri valid"); return; }
 
+            // ── Flash Deal / Discount ──
+            const discountOn = document.getElementById('discountToggle')?.checked;
+            const discountPct = discountOn ? (parseInt(document.getElementById('fDiscountPct')?.value) || 0) : 0;
+            const discountDur = discountOn ? (parseInt(document.getElementById('fDiscountDuration')?.value) || 2) : 0;
+            const discountStock = discountOn ? (parseInt(document.getElementById('fDiscountStock')?.value) || 0) : 0;
+            const hasDiscount = discountOn && discountPct > 0 && discountPct < 100;
+            const finalPrice = hasDiscount ? Math.round(price * (1 - discountPct / 100)) : price;
+            const oldPrice = hasDiscount ? price : null;
+
             const res = document.getElementById("pipeResult"), steps = document.getElementById("pipeSteps");
             res.classList.remove("hidden"); steps.innerHTML = "";
 
@@ -3787,7 +3796,8 @@
                     seller_id: A.user.uid,
                     title: t,
                     description: desc || null,
-                    price: price,
+                    price: finalPrice,
+                    old_price: oldPrice,
                     category: cat,
                     location: loc || null,
                     images: imageUrls,
@@ -3797,13 +3807,38 @@
                 if (insertErr) throw new Error(insertErr.message);
                 addStep('check_circle', 'Pwodwi anrejistre ✓');
 
+                // Step 2b: Create Flash Deal entry if discount is set
+                if (hasDiscount && newProduct) {
+                    addStep('local_fire_department', `Kreye Flash Deal -${discountPct}%...`);
+                    const endsAt = new Date(Date.now() + discountDur * 3600 * 1000).toISOString();
+                    const { error: fdErr } = await db.from('flash_deals').insert({
+                        product_id: newProduct.id,
+                        title: t,
+                        price: finalPrice,
+                        old_price: price,
+                        category: cat,
+                        location: loc || null,
+                        discount_pct: discountPct,
+                        stock: discountStock || newProduct.stock || 1,
+                        active: true,
+                        ends_at: endsAt,
+                    });
+                    if (fdErr) {
+                        console.warn('[FlashDeal]', fdErr.message);
+                        addStep('warning', 'Flash deal pa anrejistre: ' + fdErr.message);
+                    } else {
+                        addStep('check_circle', `Flash Deal aktif pou ${discountDur}h ✓`);
+                    }
+                }
+
                 // Step 3: Add to local PRODUCTS array
                 await sl(200);
                 if (newProduct) {
                     PRODUCTS.unshift({
                         id: newProduct.id, t: newProduct.title, p: newProduct.price,
                         oldP: newProduct.old_price, c: newProduct.category, l: newProduct.location,
-                        desc: newProduct.description, img: imageUrls, s: newProduct.stock || 1,
+                        desc: newProduct.description, img: imageUrls[0] || null, images: imageUrls,
+                        s: newProduct.stock || 1,
                         v: 0, r: 0, sellerId: A.user.uid, sellerName: A.user.name,
                         sellerVerified: A.user.verifiedSeller,
                     });
@@ -3818,6 +3853,10 @@
                 document.getElementById("fTitle").value = '';
                 document.getElementById("fDesc").value = '';
                 document.getElementById("fPrice").value = '';
+                const discToggle = document.getElementById('discountToggle');
+                if (discToggle?.checked) { discToggle.checked = false; toggleDiscountFields(false); }
+                const fpct = document.getElementById('fDiscountPct'); if (fpct) fpct.value = '';
+                const fstock = document.getElementById('fDiscountStock'); if (fstock) fstock.value = '';
                 renderPhotoGrid();
 
                 // Refresh feed after short delay
@@ -4250,39 +4289,199 @@
             renderBoutiqueContent();
         }
 
-        function renderBoutiqueContent() {
+        async function renderBoutiqueContent() {
             const el = document.getElementById('boutiqueContent');
             if (!el) return;
-            const myProducts = A.user?.uid ? PRODUCTS.filter(p => p.sellerId === A.user.uid) : [];
+            if (!A.user?.uid) { el.innerHTML = '<div class="px-5 pt-6 text-center text-on-surface-variant">Pa konekte</div>'; return; }
+
+            // Loading skeleton
+            el.innerHTML = `<div class="px-5 pt-6">${skeletonCards ? skeletonCards(3) : '<div class="text-center text-on-surface-variant">Chaje...</div>'}</div>`;
+
+            // Load seller's products from Supabase
+            let myProducts = [];
+            try {
+                if (db) {
+                    const { data, error } = await db.from('products')
+                        .select('*')
+                        .eq('seller_id', A.user.uid)
+                        .order('created_at', { ascending: false });
+                    if (error) throw error;
+                    myProducts = (data || []).map(p => ({
+                        id: p.id, t: p.title, p: p.price, oldP: p.old_price,
+                        c: p.category, l: p.location, desc: p.description,
+                        img: (p.images && p.images.length > 0) ? p.images[0] : null,
+                        images: p.images || [], s: p.stock || 0, v: p.views || 0,
+                        r: 0, status: p.status,
+                        sellerId: p.seller_id, sellerName: A.user.name,
+                        sellerVerified: A.user.verifiedSeller,
+                    }));
+                    // Sync into PRODUCTS cache
+                    myProducts.forEach(mp => {
+                        const i = PRODUCTS.findIndex(x => x.id === mp.id);
+                        if (i >= 0) PRODUCTS[i] = mp; else PRODUCTS.unshift(mp);
+                    });
+                }
+            } catch(e) {
+                console.warn('[Boutique] Load error:', e.message);
+                myProducts = PRODUCTS.filter(p => p.sellerId === A.user.uid);
+            }
+
+            A.myBoutiqueProducts = myProducts;
             const totalSales = myProducts.reduce((s, p) => s + (p.v || 0), 0);
             const totalStock = myProducts.reduce((s, p) => s + (p.s || 0), 0);
+
+            const cardHtml = myProducts.map(p => {
+                const pidAttr = `'${String(p.id).replace(/'/g, "\\'")}'`;
+                const imgSrc = p.img || (p.images && p.images[0]);
+                const imgEl = imgSrc
+                    ? `<img src="${imgSrc}" alt="" onerror="this.onerror=null;this.style.display='none'" class="w-full h-full object-cover"/>`
+                    : prodPlaceholder(p, 56);
+                const statusBadge = p.status && p.status !== 'active'
+                    ? `<span class="font-label text-[9px] px-1.5 py-0.5 rounded-full" style="background:#e5e2dd;color:#5c6160">${p.status}</span>`
+                    : `<span class="font-label text-[9px] px-1.5 py-0.5 rounded-full" style="background:rgba(0,102,111,.1);color:#00666f">aktif</span>`;
+                const priceLine = p.oldP
+                    ? `<p class="font-headline font-extrabold text-sm text-primary mt-0.5">${fp(p.p)} HTG <span class="font-label text-[10px] text-on-surface-variant line-through ml-1">${fp(p.oldP)}</span></p>`
+                    : `<p class="font-headline font-extrabold text-sm text-primary mt-0.5">${fp(p.p)} HTG</p>`;
+                return `
+                <div class="bg-surface-container-lowest rounded-xl p-3 amb">
+                  <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0" style="background:#f0ede8">${imgEl}</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2">
+                        <p class="font-headline font-bold text-sm text-on-surface truncate">${p.t}</p>
+                        ${statusBadge}
+                      </div>
+                      <div class="flex items-center gap-3 mt-1">
+                        <span class="font-label text-xs text-on-surface-variant">Stòk: ${p.s}</span>
+                        <span class="font-label text-xs text-on-surface-variant">Vizit: ${p.v}</span>
+                      </div>
+                      ${priceLine}
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2 mt-3">
+                    <button onclick="editMyProduct(${pidAttr})" class="py-2 rounded-lg flex items-center justify-center gap-1 active:scale-95" style="background:rgba(0,102,111,.08);color:#00666f">
+                      <span class="material-symbols-outlined" style="font-size:14px">edit</span>
+                      <span class="font-label text-[11px] font-bold">Modifye</span>
+                    </button>
+                    <button onclick="addDiscountToProduct(${pidAttr})" class="py-2 rounded-lg flex items-center justify-center gap-1 active:scale-95" style="background:rgba(5,150,105,.1);color:#059669">
+                      <span class="material-symbols-outlined" style="font-size:14px">local_fire_department</span>
+                      <span class="font-label text-[11px] font-bold">Rediksyon</span>
+                    </button>
+                    <button onclick="deleteMyProduct(${pidAttr})" class="py-2 rounded-lg flex items-center justify-center gap-1 active:scale-95" style="background:rgba(220,38,38,.1);color:#dc2626">
+                      <span class="material-symbols-outlined" style="font-size:14px">delete</span>
+                      <span class="font-label text-[11px] font-bold">Efase</span>
+                    </button>
+                  </div>
+                </div>`;
+            }).join('');
+
             el.innerHTML = `
     <div class="px-5 pt-6">
       <div class="grid grid-cols-3 gap-3 mb-5">
         <div class="bg-surface-container-lowest rounded-xl p-3 text-center amb"><span class="font-headline font-extrabold text-xl text-primary">${myProducts.length}</span><p class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-1">Pwodwi</p></div>
         <div class="bg-surface-container-lowest rounded-xl p-3 text-center amb"><span class="font-headline font-extrabold text-xl text-primary">${totalStock}</span><p class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-1">Nan Stòk</p></div>
-        <div class="bg-surface-container-lowest rounded-xl p-3 text-center amb"><span class="font-headline font-extrabold text-xl text-primary">${totalSales}</span><p class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-1">Lavant</p></div>
+        <div class="bg-surface-container-lowest rounded-xl p-3 text-center amb"><span class="font-headline font-extrabold text-xl text-primary">${totalSales}</span><p class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-1">Vizit</p></div>
       </div>
-      <p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-2">Pwodwi Mwen</p>
+      <p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-2">Pwodwi Mwen (${myProducts.length})</p>
       <div class="space-y-3">
-        ${myProducts.map(p => `
-        <div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb">
-          <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">${prodPlaceholder(p, 56)}</div>
-          <div class="flex-1 min-w-0">
-            <p class="font-headline font-bold text-sm text-on-surface truncate">${p.t}</p>
-            <div class="flex items-center gap-3 mt-1">
-              <span class="font-label text-xs text-on-surface-variant">Stòk: ${p.s}</span>
-              <span class="font-label text-xs text-on-surface-variant">Lavant: ${p.v}</span>
-            </div>
-            <p class="font-headline font-extrabold text-sm text-primary mt-0.5">${fp(p.p)} HTG</p>
-          </div>
-          <button onclick="openProduct(${p.id})" class="w-8 h-8 flex items-center justify-center rounded-full" style="background:rgba(0,102,111,.08)"><span class="material-symbols-outlined text-primary" style="font-size:16px">edit</span></button>
-        </div>`).join('')}
+        ${myProducts.length > 0 ? cardHtml : '<div class="bg-surface-container-lowest rounded-xl p-6 text-center amb"><span class="material-symbols-outlined text-on-surface-variant" style="font-size:32px">inventory_2</span><p class="font-label text-sm text-on-surface-variant mt-2">Ou poko gen pwodwi</p></div>'}
       </div>
       <button onclick="goBack();navTo('pub')" class="w-full mt-5 py-3.5 rounded-xl cta font-headline font-bold text-sm active:scale-95 flex items-center justify-center gap-2 amb">
         <span class="material-symbols-outlined" style="font-size:18px">add</span>Ajoute Nouvo Pwodwi
       </button>
     </div>`;
+        }
+
+        // ── Edit / Delete / Discount for seller's own products ──
+        async function deleteMyProduct(pid) {
+            if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
+            if (!confirm('Efase pwodwi sa a definitivman?')) return;
+            try {
+                const { error } = await db.from('products').delete().eq('id', pid).eq('seller_id', A.user.uid);
+                if (error) throw error;
+                // Also disable any flash deals
+                await db.from('flash_deals').update({ active: false }).eq('product_id', pid);
+                const idx = PRODUCTS.findIndex(x => x.id === pid);
+                if (idx >= 0) PRODUCTS.splice(idx, 1);
+                toast('Pwodwi efase');
+                renderBoutiqueContent();
+            } catch(e) {
+                console.error('[Delete]', e.message);
+                toast('Erè efase: ' + e.message);
+            }
+        }
+
+        async function editMyProduct(pid) {
+            if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
+            const p = (A.myBoutiqueProducts || PRODUCTS).find(x => x.id === pid);
+            if (!p) { toast('Pwodwi pa jwenn'); return; }
+            const newTitle = prompt('Non pwodwi:', p.t);
+            if (newTitle === null) return;
+            const newPriceStr = prompt('Pri (HTG):', p.p);
+            if (newPriceStr === null) return;
+            const newPrice = parseInt(newPriceStr);
+            if (!newTitle.trim() || !newPrice || newPrice <= 0) { toast('Enfòmasyon pa valid'); return; }
+            const newDesc = prompt('Deskripsyon:', p.desc || '');
+            try {
+                const { error } = await db.from('products').update({
+                    title: newTitle.trim(),
+                    price: newPrice,
+                    description: newDesc !== null ? newDesc : p.desc,
+                }).eq('id', pid).eq('seller_id', A.user.uid);
+                if (error) throw error;
+                toast('Pwodwi modifye');
+                renderBoutiqueContent();
+            } catch(e) {
+                console.error('[Edit]', e.message);
+                toast('Erè modifikasyon: ' + e.message);
+            }
+        }
+
+        async function addDiscountToProduct(pid) {
+            if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
+            const p = (A.myBoutiqueProducts || PRODUCTS).find(x => x.id === pid);
+            if (!p) { toast('Pwodwi pa jwenn'); return; }
+            const pctStr = prompt('% Rediksyon (1-90):', '20');
+            if (pctStr === null) return;
+            const pct = parseInt(pctStr);
+            if (!pct || pct < 1 || pct > 90) { toast('% pa valid'); return; }
+            const durStr = prompt('Dire (èdtan, ex: 2, 6, 24):', '2');
+            if (durStr === null) return;
+            const dur = parseInt(durStr) || 2;
+            const originalPrice = p.oldP || p.p;
+            const newPrice = Math.round(originalPrice * (1 - pct / 100));
+            try {
+                // Update product price + old_price
+                const { error: upErr } = await db.from('products').update({
+                    price: newPrice,
+                    old_price: originalPrice,
+                }).eq('id', pid).eq('seller_id', A.user.uid);
+                if (upErr) throw upErr;
+
+                // Deactivate existing flash deals for this product
+                await db.from('flash_deals').update({ active: false }).eq('product_id', pid);
+
+                // Insert new flash deal
+                const endsAt = new Date(Date.now() + dur * 3600 * 1000).toISOString();
+                const { error: fdErr } = await db.from('flash_deals').insert({
+                    product_id: pid,
+                    title: p.t,
+                    price: newPrice,
+                    old_price: originalPrice,
+                    category: p.c,
+                    location: p.l,
+                    discount_pct: pct,
+                    stock: p.s || 1,
+                    active: true,
+                    ends_at: endsAt,
+                });
+                if (fdErr) console.warn('[FlashDeal]', fdErr.message);
+                toast(`Flash Deal -${pct}% aktive!`);
+                renderBoutiqueContent();
+            } catch(e) {
+                console.error('[Discount]', e.message);
+                toast('Erè: ' + e.message);
+            }
         }
 
         // ══════════════════════════════════════════════════════════
