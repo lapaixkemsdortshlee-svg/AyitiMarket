@@ -3019,6 +3019,17 @@
             updateNotifBadge();
             navTo("feed");
             showAuthBanner();
+            // Load dynamic follower count
+            if (db && A.user?.uid && (A.user.role === 'seller' || A.user.role === 'admin')) {
+                db.from('followers').select('id', { count: 'exact', head: true }).eq('seller_id', A.user.uid)
+                    .then(({ count }) => { A.followers = count || 0; });
+                db.from('orders').select('id', { count: 'exact', head: true }).eq('seller_id', A.user.uid)
+                    .then(({ count }) => { A.user.salesCount = count || 0; });
+            }
+            if (db && A.user?.uid) {
+                db.from('orders').select('id', { count: 'exact', head: true }).eq('buyer_id', A.user.uid)
+                    .then(({ count }) => { A.user.orderCount = count || 0; });
+            }
         }
 
         function updateTopBar() {
@@ -3980,11 +3991,11 @@
         <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">Favori</span>
       </div>
       <div class="flex flex-col items-center py-4">
-        <span class="font-headline font-extrabold text-xl text-primary">${u.role==='seller'||u.role==='admin' ? (u.verifiedSeller ? '42' : '0') : '5'}</span>
+        <span class="font-headline font-extrabold text-xl text-primary">${u.role==='seller'||u.role==='admin' ? (u.salesCount || 0) : (u.orderCount || 0)}</span>
         <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">${u.role==='seller'||u.role==='admin' ? 'Lavant' : 'Komand'}</span>
       </div>
       <div class="flex flex-col items-center py-4 bg-surface-container-low">
-        <span class="font-headline font-extrabold text-xl text-primary">${u.role==='seller'||u.role==='admin' ? '4.8' : '★'}</span>
+        <span class="font-headline font-extrabold text-xl text-primary">${u.role==='seller'||u.role==='admin' ? (u.ratingAvg || 0) : '★'}</span>
         <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">${u.role==='seller'||u.role==='admin' ? 'Nòt' : 'Nivo'}</span>
       </div>
       `}
@@ -4003,7 +4014,7 @@
         if (u.role === 'buyer' || (u.role !== 'seller' && u.role !== 'admin')) {
             items.push({ i: "shopping_cart", l: "Panye Mwen", s: A.cart ? A.cart.length + " atik" : "0 atik", a: "openCartScreen()" });
         }
-        items.push({ i: "shopping_bag", l: "Istorik Komand", s: "5 komand", a: "navTo('order')" });
+        items.push({ i: "shopping_bag", l: "Istorik Komand", s: (u.orderCount || 0) + " komand", a: "navTo('order')" });
         if (u.role === 'seller' || u.role === 'admin') {
             items.push({ i: "storefront", l: "Boutik Mwen", s: "Pwodwi, stòk, lavant", a: "openBoutiqueScreen()" });
             items.push({ i: "group", l: "Kliyan Abonnen", s: (A.followers || 0) + " abonnen", a: "openFollowersScreen()" });
@@ -4175,7 +4186,7 @@
         // ══════════════════════════════════════════════════════════
         //  FOLLOWERS (Kliyan Abonnen)
         // ══════════════════════════════════════════════════════════
-        if (!A.followers) A.followers = 24;
+        if (!A.followers) A.followers = 0;
         if (!A.followedSellers) A.followedSellers = new Set();
 
         function toggleFollowSeller(sellerId) {
@@ -4462,30 +4473,57 @@
         async function uploadIDPhotos() {
             if (!idPhotos.front || !idPhotos.back) { toast("2 foto obligatwa"); return; }
 
-            // Upload progress bar
             const bar = document.getElementById('idUploadProgress');
             bar.classList.remove('hidden');
             const fill = document.getElementById('idUploadFill');
             const pct = document.getElementById('idUploadPct');
             const lbl = document.getElementById('idUploadLabel');
 
-            const steps = [
-                { p: 20, t: "Upload fas…" },
-                { p: 50, t: "Upload do…" },
-                { p: 80, t: "Chifre fichye yo…" },
-                { p: 100, t: "Upload konplè ✓" },
-            ];
-            for (const s of steps) {
-                await new Promise(r => setTimeout(r, 500));
-                fill.style.width = s.p + '%';
-                pct.textContent = s.p + '%';
-                lbl.textContent = s.t;
-            }
+            try {
+                const uid = A.user?.uid;
+                if (!db || !uid) { toast('Pa konekte'); bar.classList.add('hidden'); return; }
+                const ts = Date.now();
 
-            await new Promise(r => setTimeout(r, 400));
-            bar.classList.add('hidden');
-            toast("ID upload nan Supabase Storage");
-            vsGoStep(3);
+                // Upload front
+                lbl.textContent = 'Upload fas…'; fill.style.width = '15%'; pct.textContent = '15%';
+                const frontPath = `verifications/${uid}/${ts}_front.jpg`;
+                const { error: e1 } = await db.storage.from('verification-docs').upload(frontPath, idPhotos.front.file, { upsert: true });
+                if (e1) throw new Error('Front: ' + e1.message);
+
+                // Upload back
+                lbl.textContent = 'Upload do…'; fill.style.width = '45%'; pct.textContent = '45%';
+                const backPath = `verifications/${uid}/${ts}_back.jpg`;
+                const { error: e2 } = await db.storage.from('verification-docs').upload(backPath, idPhotos.back.file, { upsert: true });
+                if (e2) throw new Error('Back: ' + e2.message);
+
+                // Upload selfie if present
+                let selfiePath = null;
+                if (idPhotos.selfie) {
+                    lbl.textContent = 'Upload selfie…'; fill.style.width = '75%'; pct.textContent = '75%';
+                    selfiePath = `verifications/${uid}/${ts}_selfie.jpg`;
+                    const { error: e3 } = await db.storage.from('verification-docs').upload(selfiePath, idPhotos.selfie.file, { upsert: true });
+                    if (e3) throw new Error('Selfie: ' + e3.message);
+                }
+
+                // Get public URLs
+                const { data: d1 } = db.storage.from('verification-docs').getPublicUrl(frontPath);
+                const { data: d2 } = db.storage.from('verification-docs').getPublicUrl(backPath);
+                const { data: d3 } = selfiePath ? db.storage.from('verification-docs').getPublicUrl(selfiePath) : { data: null };
+
+                idPhotos.front.publicUrl = d1?.publicUrl || null;
+                idPhotos.back.publicUrl = d2?.publicUrl || null;
+                if (idPhotos.selfie && d3) idPhotos.selfie.publicUrl = d3?.publicUrl || null;
+
+                lbl.textContent = 'Upload konplè ✓'; fill.style.width = '100%'; pct.textContent = '100%';
+                await new Promise(r => setTimeout(r, 400));
+                bar.classList.add('hidden');
+                toast("ID upload nan Supabase Storage ✓");
+                vsGoStep(3);
+            } catch(e) {
+                console.error('[Upload]', e.message);
+                bar.classList.add('hidden');
+                toast('Erè upload: ' + e.message);
+            }
         }
 
         function vsCheckConsent() {
@@ -4526,14 +4564,21 @@
                 submittedAt: 'Kounye a',
                 status: 'pending',
                 idType: document.querySelector('input[name="idtype"]:checked')?.value || 'cin',
-                photos: idPhotos,
+                photos: {
+                    front: idPhotos.front ? { dataUrl: idPhotos.front.dataUrl, publicUrl: idPhotos.front.publicUrl, sizeKB: idPhotos.front.sizeKB } : null,
+                    back: idPhotos.back ? { dataUrl: idPhotos.back.dataUrl, publicUrl: idPhotos.back.publicUrl, sizeKB: idPhotos.back.sizeKB } : null,
+                    selfie: idPhotos.selfie ? { dataUrl: idPhotos.selfie.dataUrl, publicUrl: idPhotos.selfie.publicUrl, sizeKB: idPhotos.selfie.sizeKB } : null,
+                },
             };
             VERIF_REQUESTS.unshift(newReq);
-            // Save to Supabase
+            // Save to Supabase with photo URLs
             if (db && A.user?.uid) {
                 db.from('verification_requests').insert({
                     user_id: A.user.uid, name: newReq.name, phone: newReq.phone,
                     status: 'pending', id_type: newReq.idType,
+                    front_photo_url: idPhotos.front?.publicUrl || null,
+                    back_photo_url: idPhotos.back?.publicUrl || null,
+                    selfie_photo_url: idPhotos.selfie?.publicUrl || null,
                 }).then(({ error }) => {
                     if (error) console.warn('[Verif] Submit error:', error.message);
                 });
@@ -4594,7 +4639,7 @@
                      style="background:#f0ede8;${photo ? '' : 'border:1.5px dashed #bcc9c8'}"
                      onclick="openIDModal('${v.uid}','${v.name}','${side}')">
           ${photo
-                        ? `<img src="${photo.dataUrl}" class="w-full h-full object-cover"/>`
+                        ? `<img src="${photo.publicUrl || photo.dataUrl}" class="w-full h-full object-cover" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-full h-full flex flex-col items-center justify-center gap-1\\'><span class=\\'material-symbols-outlined text-on-surface-variant\\' style=\\'font-size:20px\\'>broken_image</span><p class=\\'font-label text-[9px] text-on-surface-variant\\'>Image indisponib</p></div>'"/>`
                         : `<div class="w-full h-full flex flex-col items-center justify-center gap-1">
                  <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">badge</span>
                  <p class="font-label text-[9px] text-on-surface-variant">${{ front: 'Fas', back: 'Do', selfie: 'Selfie' }[side]}</p>
@@ -4644,9 +4689,10 @@
             const sideLabel = { front: 'Fas', back: 'Do', selfie: 'Selfie' }[side];
 
             if (photo) {
-                img.innerHTML = `<img src="${photo.dataUrl}" class="w-full h-full object-cover rounded-xl"/>`;
+                const imgUrl = photo.publicUrl || photo.dataUrl;
+                img.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover rounded-xl" onerror="this.onerror=null;this.src='';this.parentElement.innerHTML='<div class=\\'flex flex-col items-center gap-2\\'><span class=\\'material-symbols-outlined text-on-surface-variant\\' style=\\'font-size:48px\\'>broken_image</span><p class=\\'font-label text-sm text-on-surface-variant\\'>Image indisponib</p></div>'"/>`;
                 img.style.padding = '0';
-                meta.textContent = `${typeLabel} · ${sideLabel} · ${photo.sizeKB}KB · Supabase Storage`;
+                meta.textContent = `${typeLabel} · ${sideLabel} · ${photo.sizeKB ? photo.sizeKB + 'KB · ' : ''}Supabase Storage`;
             } else {
                 img.innerHTML = `<div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-on-surface-variant" style="font-size:48px">badge</span><p class="font-label text-sm text-on-surface-variant">${sideLabel} — pa disponib</p></div>`;
                 meta.textContent = `${typeLabel} · ${sideLabel} · pa upload toujou`;
@@ -6950,6 +6996,10 @@
             role: profile?.role || 'buyer',
             verifiedSeller: profile?.verified_seller || false,
             photoURL: profile?.avatar_url || meta.avatar_url || meta.picture || null,
+            salesCount: profile?.sales_count || 0,
+            orderCount: profile?.order_count || 0,
+            ratingAvg: profile?.rating_avg || 0,
+            reviewCount: profile?.review_count || 0,
         };
         A.isAuth = true;
         localStorage.setItem('aym_user', JSON.stringify(A.user));
@@ -7350,7 +7400,12 @@
                 verifs.forEach(v => VERIF_REQUESTS.push({
                     uid: v.user_id || v.id, name: v.name, phone: v.phone,
                     submittedAt: timeAgo(v.created_at), status: v.status,
-                    idType: v.id_type, photos: v.photos || {},
+                    idType: v.id_type,
+                    photos: {
+                        front: v.front_photo_url ? { publicUrl: v.front_photo_url, dataUrl: v.front_photo_url, sizeKB: 0 } : null,
+                        back: v.back_photo_url ? { publicUrl: v.back_photo_url, dataUrl: v.back_photo_url, sizeKB: 0 } : null,
+                        selfie: v.selfie_photo_url ? { publicUrl: v.selfie_photo_url, dataUrl: v.selfie_photo_url, sizeKB: 0 } : null,
+                    },
                 }));
             }
             // Orders
