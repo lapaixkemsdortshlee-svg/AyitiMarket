@@ -1544,9 +1544,8 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="font-headline font-bold text-sm text-on-surface leading-none truncate" id="chatName">Vandè</p>
-                    <div class="flex items-center gap-1.5 mt-1">
-                        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:#22c55e"></span>
-                        <p class="font-label text-[10px] text-on-surface-variant">An liy</p>
+                    <div class="flex items-center gap-1.5 mt-1" id="chatPresence">
+                        <p class="font-label text-[10px] text-on-surface-variant" id="chatPresenceText">Konvèsasyon</p>
                     </div>
                 </div>
                 <button id="chatCallBtn" onclick="callSeller()"
@@ -1732,6 +1731,13 @@
 ══════════════════════════════════════════════════════ -->
     <div class="screen pb-32 max-w-lg mx-auto" id="s-followers">
         <div class="pt-24" id="followersContent"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+     SCREEN — INBOX / MESAJ YO (Conversations)
+══════════════════════════════════════════════════════ -->
+    <div class="screen pb-32 max-w-lg mx-auto" id="s-inbox">
+        <div class="pt-24" id="inboxContent"></div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════
@@ -3252,10 +3258,10 @@
 
             document.getElementById("detailBar").classList.remove("hidden");
             document.getElementById("detailBar").innerHTML = `
-    <button onclick="openChatFor(${p.id})" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high">
+    <button onclick="openChatFor(${dpid})" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high">
       <span class="material-symbols-outlined" style="font-size:18px">chat</span>Mesaj
     </button>
-    <button onclick="addToCart(${p.id})" class="w-12 h-12 ml-2 flex-shrink-0 flex items-center justify-center rounded-xl active:scale-90 transition-transform" style="background:rgba(0,102,111,.1)" title="Ajoute nan Panye">
+    <button onclick="addToCart(${dpid})" class="w-12 h-12 ml-2 flex-shrink-0 flex items-center justify-center rounded-xl active:scale-90 transition-transform" style="background:rgba(0,102,111,.1)" title="Ajoute nan Panye">
       <span class="material-symbols-outlined fi text-primary" style="font-size:20px">add_shopping_cart</span>
     </button>
     ${(p.c === 'mode' || p.c === 'cosmetique' || p.c === 'accessoire') ? `
@@ -3909,10 +3915,14 @@
     <p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-1">Kòmande</p>
     <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight mb-4">${p.t}</h3>
     <div class="bg-surface-container-lowest rounded-xl p-4 flex items-center gap-4 mb-5">
-      ${prodPlaceholder(p, 80)}
+      <div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0" style="background:#f0ede8">
+        ${(p.img || (p.images && p.images[0]))
+          ? `<img src="${p.img || p.images[0]}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=prodPlaceholder(${JSON.stringify({e:p.e,ec:p.ec,id:p.id}).replace(/"/g,'&quot;')},80)"/>`
+          : prodPlaceholder(p, 80)}
+      </div>
       <div class="flex-1">
         <p class="font-headline font-bold text-sm text-on-surface">${p.t}</p>
-        <p class="font-label text-xs text-on-surface-variant">Marthe B. · Verifye</p>
+        <p class="font-label text-xs text-on-surface-variant">${p.sellerName || 'Vandè'} ${p.b ? '· Verifye' : ''}</p>
         <p class="font-headline font-extrabold text-xl text-primary mt-1">${fp(sub)} HTG</p>
       </div>
     </div>
@@ -3977,16 +3987,23 @@
       </div>
     </div>
     <div class="space-y-3">
-      ${PRODUCTS.slice(0, 4).map(p => `
-      <div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb cursor-pointer active:bg-surface-container-low" onclick="A.curProd=PRODUCTS.find(x=>x.id===${p.id});openSheet('orderSheet');renderOrderSheet()">
-        <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">${prodPlaceholder(p, 56)}</div>
+      ${PRODUCTS.slice(0, 4).map(p => {
+          const pidAttr = typeof p.id === 'string' ? `'${String(p.id).replace(/'/g,"\\'")}'` : p.id;
+          const imgSrc = p.img || (p.images && p.images[0]) || null;
+          const thumb = imgSrc
+              ? `<img src="${imgSrc}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=prodPlaceholder(${JSON.stringify({e:p.e,ec:p.ec,id:p.id}).replace(/"/g,'&quot;')},56)"/>`
+              : prodPlaceholder(p, 56);
+          return `
+      <div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb cursor-pointer active:bg-surface-container-low" onclick="A.curProd=PRODUCTS.find(x=>x.id===${pidAttr});openSheet('orderSheet');renderOrderSheet()">
+        <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0" style="background:#f0ede8">${thumb}</div>
         <div class="flex-1 min-w-0">
           <p class="font-headline font-bold text-sm text-on-surface truncate">${p.t}</p>
           <p class="font-label text-xs text-on-surface-variant"> ${p.l}</p>
           <p class="font-headline font-extrabold text-sm text-primary">${fp(p.p)} HTG</p>
         </div>
         <button class="flex-shrink-0 px-3 py-2 rounded-xl cta font-label font-bold text-xs active:scale-95">Achte</button>
-      </div>`).join('')}
+      </div>`;
+      }).join('')}
     </div>`;
         }
 
@@ -4299,6 +4316,7 @@
             items.push({ i: "shopping_cart", l: "Panye Mwen", s: A.cart ? A.cart.length + " atik" : "0 atik", a: "openCartScreen()" });
         }
         items.push({ i: "shopping_bag", l: "Istorik Komand", s: (u.orderCount || 0) + " komand", a: "navTo('order')" });
+        items.push({ i: "forum", l: "Mesaj yo", s: (A.unreadMsgCount || 0) > 0 ? (A.unreadMsgCount + ' nouvo mesaj') : 'Tout konvèsasyon ou yo', a: "openInbox()" });
         if (u.role === 'seller' || u.role === 'admin') {
             items.push({ i: "storefront", l: "Boutik Mwen", s: "Pwodwi, stòk, lavant", a: "openBoutiqueScreen()" });
             items.push({ i: "group", l: "Kliyan Abonnen", s: (A.followers || 0) + " abonnen", a: "openFollowersScreen()" });
@@ -4709,6 +4727,142 @@
             // Fetch real followers from Supabase
             el.innerHTML = '<div class="px-5 pt-6"><div class="bg-surface-container-lowest rounded-xl p-4 mb-5 text-center amb"><span class="font-headline font-extrabold text-3xl text-primary">' + (A.followers || 0) + '</span><p class="font-label text-xs text-on-surface-variant mt-1">Kliyan Abonnen Total</p></div><div id="followersListInner" class="space-y-2">' + skeletonCards(3) + '</div></div>';
             loadFollowersFromSupabase();
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  INBOX — Conversation history for buyers + sellers
+        // ══════════════════════════════════════════════════════════
+        function openInbox() {
+            if (!A.isAuth) { toast('Konekte pou wè mesaj'); return; }
+            A.stack.push(A.tab);
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+            document.getElementById('s-inbox').classList.add('on');
+            document.getElementById('bottomNav').classList.add('hidden');
+            document.getElementById('fab').classList.add('hidden');
+            document.getElementById('backbtn').classList.remove('hidden');
+            document.getElementById('backbtn').classList.add('flex');
+            document.getElementById('toptitle').textContent = 'Mesaj yo';
+            const logoEl = document.getElementById('headerLogo');
+            if (logoEl) logoEl.style.display = 'none';
+            document.getElementById('toptitle').style.display = '';
+            const el = document.getElementById('inboxContent');
+            if (!el) return;
+            el.innerHTML = '<div class="px-5 pt-6">' + skeletonCards(4) + '</div>';
+            loadInboxFromSupabase();
+        }
+
+        async function loadInboxFromSupabase() {
+            const el = document.getElementById('inboxContent');
+            if (!el || !db || !A.user?.uid) return;
+            const uid = A.user.uid;
+            try {
+                // Fetch all messages I'm part of, newest first
+                const { data, error } = await db.from('messages')
+                    .select('id, sender_id, receiver_id, product_id, content, created_at, read')
+                    .or(`sender_id.eq.${uid},receiver_id.eq.${uid}`)
+                    .order('created_at', { ascending: false })
+                    .limit(500);
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    el.innerHTML = '<div class="px-5 pt-6"><div class="flex flex-col items-center justify-center py-16 text-center"><span class="material-symbols-outlined text-on-surface-variant mb-3" style="font-size:56px">forum</span><h3 class="font-headline font-bold text-lg text-on-surface mb-1">Pa gen mesaj</h3><p class="font-body text-sm text-on-surface-variant">Konvèsasyon ou yo ap parèt la</p></div></div>';
+                    return;
+                }
+
+                // Group by conversation key = productId + otherPartyId
+                const convs = new Map();
+                data.forEach(m => {
+                    const otherId = m.sender_id === uid ? m.receiver_id : m.sender_id;
+                    const key = (m.product_id || 'na') + ':' + otherId;
+                    if (!convs.has(key)) {
+                        convs.set(key, {
+                            productId: m.product_id,
+                            otherId,
+                            lastMsg: m,
+                            unread: 0,
+                        });
+                    }
+                    const c = convs.get(key);
+                    if (!m.read && m.receiver_id === uid) c.unread++;
+                });
+
+                const convList = Array.from(convs.values());
+
+                // Fetch partner names + product info in parallel
+                const otherIds = [...new Set(convList.map(c => c.otherId))];
+                const prodIds = [...new Set(convList.map(c => c.productId).filter(Boolean))];
+                const [profRes, prodRes] = await Promise.all([
+                    otherIds.length ? db.from('profiles').select('id, display_name, photo_url').in('id', otherIds) : Promise.resolve({ data: [] }),
+                    prodIds.length ? db.from('products').select('id, title, price, image_url, images, seller_id').in('id', prodIds) : Promise.resolve({ data: [] }),
+                ]);
+                const profMap = {};
+                (profRes.data || []).forEach(p => { profMap[p.id] = p; });
+                const prodMap = {};
+                (prodRes.data || []).forEach(p => { prodMap[p.id] = p; });
+
+                const itemsHTML = convList.map(c => {
+                    const partner = profMap[c.otherId] || { display_name: 'Itilizatè', photo_url: null };
+                    const prod = prodMap[c.productId] || null;
+                    const img = prod ? (prod.image_url || (prod.images && prod.images[0])) : null;
+                    const initials = (partner.display_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                    const preview = (() => {
+                        const raw = c.lastMsg.content || '';
+                        if (raw.startsWith('[LOC]')) return '📍 Lokalisasyon pataje';
+                        return raw.length > 80 ? raw.slice(0, 80) + '…' : raw;
+                    })();
+                    const pidAttr = typeof c.productId === 'string' ? `'${c.productId.replace(/'/g, "\\'")}'` : c.productId;
+                    const partnerNameAttr = (partner.display_name || 'Itilizatè').replace(/'/g, "\\'");
+                    const otherIdAttr = `'${c.otherId}'`;
+                    return `
+      <button onclick="openConversation(${pidAttr}, ${otherIdAttr}, '${partnerNameAttr}')"
+        class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container-lowest active:bg-surface-container-low amb text-left">
+        <div class="w-12 h-12 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center" style="background:linear-gradient(135deg,#00666f,#00818c)">
+          ${partner.photo_url ? `<img src="${partner.photo_url}" class="w-full h-full object-cover"/>` : `<span class="font-headline font-bold text-white text-sm">${initials}</span>`}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2">
+            <p class="font-headline font-bold text-sm text-on-surface truncate">${partner.display_name || 'Itilizatè'}</p>
+            <span class="font-label text-[10px] text-on-surface-variant flex-shrink-0">${timeAgo(c.lastMsg.created_at)}</span>
+          </div>
+          ${prod ? `<p class="font-label text-[10px] text-primary truncate">${prod.title}</p>` : ''}
+          <div class="flex items-center justify-between gap-2 mt-0.5">
+            <p class="font-body text-xs text-on-surface-variant truncate">${preview}</p>
+            ${c.unread > 0 ? `<span class="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full text-white text-[10px] font-bold flex items-center justify-center" style="background:#98443e;font-family:'Manrope',sans-serif">${c.unread}</span>` : ''}
+          </div>
+        </div>
+      </button>`;
+                }).join('');
+
+                el.innerHTML = `<div class="px-5 pt-6 space-y-2">${itemsHTML}</div>`;
+            } catch(e) {
+                console.warn('[Inbox]', e.message);
+                el.innerHTML = '<div class="px-5 pt-6 text-center text-on-surface-variant">Erè nan chaje mesaj yo</div>';
+            }
+        }
+
+        // Open a conversation from the inbox — works for both buyer and seller
+        async function openConversation(productId, otherId, otherName) {
+            // Ensure the product is in the PRODUCTS cache so openChatFor works
+            let p = PRODUCTS.find(x => x.id === productId);
+            if (!p && db) {
+                const { data } = await db.from('products').select('*, seller:profiles!seller_id(display_name)').eq('id', productId).single();
+                if (data) {
+                    p = {
+                        id: data.id,
+                        t: data.title,
+                        p: data.price,
+                        img: data.image_url || (data.images && data.images[0]) || null,
+                        images: data.images || [],
+                        sellerId: data.seller_id,
+                        sellerName: data.seller?.display_name || 'Vandè',
+                        c: data.category, l: data.location, r: data.rating_avg || 0,
+                        s: data.stock, v: data.view_count || 0,
+                        e: 'shopping_bag', ec: '#00666f',
+                    };
+                    PRODUCTS.push(p);
+                }
+            }
+            if (!p) { toast('Pwodwi pa disponib'); return; }
+            openChatFor(productId, otherId, otherName);
         }
 
         // ══════════════════════════════════════════════════════════
@@ -5868,10 +6022,16 @@
         renderChatMsgs = function (pid) {
             const msgs = A.msgs[pid] || [];
             const p = PRODUCTS.find(x => x.id === pid);
+            if (!p) { document.getElementById('chatMsgs').innerHTML = ''; return; }
+            const pidAttr = typeof p.id === 'string' ? `'${String(p.id).replace(/'/g, "\\'")}'` : p.id;
+            const imgSrc = p.img || (p.images && p.images[0]) || null;
+            const thumb = imgSrc
+                ? `<img src="${imgSrc}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=window.prodPlaceholder?prodPlaceholder(${JSON.stringify({e:p.e,ec:p.ec,id:p.id}).replace(/"/g,'&quot;')},40):''"/>`
+                : prodPlaceholder(p, 40);
 
             document.getElementById('chatMsgs').innerHTML = `
-    <div class="self-center bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 w-[82%] amb cursor-pointer" onclick="openProduct(${p.id})">
-      <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">${prodPlaceholder(p, 40)}</div>
+    <div class="self-center bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 w-[82%] amb cursor-pointer" onclick="openProduct(${pidAttr})">
+      <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style="background:#f0ede8">${thumb}</div>
       <div class="flex-1 min-w-0">
         <p class="font-headline font-bold text-xs text-on-surface truncate">${p.t}</p>
         <p class="font-headline font-extrabold text-sm text-primary">${fp(p.p)} HTG</p>
@@ -6329,7 +6489,10 @@
             const mapsUrl = `https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lng}#map=15/${coords.lat}/${coords.lng}`;
             const tm = new Date().toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' });
 
-            // Message spécial type "location"
+            // Message spécial type "location" — JSON-encoded for DB persistence
+            const locPayload = { kind: 'location', lat: coords.lat, lng: coords.lng, nearest: nearest ? { name: nearest.name, d: nearest.d } : null };
+            const dbContent = '[LOC]' + JSON.stringify(locPayload);
+
             if (!A.msgs[A.chatId]) A.msgs[A.chatId] = [];
             A.msgs[A.chatId].push({
                 s: true,
@@ -6338,21 +6501,54 @@
                 nearest,
                 mapsUrl,
                 tm,
-                t: `[Lokalisasyon] ${coords.lat}, ${coords.lng}`,
+                t: dbContent,
             });
 
             renderChatMsgs(A.chatId);
             toast('Lokalisasyon voye nan chat');
+
+            // Persist to Supabase so the other party sees it too
+            if (db && A.user?.uid && A.chatSellerId) {
+                db.from('messages').insert({
+                    sender_id: A.user.uid,
+                    receiver_id: A.chatSellerId,
+                    product_id: A.chatId,
+                    content: dbContent,
+                }).then(({ error }) => { if (error) console.warn('[Chat loc]', error.message); });
+                db.from('notifications').insert({
+                    user_id: A.chatSellerId,
+                    type: 'chat', icon: 'location_on',
+                    title: 'Lokalisasyon pataje',
+                    body: (A.user.name || 'Yon kliyan') + ' pataje lokalisasyon li.',
+                    color: '#00666f',
+                }).then(({ error }) => { if (error) console.warn('[Notif loc]', error.message); });
+            }
+        }
+
+        // Parse a raw DB message into the chat-friendly shape (location vs text)
+        function parseMsgContent(raw) {
+            if (typeof raw === 'string' && raw.startsWith('[LOC]')) {
+                try {
+                    const payload = JSON.parse(raw.slice(5));
+                    const coords = { lat: payload.lat, lng: payload.lng };
+                    const mapsUrl = `https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lng}#map=15/${coords.lat}/${coords.lng}`;
+                    return { type: 'location', coords, nearest: payload.nearest || null, mapsUrl };
+                } catch(e) { /* fall through */ }
+            }
+            return null;
         }
 
         // Afficher un message location dans le chat
         function locationBubble(m) {
-            const mapsUrl = m.mapsUrl || `https://www.openstreetmap.org/?mlat=${m.coords.lat}&mlon=${m.coords.lng}`;
+            const mapsUrl = m.mapsUrl || `https://www.openstreetmap.org/?mlat=${m.coords.lat}&mlon=${m.coords.lng}#map=15/${m.coords.lat}/${m.coords.lng}`;
+            const align = m.s === false ? 'justify-start' : 'justify-end';
+            const corner = m.s === false ? 'rounded-bl-[.25rem]' : 'rounded-br-[.25rem]';
+            const title = m.s === false ? 'Lokalisasyon kliyan' : 'Lokalisasyon mwen';
             return `
-  <div class="flex justify-end">
-    <div class="max-w-[80%] rounded-[1.25rem] rounded-br-[.25rem] overflow-hidden amb" style="background:#fff;border:1.5px solid rgba(0,102,111,.15)">
+  <div class="flex ${align}">
+    <div class="max-w-[80%] rounded-[1.25rem] ${corner} overflow-hidden amb" style="background:#fff;border:1.5px solid rgba(0,102,111,.15)">
       <!-- Mini map preview -->
-      <a href="${mapsUrl}" target="_blank" onclick="event.preventDefault();toast('Ouvè nan navigatè ou')">
+      <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer">
         <div style="height:100px;background:linear-gradient(135deg,#e8f4f4,#d4ede8);display:flex;align-items:center;justify-content:center;position:relative">
           <svg width="100%" height="100%" style="position:absolute;inset:0;opacity:.1" viewBox="0 0 200 100">
             <path d="M0 50 Q50 20 100 50 Q150 80 200 50" stroke="#00666f" stroke-width="2" fill="none"/>
@@ -6366,14 +6562,17 @@
       </a>
       <!-- Info -->
       <div class="p-3">
-        <p class="font-headline font-bold text-[13px] text-on-surface">Lokalisasyon mwen</p>
-        <p class="font-label text-[10px] text-on-surface-variant mt-0.5">${m.coords.lat}, ${m.coords.lng}</p>
+        <p class="font-headline font-bold text-[13px] text-on-surface">${title}</p>
+        <p class="font-label text-[10px] text-on-surface-variant mt-0.5">${(+m.coords.lat).toFixed(6)}, ${(+m.coords.lng).toFixed(6)}</p>
         ${m.nearest ? `
         <div class="flex items-center gap-1.5 mt-2 p-2 rounded-lg" style="background:rgba(0,102,111,.06)">
           <span class="material-symbols-outlined fi text-primary" style="font-size:12px">storefront</span>
           <p class="font-label text-[10px] font-bold text-primary">${m.nearest.name} — ${m.nearest.d} km</p>
         </div>` : ''}
-        <p class="font-label text-[10px] text-on-surface-variant mt-1.5 text-right">${m.tm}</p>
+        <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 mt-2 px-3 py-1.5 rounded-full" style="background:#00666f;color:#fff;font-family:'Manrope',sans-serif;font-size:10px;font-weight:700;text-decoration:none">
+          <span class="material-symbols-outlined" style="font-size:12px">directions</span> Ouvè Map
+        </a>
+        <p class="font-label text-[10px] text-on-surface-variant mt-1.5 text-right">${m.tm || ''}</p>
       </div>
     </div>
   </div>`;
@@ -7473,32 +7672,50 @@
 
         // ── Override openChatFor to use correct seller info & load history ──
         const _origOpenChatFor = openChatFor;
-        window.openChatFor = function (pid) {
+        window.openChatFor = function (pid, otherPartyId, otherPartyName) {
             const p = PRODUCTS.find(x => x.id === pid);
             if (!p) { toast('Pwodwi pa jwenn'); return; }
-            const seller = SELLERS[p.sellerId] || { name: p.sellerName || 'Vandè', initials: (p.sellerName || 'V').split(' ').map(w=>w[0]).join('').slice(0,2) };
+            // When I am the seller, the "other party" is the buyer passed from the inbox.
+            // When I am the buyer, the "other party" is the seller.
+            const iAmSeller = A.user && p.sellerId === A.user.uid;
+            A.chatOtherId = otherPartyId || (iAmSeller ? null : p.sellerId);
+            A.chatSellerId = A.chatOtherId; // message recipient on send
+            const partnerName = otherPartyName
+                || (iAmSeller ? 'Kliyan' : (p.sellerName || p.seller || 'Vandè'));
+            const initials = partnerName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'V';
             _origOpenChatFor(pid);
-            // Update chat header with correct seller info
-            document.getElementById('chatAv').innerHTML = `<span class="font-headline font-bold text-white text-xs">${seller.initials}</span>`;
-            document.getElementById('chatName').textContent = seller.name;
-            document.getElementById('toptitle').textContent = seller.name;
+            // Update chat header with correct partner info
+            document.getElementById('chatAv').innerHTML = `<span class="font-headline font-bold text-white text-xs">${initials}</span>`;
+            document.getElementById('chatName').textContent = partnerName;
+            document.getElementById('toptitle').textContent = partnerName;
 
-            // Load chat history for this product from Supabase
+            // Load chat history for this product from Supabase.
+            // Other party = seller when I'm the buyer; or buyer when I'm the seller.
             if (db && A.user?.uid && p.sellerId) {
-                db.from('messages')
-                    .select('*')
-                    .eq('product_id', pid)
-                    .or(`and(sender_id.eq.${A.user.uid},receiver_id.eq.${p.sellerId}),and(sender_id.eq.${p.sellerId},receiver_id.eq.${A.user.uid})`)
-                    .order('created_at', { ascending: true })
-                    .limit(100)
+                const otherId = (A.chatOtherId && A.chatOtherId !== A.user.uid)
+                    ? A.chatOtherId
+                    : (p.sellerId !== A.user.uid ? p.sellerId : null);
+                let query = db.from('messages').select('*').eq('product_id', pid);
+                if (otherId) {
+                    query = query.or(`and(sender_id.eq.${A.user.uid},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${A.user.uid})`);
+                } else {
+                    // I'm the seller viewing their own product — show all messages where I'm involved
+                    query = query.or(`sender_id.eq.${A.user.uid},receiver_id.eq.${A.user.uid}`);
+                }
+                query.order('created_at', { ascending: true }).limit(200)
                     .then(({ data, error }) => {
                         if (error) { console.warn('[Chat history]', error.message); return; }
                         if (data) {
-                            A.msgs[pid] = data.map(m => ({
-                                s: m.sender_id === A.user.uid,
-                                t: m.content,
-                                tm: new Date(m.created_at).toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' }),
-                            }));
+                            A.msgs[pid] = data.map(m => {
+                                const base = {
+                                    s: m.sender_id === A.user.uid,
+                                    t: m.content,
+                                    tm: new Date(m.created_at).toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' }),
+                                };
+                                const loc = parseMsgContent(m.content);
+                                if (loc) return Object.assign(base, loc);
+                                return base;
+                            });
                             renderChatMsgs(pid);
                         }
                         // Mark received messages as read
