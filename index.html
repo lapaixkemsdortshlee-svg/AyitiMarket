@@ -468,6 +468,13 @@
             }
         }
 
+        /* ── FAB speed-dial entry animation ── */
+        @keyframes fabIn {
+            from { opacity: 0; transform: translateY(6px) scale(.92); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .fab-open #fabMainIcon { transform: rotate(45deg); }
+
         /* ── OTP digit boxes ── */
         .otp-d {
             width: 56px;
@@ -1179,11 +1186,12 @@
                     title="Mode Lite aktif">
                     <span class="material-symbols-outlined fi" style="font-size:18px;color:#97422b">data_saver_on</span>
                 </button>
-                <!-- Asistan Bot -->
-                <button onclick="openSheet('botSheet')"
-                    class="w-9 h-9 flex items-center justify-center rounded-full bg-surface-container-low active:bg-surface-container transition-colors"
-                    id="botBtn" aria-label="Asistan AyitiMarket">
-                    <span class="material-symbols-outlined fi text-primary" style="font-size:19px">support_agent</span>
+                <!-- Mesaj yo — ak badge pou mesaj ki pa li -->
+                <button onclick="openInbox()"
+                    class="relative w-9 h-9 flex items-center justify-center rounded-full bg-surface-container-low active:bg-surface-container transition-colors"
+                    id="msgBtn" aria-label="Mesaj yo">
+                    <span class="material-symbols-outlined text-primary" style="font-size:19px">forum</span>
+                    <span class="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full text-white text-[9px] font-bold flex items-center justify-center hidden" id="msgBadge" style="background:#98443e;font-family:'Manrope',sans-serif;border:2px solid #fcf9f4">0</span>
                 </button>
                 <!-- Notifikasyon -->
                 <button onclick="openSheet('notifSheet')"
@@ -1220,7 +1228,7 @@
                     id="feedGreet">Bienvenue</p>
                 <h2
                     class="font-headline font-extrabold text-[1.75rem] tracking-[-0.02em] text-on-surface leading-tight">
-                    Découvrez<br /><span class="text-primary">l'artisanat</span></h2>
+                    Découvrez<br /><span class="text-primary">AyitiMarket</span></h2>
             </div>
             <!-- Flow guide banner (disparaît après 1ère action) -->
             <div id="flowGuide" class="rounded-xl p-4 mb-4 flex items-start gap-3"
@@ -1286,7 +1294,16 @@
                     onclick="filterFeed(this,'mode')">Mòd</button>
                 <button
                     class="cchip flex-shrink-0 px-4 py-2 rounded-full font-label font-semibold text-[12px] bg-surface-container-highest text-on-surface active:scale-95"
+                    onclick="filterFeed(this,'beaute')">Bote</button>
+                <button
+                    class="cchip flex-shrink-0 px-4 py-2 rounded-full font-label font-semibold text-[12px] bg-surface-container-highest text-on-surface active:scale-95"
                     onclick="filterFeed(this,'cosmetique')">Kosmetik</button>
+                <button
+                    class="cchip flex-shrink-0 px-4 py-2 rounded-full font-label font-semibold text-[12px] bg-surface-container-highest text-on-surface active:scale-95"
+                    onclick="filterFeed(this,'electronique')">Elektwonik</button>
+                <button
+                    class="cchip flex-shrink-0 px-4 py-2 rounded-full font-label font-semibold text-[12px] bg-surface-container-highest text-on-surface active:scale-95"
+                    onclick="filterFeed(this,'gaming')">Gaming</button>
                 <button
                     class="cchip flex-shrink-0 px-4 py-2 rounded-full font-label font-semibold text-[12px] bg-surface-container-highest text-on-surface active:scale-95"
                     onclick="filterFeed(this,'accessoire')">Akseswa</button>
@@ -1296,8 +1313,6 @@
             </div>
             <!-- Grid -->
             <div class="masonry" id="feedGrid"></div>
-            <p class="text-center font-label text-xs text-on-surface-variant pt-4 pb-2">20 pwodwi chaje · Offline-first
-                aktif</p>
         </div>
     </div>
 
@@ -1356,7 +1371,10 @@
                             Kategori</p>
                         <select id="fCat" class="si" onchange="updPrompts()">
                             <option value="mode">Mòd</option>
+                            <option value="beaute">Bote</option>
                             <option value="cosmetique">Kosmetik</option>
+                            <option value="electronique">Elektwonik</option>
+                            <option value="gaming">Gaming</option>
                             <option value="accessoire">Akseswa</option>
                             <option value="artisanat">Atizana</option>
                             <option value="maison">Kay</option>
@@ -1772,12 +1790,34 @@
         </button>
     </nav>
 
-    <!-- FAB -->
-    <button id="fab" onclick="navTo('pub')"
-        class="fixed z-40 cta rounded-full amb flex items-center justify-center active:scale-90 transition-transform hidden"
-        style="bottom:82px;right:20px;width:52px;height:52px;border:3px solid #fcf9f4">
-        <span class="material-symbols-outlined" style="font-size:24px">add</span>
-    </button>
+    <!-- FAB Speed Dial — tap (+) to reveal "Pibliye" + "Asistan Bot" -->
+    <div id="fab" class="fixed z-40 hidden" style="bottom:82px;right:20px">
+        <!-- Mini actions (hidden until FAB is expanded) -->
+        <div id="fabActions" class="hidden flex flex-col items-end gap-2 mb-2">
+            <div class="flex items-center gap-2" style="animation:fabIn .18s ease">
+                <span class="font-label text-[11px] font-bold text-on-surface px-2 py-1 rounded-full bg-surface-container-lowest amb">Pibliye pwodwi</span>
+                <button onclick="fabSpeedDial(false);navTo('pub')"
+                    class="w-11 h-11 rounded-full flex items-center justify-center active:scale-90 amb"
+                    style="background:#00666f;color:#fff" aria-label="Pibliye pwodwi">
+                    <span class="material-symbols-outlined fi" style="font-size:20px">sell</span>
+                </button>
+            </div>
+            <div class="flex items-center gap-2" style="animation:fabIn .22s ease">
+                <span class="font-label text-[11px] font-bold text-on-surface px-2 py-1 rounded-full bg-surface-container-lowest amb">Asistan Bot</span>
+                <button onclick="fabSpeedDial(false);openSheet('botSheet')"
+                    class="w-11 h-11 rounded-full flex items-center justify-center active:scale-90 amb"
+                    style="background:#7c3aed;color:#fff" aria-label="Asistan Bot">
+                    <span class="material-symbols-outlined fi" style="font-size:20px">support_agent</span>
+                </button>
+            </div>
+        </div>
+        <!-- Main (+) button -->
+        <button id="fabMain" onclick="fabSpeedDial()"
+            class="cta rounded-full amb flex items-center justify-center active:scale-90 transition-transform"
+            style="width:52px;height:52px;border:3px solid #fcf9f4" aria-label="Ajoute">
+            <span id="fabMainIcon" class="material-symbols-outlined transition-transform" style="font-size:24px">add</span>
+        </button>
+    </div>
 
     <!-- ══════════════════════════════════════════════════════
      SHEETS
@@ -1999,11 +2039,38 @@
                     p janm parèt sou pwofil ou.</p>
             </div>
 
-            <button id="vsStep3Btn" onclick="vsGoStep(4)" disabled
+            <button id="vsStep3Btn" onclick="vsGoStep('cats')" disabled
                 class="w-full py-4 rounded-xl font-headline font-extrabold text-sm active:scale-95 transition-all"
                 style="background:#e5e2dd;color:#6d7979">
                 Kontinye <span class="material-symbols-outlined align-middle"
                     style="font-size:18px">arrow_forward</span>
+            </button>
+        </div>
+
+        <!-- Étape 3.5 : Kategori pou vann (multi-select) -->
+        <div id="vs-stepCats" class="hidden">
+            <div class="flex items-center gap-3 mb-4">
+                <button onclick="vsGoStep(3)"
+                    class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center active:bg-surface-container-high flex-shrink-0">
+                    <span class="material-symbols-outlined text-on-surface-variant"
+                        style="font-size:16px">arrow_back</span>
+                </button>
+                <div>
+                    <p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant">Etap adisyonèl</p>
+                    <h3 class="font-headline font-extrabold text-lg text-on-surface tracking-tight">Kategori ou pral vann</h3>
+                </div>
+            </div>
+            <p class="font-body text-sm text-on-surface-variant mb-4 leading-relaxed">
+                Chwazi yon oswa plizyè kategori ou konte vann ladan. Ou ka chanje opsyon sa yo nenpòt kilè depi nan pwofil ou.
+            </p>
+
+            <div id="vsCatsGrid" class="grid grid-cols-2 gap-2 mb-5">
+                <!-- filled dynamically by renderVsCats() -->
+            </div>
+
+            <button id="vsCatsBtn" onclick="vsGoStep(4)"
+                class="w-full py-4 rounded-xl font-headline font-extrabold text-sm active:scale-95 transition-all cta">
+                Kontinye <span class="material-symbols-outlined align-middle" style="font-size:18px">arrow_forward</span>
             </button>
         </div>
 
@@ -2742,6 +2809,19 @@
         </button>
     </div>
 
+    <!-- ══ PICKUP POINT PICKER SHEET ══ -->
+    <div class="sheet" id="pickupSheet">
+        <div class="handle"></div>
+        <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight mb-1">Pwen Kolekte</h3>
+        <p class="font-body text-sm text-on-surface-variant mb-4">Chwazi zòn ou prefere pou al chèche pwodwi ou yo.</p>
+        <div id="pickupList" class="space-y-2 mb-4"></div>
+        <button onclick="closeSheets()"
+            class="w-full py-3.5 rounded-xl font-headline font-bold text-sm active:scale-95 transition-transform"
+            style="background:#e5e2dd;color:#1c1c19">
+            Fèmen
+        </button>
+    </div>
+
     <!-- ══ FEEDBACK SHEET ══ -->
     <div class="sheet" id="feedbackSheet">
         <div class="handle"></div>
@@ -3055,8 +3135,11 @@
             // Load notifications and badge count from Supabase on login
             if (db && A.user?.uid) {
                 loadNotifsFromSupabase();
+                if (typeof subscribeToNotifications === 'function') subscribeToNotifications();
+                if (typeof refreshUserStats === 'function') refreshUserStats();
             }
             updateNotifBadge();
+            if (typeof updateMsgBadge === 'function') updateMsgBadge();
             navTo("feed");
             showAuthBanner();
             // Load dynamic follower count
@@ -3139,6 +3222,7 @@
             document.getElementById("backbtn").classList.remove("flex");
             document.getElementById("bottomNav").classList.remove("hidden");
             document.getElementById("fab").classList.remove("hidden");
+            if (typeof fabSpeedDial === 'function') fabSpeedDial(false);
 
             const titles = { feed: "", pub: "Pibliye Pwodwi", order: "Kòmande", profile: "Pwofil Mwen", admin: "Panel Admin" };
             const isFeed = tab === "feed";
@@ -3977,35 +4061,100 @@
     </button>`;
         }
 
+        // Status → visual badge (color + icon + label)
+        function orderStatusBadge(status) {
+            const map = {
+                pending:    { bg: '#fef3c7', fg: '#92400e', icon: 'hourglass_top',  label: 'An atant' },
+                confirmed:  { bg: '#dbeafe', fg: '#1e40af', icon: 'verified',       label: 'Konfime' },
+                shipped:    { bg: '#e0e7ff', fg: '#3730a3', icon: 'local_shipping', label: 'Livrezon' },
+                delivered:  { bg: '#d1fae5', fg: '#065f46', icon: 'check_circle',   label: 'Delivre' },
+                cancelled:  { bg: '#fee2e2', fg: '#991b1b', icon: 'cancel',         label: 'Anile' },
+                disputed:   { bg: '#fde68a', fg: '#78350f', icon: 'report',         label: 'Litij' },
+            };
+            const s = map[status] || map.pending;
+            return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-label font-bold text-[10px]"
+                style="background:${s.bg};color:${s.fg}">
+                <span class="material-symbols-outlined" style="font-size:12px">${s.icon}</span>${s.label}
+            </span>`;
+        }
+        window.orderStatusBadge = orderStatusBadge;
+
         function renderOrderScreen() {
-            document.getElementById("orderContent").innerHTML = `
+            const mount = document.getElementById("orderContent");
+            if (!mount) return;
+            const isSeller = A.user && (A.user.role === 'seller' || A.user.role === 'admin');
+            mount.innerHTML = `
     <div class="rounded-xl p-4 mb-5 flex gap-3" style="background:rgba(0,102,111,.07)">
       <span class="material-symbols-outlined fi text-primary flex-shrink-0" style="font-size:20px">shopping_bag</span>
       <div>
-        <p class="font-headline font-bold text-sm">Tunnel Komand · Escrow</p>
-        <p class="font-body text-xs text-on-surface-variant mt-0.5">Chwazi yon pwodwi pou kòmande</p>
+        <p class="font-headline font-bold text-sm">${isSeller ? 'Komand yo ou resevwa' : 'Komand mwen yo'}</p>
+        <p class="font-body text-xs text-on-surface-variant mt-0.5">Tout komand yo — pi resan yo anwo</p>
       </div>
     </div>
-    <div class="space-y-3">
-      ${PRODUCTS.slice(0, 4).map(p => {
-          const pidAttr = typeof p.id === 'string' ? `'${String(p.id).replace(/'/g,"\\'")}'` : p.id;
-          const imgSrc = p.img || (p.images && p.images[0]) || null;
-          const thumb = imgSrc
-              ? `<img src="${imgSrc}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=prodPlaceholder(${JSON.stringify({e:p.e,ec:p.ec,id:p.id}).replace(/"/g,'&quot;')},56)"/>`
-              : prodPlaceholder(p, 56);
-          return `
-      <div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb cursor-pointer active:bg-surface-container-low" onclick="A.curProd=PRODUCTS.find(x=>x.id===${pidAttr});openSheet('orderSheet');renderOrderSheet()">
-        <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0" style="background:#f0ede8">${thumb}</div>
-        <div class="flex-1 min-w-0">
-          <p class="font-headline font-bold text-sm text-on-surface truncate">${p.t}</p>
-          <p class="font-label text-xs text-on-surface-variant"> ${p.l}</p>
-          <p class="font-headline font-extrabold text-sm text-primary">${fp(p.p)} HTG</p>
-        </div>
-        <button class="flex-shrink-0 px-3 py-2 rounded-xl cta font-label font-bold text-xs active:scale-95">Achte</button>
-      </div>`;
-      }).join('')}
-    </div>`;
+    <div id="ordersList" class="space-y-3">${skeletonCards(3)}</div>`;
+            loadUserOrdersFromSupabase();
         }
+
+        async function loadUserOrdersFromSupabase() {
+            const list = document.getElementById('ordersList');
+            if (!list || !db || !A.user?.uid) return;
+            const isSeller = A.user.role === 'seller' || A.user.role === 'admin';
+            try {
+                const q = db.from('orders')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(200);
+                // Sellers see every order where they're the seller; buyers see theirs.
+                const filtered = isSeller
+                    ? q.eq('seller_id', A.user.uid)
+                    : q.eq('buyer_id', A.user.uid);
+                const { data, error } = await filtered;
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    list.innerHTML = `<div class="flex flex-col items-center justify-center py-12 text-center">
+                        <span class="material-symbols-outlined text-on-surface-variant mb-2" style="font-size:48px">receipt_long</span>
+                        <h3 class="font-headline font-bold text-base text-on-surface mb-1">Pa gen komand</h3>
+                        <p class="font-body text-sm text-on-surface-variant">${isSeller ? 'Kliyan yo poko komande pwodwi ou.' : 'Ou poko fè okenn komand.'}</p>
+                    </div>`;
+                    return;
+                }
+                list.innerHTML = data.map(o => {
+                    const partner = isSeller ? (o.buyer_name || 'Kliyan') : (o.seller_name || 'Vandè');
+                    const partnerRole = isSeller ? 'Achtè' : 'Vandè';
+                    const otherId = isSeller ? o.buyer_id : o.seller_id;
+                    const pidAttr = o.product_id ? `'${o.product_id}'` : 'null';
+                    const otherAttr = otherId ? `'${otherId}'` : 'null';
+                    const partnerNameSafe = (partner || '').replace(/'/g, "\\'");
+                    return `
+      <div class="bg-surface-container-lowest rounded-xl p-3 amb">
+        <div class="flex items-start gap-3">
+          <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center" style="background:rgba(0,102,111,.08)">
+            <span class="material-symbols-outlined fi text-primary" style="font-size:22px">shopping_bag</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2">
+              <p class="font-headline font-bold text-sm text-on-surface truncate flex-1">${o.product_title || 'Pwodwi'}</p>
+              ${orderStatusBadge(o.status)}
+            </div>
+            <p class="font-label text-[11px] text-on-surface-variant mt-0.5">${partnerRole}: ${partner}</p>
+            <div class="flex items-center justify-between mt-1.5">
+              <p class="font-headline font-extrabold text-sm text-primary">${fp(o.total_amount || 0)} HTG</p>
+              <p class="font-label text-[10px] text-on-surface-variant">${timeAgo(o.created_at)}</p>
+            </div>
+            <div class="flex gap-2 mt-2">
+              ${o.product_id ? `<button onclick="openConversation(${pidAttr}, ${otherAttr}, '${partnerNameSafe}')" class="flex-1 py-1.5 rounded-lg bg-surface-container font-label font-bold text-[11px] active:scale-95"><span class="material-symbols-outlined align-middle" style="font-size:12px">chat</span> Kontakte</button>` : ''}
+              ${o.pickup_location ? `<span class="flex-1 py-1.5 rounded-lg text-center font-label text-[10px] text-on-surface-variant" style="background:rgba(0,102,111,.05)"><span class="material-symbols-outlined align-middle" style="font-size:12px">location_on</span> ${o.pickup_location}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+                }).join('');
+            } catch(e) {
+                console.warn('[Orders]', e.message);
+                list.innerHTML = '<div class="text-center text-on-surface-variant py-8">Erè nan chaje komand yo</div>';
+            }
+        }
+        window.loadUserOrdersFromSupabase = loadUserOrdersFromSupabase;
 
         function setPay(type, btn) {
             A.selPay = type;
@@ -4069,15 +4218,9 @@
                         }
                     }
 
-                    // Notify seller of new order
-                    db.from('notifications').insert({
-                        user_id: p.sellerId,
-                        type: 'order',
-                        icon: 'shopping_bag',
-                        title: 'Nouvo komand!',
-                        body: (A.user.name || 'Yon kliyan') + ' kòmande ' + p.t + ' — ' + fp(totalAmount) + ' HTG',
-                        color: '#00666f',
-                    });
+                    // Note: seller notification for new order is handled by the DB trigger
+                    // `trg_notify_seller_on_order` (see supabase/migration-2026-04.sql).
+                    // This avoids duplicate entries from client + trigger.
 
                     // Notify buyer (self) of order confirmation
                     db.from('notifications').insert({
@@ -4212,15 +4355,8 @@
                 }).then(({ error }) => {
                     if (error) console.warn('[Chat] Erè voye mesaj:', error.message);
                 });
-                // Notify the receiver
-                db.from('notifications').insert({
-                    user_id: A.chatSellerId,
-                    type: 'chat',
-                    icon: 'chat',
-                    title: 'Nouvo mesaj',
-                    body: (A.user.name || 'Yon kliyan') + ': ' + t.slice(0, 80),
-                    color: '#00666f',
-                }).then(({ error }) => { if (error) console.warn('[Notif msg]', error.message); });
+                // Note: receiver notification is handled by the DB trigger
+                // `trg_notify_on_new_message` (see supabase/migration-2026-04.sql).
             }
         }
 
@@ -4241,6 +4377,7 @@
                 A.user.salesCount = salesRes.count || 0;
                 A.user.orderCount = ordersRes.count || 0;
                 A.unreadMsgCount = unreadMsgsRes.count || 0;
+                if (typeof updateMsgBadge === 'function') updateMsgBadge();
             } catch(e) {
                 console.warn('[Stats]', e.message);
             }
@@ -4322,7 +4459,8 @@
             items.push({ i: "group", l: "Kliyan Abonnen", s: (A.followers || 0) + " abonnen", a: "openFollowersScreen()" });
         }
         items.push({ i: "favorite", l: "Favori Mwen", s: A.favs.size + " pwodwi", a: "toast('Favori yo')" });
-        items.push({ i: "location_on", l: "Pwen Kolekte", s: "Delmas, Pétion-Ville", a: "toast('Pwen kolekte')" });
+        const curPickup = PICKUPS.find(pk => pk.id === (A.user?.defaultPickup || A.selPickup)) || PICKUPS[0];
+        items.push({ i: "location_on", l: "Pwen Kolekte", s: curPickup.n, a: "openPickupPicker()" });
         if (u.role === 'buyer') {
             items.push({ i: "store", l: "Vin yon Vandè", s: "Soumèt ID ou", a: "openSheet('verifySheet')" });
         }
@@ -4681,17 +4819,8 @@
                     title: 'Nouvo Abonnman', body: 'Ou swiv yon nouvo vandè. Wap resevwa dènye pwodwi yo!',
                     time: 'Kounye a', read: false, color: '#00666f',
                 });
-                // Notify the seller they got a new follower
-                if (db) {
-                    db.from('notifications').insert({
-                        user_id: sellerId,
-                        type: 'system',
-                        icon: 'person_add',
-                        title: 'Nouvo abonnen!',
-                        body: (A.user.name || 'Yon moun') + ' kounye a swiv boutik ou.',
-                        color: '#00666f',
-                    }).then(({ error }) => { if (error) console.warn('[Notif follow]', error.message); });
-                }
+                // Note: seller notification for new follower is handled by the DB trigger
+                // `trg_notify_seller_on_follow` (see supabase/migration-2026-04.sql).
                 updateNotifBadge();
             } else {
                 toast('Ou dezabone');
@@ -5198,8 +5327,10 @@
                     selfie: idPhotos.selfie ? { dataUrl: idPhotos.selfie.dataUrl, publicUrl: idPhotos.selfie.publicUrl, sizeKB: idPhotos.selfie.sizeKB } : null,
                 },
             };
+            // Attach chosen selling categories (multi-select from step 'cats')
+            newReq.categories = Array.from(window.SELLER_CATS_SELECTED || []);
             VERIF_REQUESTS.unshift(newReq);
-            // Save to Supabase with photo URLs
+            // Save to Supabase with photo URLs + persist categories on profile
             if (db && A.user?.uid) {
                 db.from('verification_requests').insert({
                     user_id: A.user.uid, name: newReq.name, phone: newReq.phone,
@@ -5210,6 +5341,14 @@
                 }).then(({ error }) => {
                     if (error) console.warn('[Verif] Submit error:', error.message);
                 });
+                // Persist the seller's selling categories to their profile
+                if (newReq.categories.length) {
+                    db.from('profiles').update({ categories: newReq.categories })
+                        .eq('id', A.user.uid)
+                        .then(({ error }) => { if (error) console.warn('[Profile cats]', error.message); });
+                    A.user.categories = newReq.categories;
+                    try { localStorage.setItem('aym_user', JSON.stringify(A.user)); } catch(_){}
+                }
             }
             // Notif in-app
             addNotif({
@@ -5227,16 +5366,63 @@
             idPhotos = { front: null, back: null, selfie: null };
         }
 
-        // Intercept step 4 to render summary
+        // Intercept step 4 to render summary + extra step 'cats' (multi-select categories)
         const origVsGoStep = vsGoStep.toString();
         window.vsGoStep = function (n) {
-            [1, 2, 3, 4].forEach(i => {
+            const steps = [1, 2, 3, 4, 'cats'];
+            steps.forEach(i => {
                 const el = document.getElementById('vs-step' + i);
                 if (el) el.classList.toggle('hidden', i !== n);
             });
             document.getElementById('verifySheet').scrollTop = 0;
+            if (n === 'cats') renderVsCats();
             if (n === 4) updateVSSummary();
         };
+
+        // ── Seller category selection ──
+        window.SELLER_CATS_MAP = [
+            { id: 'mode',         label: 'Mòd',         icon: 'checkroom' },
+            { id: 'beaute',       label: 'Bote',        icon: 'face_retouching_natural' },
+            { id: 'cosmetique',   label: 'Kosmetik',    icon: 'spa' },
+            { id: 'electronique', label: 'Elektwonik',  icon: 'devices' },
+            { id: 'gaming',       label: 'Gaming',      icon: 'sports_esports' },
+            { id: 'accessoire',   label: 'Akseswa',     icon: 'watch' },
+            { id: 'artisanat',    label: 'Atizana',     icon: 'palette' },
+            { id: 'maison',       label: 'Kay',         icon: 'home' },
+            { id: 'bebe',         label: 'Bebe',        icon: 'child_care' },
+        ];
+        // selected category ids (Set for fast toggle)
+        window.SELLER_CATS_SELECTED = new Set();
+
+        function renderVsCats() {
+            const grid = document.getElementById('vsCatsGrid');
+            if (!grid) return;
+            grid.innerHTML = SELLER_CATS_MAP.map(c => {
+                const on = SELLER_CATS_SELECTED.has(c.id);
+                return `
+                <button type="button" onclick="toggleSellerCat('${c.id}')"
+                    class="w-full flex items-center gap-2 px-3 py-3 rounded-xl transition-all active:scale-95"
+                    style="background:${on ? 'rgba(0,102,111,.12)' : '#f0ede8'};border:1.5px solid ${on ? '#00666f' : 'transparent'}">
+                    <span class="material-symbols-outlined ${on ? 'fi text-primary' : 'text-on-surface-variant'}" style="font-size:18px">${c.icon}</span>
+                    <span class="font-headline font-bold text-[13px] ${on ? 'text-primary' : 'text-on-surface'} flex-1 text-left">${c.label}</span>
+                    <span class="material-symbols-outlined ${on ? 'fi text-primary' : 'text-on-surface-variant opacity-40'}" style="font-size:16px">${on ? 'check_circle' : 'radio_button_unchecked'}</span>
+                </button>`;
+            }).join('');
+        }
+
+        function toggleSellerCat(id) {
+            if (SELLER_CATS_SELECTED.has(id)) SELLER_CATS_SELECTED.delete(id);
+            else SELLER_CATS_SELECTED.add(id);
+            renderVsCats();
+            // Enable continue only when at least one is selected
+            const btn = document.getElementById('vsCatsBtn');
+            if (btn) {
+                const hasAny = SELLER_CATS_SELECTED.size > 0;
+                btn.disabled = !hasAny;
+                btn.style.opacity = hasAny ? '' : '.55';
+            }
+        }
+        window.toggleSellerCat = toggleSellerCat;
 
         // ══════════════════════════════════════════════════════════
         //  POINT 5 — PANEL ADMIN ENRICHI
@@ -5477,6 +5663,92 @@
             const dot = document.getElementById('notifDot');
             if (dot) dot.style.display = unread > 0 ? '' : 'none';
         }
+
+        // ── Unread-messages badge (header forum icon) ──
+        function updateMsgBadge() {
+            const badge = document.getElementById('msgBadge');
+            if (!badge) return;
+            const n = Number(A.unreadMsgCount) || 0;
+            if (n > 0) {
+                badge.textContent = n > 99 ? '99+' : String(n);
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+        window.updateMsgBadge = updateMsgBadge;
+
+        // ── FAB Speed Dial toggle ──
+        function fabSpeedDial(forceState) {
+            const fab = document.getElementById('fab');
+            const actions = document.getElementById('fabActions');
+            if (!fab || !actions) return;
+            const isOpen = fab.classList.contains('fab-open');
+            const willOpen = typeof forceState === 'boolean' ? forceState : !isOpen;
+            if (willOpen) {
+                fab.classList.add('fab-open');
+                actions.classList.remove('hidden');
+                actions.classList.add('flex');
+                // Close when tapping outside
+                setTimeout(() => {
+                    document.addEventListener('click', fabOutsideClose, { once: true });
+                }, 20);
+            } else {
+                fab.classList.remove('fab-open');
+                actions.classList.add('hidden');
+                actions.classList.remove('flex');
+            }
+        }
+        function fabOutsideClose(e) {
+            const fab = document.getElementById('fab');
+            if (fab && !fab.contains(e.target)) fabSpeedDial(false);
+        }
+        window.fabSpeedDial = fabSpeedDial;
+
+        // ── Pwen Kolekte picker ──
+        function openPickupPicker() {
+            const list = document.getElementById('pickupList');
+            if (!list) return;
+            const current = (A.user && A.user.defaultPickup) || A.selPickup || PICKUPS[0].id;
+            list.innerHTML = PICKUPS.map(pk => {
+                const active = pk.id === current;
+                return `<button onclick="setPickupZone('${pk.id}')"
+                    class="w-full flex items-center gap-3 p-3.5 rounded-xl amb text-left active:scale-[.99] transition-transform"
+                    style="background:${active ? 'rgba(0,102,111,.08)' : 'var(--surface-container-lowest, #fff)'};border:1.5px solid ${active ? '#00666f' : 'rgba(188,201,200,.25)'}">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style="background:${active ? '#00666f' : 'rgba(0,102,111,.08)'}">
+                        <span class="material-symbols-outlined" style="font-size:20px;color:${active ? '#fff' : '#00666f'}">${pk.ic}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-headline font-bold text-sm text-on-surface truncate">${pk.n}</p>
+                        <p class="font-label text-xs text-on-surface-variant truncate">${pk.a}</p>
+                    </div>
+                    ${active ? '<span class="material-symbols-outlined text-primary" style="font-size:20px">check_circle</span>' : ''}
+                </button>`;
+            }).join('');
+            openSheet('pickupSheet');
+        }
+        window.openPickupPicker = openPickupPicker;
+
+        function setPickupZone(id) {
+            const pk = PICKUPS.find(p => p.id === id);
+            if (!pk) return;
+            A.selPickup = id;
+            if (A.user) {
+                A.user.defaultPickup = id;
+                try { localStorage.setItem('aym_user', JSON.stringify(A.user)); } catch (_) { }
+                if (db && A.user.uid) {
+                    db.from('profiles').update({ location: pk.n })
+                        .eq('id', A.user.uid)
+                        .then(({ error }) => { if (error) console.warn('[Pickup]', error.message); });
+                }
+            }
+            toast('Pwen Kolekte: ' + pk.n);
+            closeSheets();
+            // Refresh profile menu to show new subtitle
+            if (A.tab === 'profile' && typeof renderProfile === 'function') renderProfile();
+        }
+        window.setPickupZone = setPickupZone;
 
         function markAllRead() {
             NOTIFS.forEach(n => n.read = true);
@@ -6515,13 +6787,8 @@
                     product_id: A.chatId,
                     content: dbContent,
                 }).then(({ error }) => { if (error) console.warn('[Chat loc]', error.message); });
-                db.from('notifications').insert({
-                    user_id: A.chatSellerId,
-                    type: 'chat', icon: 'location_on',
-                    title: 'Lokalisasyon pataje',
-                    body: (A.user.name || 'Yon kliyan') + ' pataje lokalisasyon li.',
-                    color: '#00666f',
-                }).then(({ error }) => { if (error) console.warn('[Notif loc]', error.message); });
+                // Note: chat notification is handled by the DB trigger
+                // `trg_notify_on_new_message` (masks [LOC] payloads to a pin icon).
             }
         }
 
@@ -7682,12 +7949,40 @@
             A.chatSellerId = A.chatOtherId; // message recipient on send
             const partnerName = otherPartyName
                 || (iAmSeller ? 'Kliyan' : (p.sellerName || p.seller || 'Vandè'));
-            const initials = partnerName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'V';
+            const initials = (partnerName || 'V').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'V';
             _origOpenChatFor(pid);
-            // Update chat header with correct partner info
-            document.getElementById('chatAv').innerHTML = `<span class="font-headline font-bold text-white text-xs">${initials}</span>`;
-            document.getElementById('chatName').textContent = partnerName;
+            // Update chat header with correct partner info (fallback until DB fetch completes)
+            const chatAvEl = document.getElementById('chatAv');
+            const chatNameEl = document.getElementById('chatName');
+            if (chatAvEl) chatAvEl.innerHTML = `<span class="font-headline font-bold text-white text-xs">${initials}</span>`;
+            if (chatNameEl) chatNameEl.textContent = partnerName;
             document.getElementById('toptitle').textContent = partnerName;
+
+            // Real JOIN to profiles — pull display_name + avatar_url for the partner
+            const partnerId = A.chatOtherId || (iAmSeller ? null : p.sellerId);
+            if (db && partnerId) {
+                db.from('profiles')
+                    .select('id, display_name, first_name, last_name, avatar_url, verified_seller')
+                    .eq('id', partnerId).maybeSingle()
+                    .then(({ data, error }) => {
+                        if (error || !data) return;
+                        const realName = data.display_name
+                            || [data.first_name, data.last_name].filter(Boolean).join(' ').trim()
+                            || partnerName;
+                        A.chatSellerName = realName;
+                        if (chatNameEl) chatNameEl.textContent = realName;
+                        const tt = document.getElementById('toptitle');
+                        if (tt) tt.textContent = realName;
+                        if (chatAvEl) {
+                            if (data.avatar_url) {
+                                chatAvEl.innerHTML = `<img src="${data.avatar_url}" alt="${realName}" class="w-full h-full object-cover rounded-full" onerror="this.parentElement.innerHTML='<span class=\\'font-headline font-bold text-white text-xs\\'>${(realName||'V').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</span>'"/>`;
+                            } else {
+                                const ini = (realName || 'V').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'V';
+                                chatAvEl.innerHTML = `<span class="font-headline font-bold text-white text-xs">${ini}</span>`;
+                            }
+                        }
+                    });
+            }
 
             // Load chat history for this product from Supabase.
             // Other party = seller when I'm the buyer; or buyer when I'm the seller.
@@ -8105,30 +8400,92 @@
             }).subscribe();
     }
 
+    // ── REALTIME NOTIFICATIONS ──
+    // Listen for INSERTs on notifications scoped to the current user and merge them
+    // into NOTIFS newest-first so the red dot lights up without a refresh.
+    let _rtNotifChannel = null;
+    function subscribeToNotifications() {
+        if (!db || !A.user?.uid) return;
+        if (_rtNotifChannel) { try { db.removeChannel(_rtNotifChannel); } catch (_) { } }
+        _rtNotifChannel = db.channel('notifs:' + A.user.uid)
+            .on('postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + A.user.uid },
+                payload => {
+                    const n = payload.new; if (!n) return;
+                    NOTIFS.unshift({
+                        id: n.id, type: n.type || 'system', icon: n.icon || 'notifications',
+                        title: n.title, body: n.body, time: 'Kounye a',
+                        read: n.read || false, color: n.color || '#00666f',
+                    });
+                    if (NOTIFS.length > 50) NOTIFS.length = 50;
+                    updateNotifBadge();
+                    if (typeof playNotifSound === 'function') playNotifSound();
+                    // Re-render sheet if open
+                    const sheet = document.getElementById('notifSheet');
+                    if (sheet && sheet.classList.contains('on')) renderNotifs('all');
+                })
+            .subscribe();
+    }
+    window.subscribeToNotifications = subscribeToNotifications;
+
     // ── DATA: Products from Supabase ──
+    // Feed: ALL active products with stock > 0, newest first. Silent offline-cache
+    // stores last 20 in localStorage so repeat visits feel instant and survive a
+    // flaky network — no UI indicator shown.
     async function loadProductsFromSupabase(filters) {
-        if (!db) return null; filters = filters || {};
+        filters = filters || {};
+        const CACHE_KEY = 'aym_feed_cache_v1';
+
+        // 1) Try network first (source of truth)
+        if (db) {
+            try {
+                let q = db.from('products')
+                    .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
+                    .eq('status', 'active')
+                    .gt('stock', 0)
+                    .order('created_at', { ascending: false })
+                    .limit(filters.limit || 100);
+                if (filters.category && filters.category !== 'all') q = q.eq('category', filters.category);
+                const { data, error } = await Promise.race([
+                    q,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
+                ]);
+                if (error) throw error;
+                const mapped = (data || []).map(p => {
+                    const imgs = p.images || [];
+                    return {
+                        id: p.id, t: p.title, p: p.price, oldP: p.old_price, c: p.category, l: p.location,
+                        desc: p.description, img: imgs.length > 0 ? imgs[0] : null, images: imgs,
+                        s: p.stock, v: p.views, r: p.seller?.rating_avg || 0,
+                        b: p.seller?.verified_seller ? 'Verifye' : '', sellerId: p.seller_id,
+                        sellerName: p.seller?.display_name || 'Vandè', sizes: p.sizes || [],
+                        e: 'palette', ec: '#7c3aed',
+                    };
+                });
+                // Silent cache: last 20 only when fetching "all"
+                if (!filters.category || filters.category === 'all') {
+                    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), items: mapped.slice(0, 20) })); } catch(_){}
+                }
+                return mapped;
+            } catch(e) {
+                console.warn('[Products]', e.message);
+                // fall through to cache
+            }
+        }
+
+        // 2) Offline fallback — use cached list silently
         try {
-            let q = db.from('products').select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg)')
-                .eq('status', 'active').order('created_at', { ascending: false }).limit(filters.limit || 20);
-            if (filters.category && filters.category !== 'all') q = q.eq('category', filters.category);
-            const { data, error } = await Promise.race([
-                q,
-                new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000))
-            ]);
-            if (error) throw error;
-            return data.map(p => {
-                const imgs = p.images || [];
-                return {
-                    id: p.id, t: p.title, p: p.price, oldP: p.old_price, c: p.category, l: p.location,
-                    desc: p.description, img: imgs.length > 0 ? imgs[0] : null, images: imgs,
-                    s: p.stock, v: p.views, r: p.seller?.rating_avg || 0,
-                    b: p.seller?.verified_seller ? 'Verifye' : '', sellerId: p.seller_id,
-                    sellerName: p.seller?.display_name || 'Vandè', sizes: p.sizes || [],
-                    e: 'palette', ec: '#7c3aed',
-                };
-            });
-        } catch(e) { console.warn('[Products]', e.message); return null; }
+            const raw = localStorage.getItem(CACHE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                const items = parsed.items || [];
+                if (filters.category && filters.category !== 'all') {
+                    return items.filter(p => p.c === filters.category);
+                }
+                return items;
+            }
+        } catch(_){}
+        return null;
     }
 
     async function supabaseToggleFollow(sid) {
