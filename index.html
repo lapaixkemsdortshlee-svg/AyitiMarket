@@ -1806,7 +1806,7 @@
                 <span class="font-label text-[11px] font-bold text-on-surface px-2 py-1 rounded-full bg-surface-container-lowest amb">Asistan Bot</span>
                 <button onclick="fabSpeedDial(false);openSheet('botSheet')"
                     class="w-11 h-11 rounded-full flex items-center justify-center active:scale-90 amb"
-                    style="background:#7c3aed;color:#fff" aria-label="Asistan Bot">
+                    style="background:#97422b;color:#fff" aria-label="Asistan Bot">
                     <span class="material-symbols-outlined fi" style="font-size:20px">support_agent</span>
                 </button>
             </div>
@@ -2252,6 +2252,18 @@
                 <button onclick="searchTrend('bebe')" class="bg-surface-container-lowest rounded-xl p-3 text-center amb active:bg-surface-container-low">
                     <span class="material-symbols-outlined fi text-primary" style="font-size:24px">child_care</span>
                     <p class="font-label text-xs font-bold text-on-surface mt-1">Bebe</p>
+                </button>
+                <button onclick="searchTrend('beaute')" class="bg-surface-container-lowest rounded-xl p-3 text-center amb active:bg-surface-container-low">
+                    <span class="material-symbols-outlined fi text-primary" style="font-size:24px">face_retouching_natural</span>
+                    <p class="font-label text-xs font-bold text-on-surface mt-1">Bote</p>
+                </button>
+                <button onclick="searchTrend('electronique')" class="bg-surface-container-lowest rounded-xl p-3 text-center amb active:bg-surface-container-low">
+                    <span class="material-symbols-outlined fi text-primary" style="font-size:24px">devices</span>
+                    <p class="font-label text-xs font-bold text-on-surface mt-1">Elektwonik</p>
+                </button>
+                <button onclick="searchTrend('gaming')" class="bg-surface-container-lowest rounded-xl p-3 text-center amb active:bg-surface-container-low">
+                    <span class="material-symbols-outlined fi text-primary" style="font-size:24px">sports_esports</span>
+                    <p class="font-label text-xs font-bold text-on-surface mt-1">Gaming</p>
                 </button>
             </div>
         </div>
@@ -2814,6 +2826,12 @@
         <div class="handle"></div>
         <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight mb-1">Pwen Kolekte</h3>
         <p class="font-body text-sm text-on-surface-variant mb-4">Chwazi zòn ou prefere pou al chèche pwodwi ou yo.</p>
+        <button onclick="detectPickupLocation()" id="pickupGpsBtn"
+            class="w-full mb-3 flex items-center justify-center gap-2 py-2.5 rounded-xl amb active:scale-[.99] transition-transform"
+            style="background:rgba(0,102,111,.08);color:#00666f">
+            <span class="material-symbols-outlined fi" style="font-size:18px">my_location</span>
+            <span class="font-label text-sm font-bold">Detekte pozisyon mwen</span>
+        </button>
         <div id="pickupList" class="space-y-2 mb-4"></div>
         <button onclick="closeSheets()"
             class="w-full py-3.5 rounded-xl font-headline font-bold text-sm active:scale-95 transition-transform"
@@ -2931,10 +2949,10 @@
         const PROMPTS = { mode: ["Twal kalite", "Pou okasyon espesyal", "Livrezon PAP", "Foto otantik"], cosmetique: ["Engredyan natirèl", "Orijin garanti", "Tout kalite po", "Livrezon rapid"], accessoire: ["Pyes inik", "Kado pafè", "Koulè fidèl", "Vandè verifye"], artisanat: ["Atizana ayisyen", "Fèt alamen", "Motif tradisyonèl", "Kado pafè"], maison: ["Dézay modèn", "Dekorasyon lokal", "Kalite premium", "Fèt avèk swen"], bebe: ["Sekirize", "Materyèl dou", "Kado nesans", "Sètifye"] };
 
         const PICKUPS = [
-            { id: "dg", ic: "location_on", n: "Estasyon Digicel Pétion-Ville", a: "Rue Panamericaine" },
-            { id: "ep", ic: "storefront", n: "Epikri Delmas 33", a: "Angle Rue Fragneau Ville" },
-            { id: "pu", ic: "hail", n: "Pick-up Delmas 48", a: "Delmas 48, Carrefour" },
-            { id: "tb", ic: "store", n: "Mini Market Tabarre", a: "Route Nationale 1" },
+            { id: "dg", ic: "location_on", n: "Estasyon Digicel Pétion-Ville", a: "Rue Panamericaine", lat: 18.5137, lng: -72.2856 },
+            { id: "ep", ic: "storefront",  n: "Epikri Delmas 33",              a: "Angle Rue Fragneau Ville", lat: 18.5461, lng: -72.3012 },
+            { id: "pu", ic: "hail",        n: "Pick-up Delmas 48",             a: "Delmas 48, Carrefour",     lat: 18.5521, lng: -72.2972 },
+            { id: "tb", ic: "store",       n: "Mini Market Tabarre",           a: "Route Nationale 1",        lat: 18.5680, lng: -72.2720 },
         ];
 
         // ── All data fetched from Supabase — no mock users/data ──
@@ -3262,6 +3280,13 @@
         }
 
         function goBack() {
+            // If leaving the chat screen, unsubscribe realtime + reconcile unread count
+            const onChat = document.getElementById('s-chat')?.classList.contains('on');
+            if (onChat) {
+                if (typeof unsubscribeFromChat === 'function') unsubscribeFromChat();
+                A.chatId = null;
+                if (typeof refreshUserStats === 'function') refreshUserStats();
+            }
             const prev = A.stack.pop() || "feed";
             navTo(prev);
         }
@@ -4218,9 +4243,15 @@
                         }
                     }
 
-                    // Note: seller notification for new order is handled by the DB trigger
-                    // `trg_notify_seller_on_order` (see supabase/migration-2026-04.sql).
-                    // This avoids duplicate entries from client + trigger.
+                    // Notify seller of new order
+                    db.from('notifications').insert({
+                        user_id: p.sellerId,
+                        type: 'order',
+                        icon: 'shopping_bag',
+                        title: 'Nouvo komand!',
+                        body: (A.user.name || 'Yon kliyan') + ' kòmande ' + p.t + ' — ' + fp(totalAmount) + ' HTG',
+                        color: '#00666f',
+                    }).then(({ error }) => { if (error) console.warn('[Notif order]', error.message); });
 
                     // Notify buyer (self) of order confirmation
                     db.from('notifications').insert({
@@ -4355,8 +4386,18 @@
                 }).then(({ error }) => {
                     if (error) console.warn('[Chat] Erè voye mesaj:', error.message);
                 });
-                // Note: receiver notification is handled by the DB trigger
-                // `trg_notify_on_new_message` (see supabase/migration-2026-04.sql).
+                // Notify the receiver of the new message
+                if (A.chatSellerId && A.chatSellerId !== A.user.uid) {
+                    const preview = t.startsWith('[LOC]') ? '📍 Lokalisasyon pataje' : t.slice(0, 80);
+                    db.from('notifications').insert({
+                        user_id: A.chatSellerId,
+                        type: 'chat',
+                        icon: 'chat',
+                        title: 'Nouvo mesaj',
+                        body: (A.user.name || 'Yon kliyan') + ': ' + preview,
+                        color: '#00666f',
+                    }).then(({ error }) => { if (error) console.warn('[Notif msg]', error.message); });
+                }
             }
         }
 
@@ -4819,8 +4860,17 @@
                     title: 'Nouvo Abonnman', body: 'Ou swiv yon nouvo vandè. Wap resevwa dènye pwodwi yo!',
                     time: 'Kounye a', read: false, color: '#00666f',
                 });
-                // Note: seller notification for new follower is handled by the DB trigger
-                // `trg_notify_seller_on_follow` (see supabase/migration-2026-04.sql).
+                // Notify the seller they got a new follower
+                if (db && sellerId !== A.user.uid) {
+                    db.from('notifications').insert({
+                        user_id: sellerId,
+                        type: 'system',
+                        icon: 'person_add',
+                        title: 'Nouvo abonnen!',
+                        body: (A.user.name || 'Yon moun') + ' kounye a swiv boutik ou.',
+                        color: '#00666f',
+                    }).then(({ error }) => { if (error) console.warn('[Notif follow]', error.message); });
+                }
                 updateNotifBadge();
             } else {
                 toast('Ou dezabone');
@@ -4920,8 +4970,8 @@
                 const otherIds = [...new Set(convList.map(c => c.otherId))];
                 const prodIds = [...new Set(convList.map(c => c.productId).filter(Boolean))];
                 const [profRes, prodRes] = await Promise.all([
-                    otherIds.length ? db.from('profiles').select('id, display_name, photo_url').in('id', otherIds) : Promise.resolve({ data: [] }),
-                    prodIds.length ? db.from('products').select('id, title, price, image_url, images, seller_id').in('id', prodIds) : Promise.resolve({ data: [] }),
+                    otherIds.length ? db.from('profiles').select('id, display_name, first_name, last_name, avatar_url, verified_seller').in('id', otherIds) : Promise.resolve({ data: [] }),
+                    prodIds.length ? db.from('products').select('id, title, price, images, seller_id').in('id', prodIds) : Promise.resolve({ data: [] }),
                 ]);
                 const profMap = {};
                 (profRes.data || []).forEach(p => { profMap[p.id] = p; });
@@ -4929,27 +4979,30 @@
                 (prodRes.data || []).forEach(p => { prodMap[p.id] = p; });
 
                 const itemsHTML = convList.map(c => {
-                    const partner = profMap[c.otherId] || { display_name: 'Itilizatè', photo_url: null };
+                    const partner = profMap[c.otherId] || { display_name: null, first_name: null, last_name: null, avatar_url: null };
+                    const partnerName = partner.display_name
+                        || [partner.first_name, partner.last_name].filter(Boolean).join(' ').trim()
+                        || 'Itilizatè';
                     const prod = prodMap[c.productId] || null;
-                    const img = prod ? (prod.image_url || (prod.images && prod.images[0])) : null;
-                    const initials = (partner.display_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                    const img = prod && prod.images && prod.images[0] ? prod.images[0] : null;
+                    const initials = partnerName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'U';
                     const preview = (() => {
                         const raw = c.lastMsg.content || '';
                         if (raw.startsWith('[LOC]')) return '📍 Lokalisasyon pataje';
                         return raw.length > 80 ? raw.slice(0, 80) + '…' : raw;
                     })();
                     const pidAttr = typeof c.productId === 'string' ? `'${c.productId.replace(/'/g, "\\'")}'` : c.productId;
-                    const partnerNameAttr = (partner.display_name || 'Itilizatè').replace(/'/g, "\\'");
+                    const partnerNameAttr = partnerName.replace(/'/g, "\\'");
                     const otherIdAttr = `'${c.otherId}'`;
                     return `
       <button onclick="openConversation(${pidAttr}, ${otherIdAttr}, '${partnerNameAttr}')"
         class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container-lowest active:bg-surface-container-low amb text-left">
         <div class="w-12 h-12 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center" style="background:linear-gradient(135deg,#00666f,#00818c)">
-          ${partner.photo_url ? `<img src="${partner.photo_url}" class="w-full h-full object-cover"/>` : `<span class="font-headline font-bold text-white text-sm">${initials}</span>`}
+          ${partner.avatar_url ? `<img src="${partner.avatar_url}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'font-headline font-bold text-white text-sm\\'>${initials}</span>'"/>` : `<span class="font-headline font-bold text-white text-sm">${initials}</span>`}
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between gap-2">
-            <p class="font-headline font-bold text-sm text-on-surface truncate">${partner.display_name || 'Itilizatè'}</p>
+            <p class="font-headline font-bold text-sm text-on-surface truncate">${partnerName}</p>
             <span class="font-label text-[10px] text-on-surface-variant flex-shrink-0">${timeAgo(c.lastMsg.created_at)}</span>
           </div>
           ${prod ? `<p class="font-label text-[10px] text-primary truncate">${prod.title}</p>` : ''}
@@ -5706,12 +5759,29 @@
         window.fabSpeedDial = fabSpeedDial;
 
         // ── Pwen Kolekte picker ──
-        function openPickupPicker() {
+        let _userGeo = null;
+        function haversineKm(a, b) {
+            const R = 6371, toR = x => x * Math.PI / 180;
+            const dLat = toR(b.lat - a.lat), dLng = toR(b.lng - a.lng);
+            const s = Math.sin(dLat / 2) ** 2
+                + Math.cos(toR(a.lat)) * Math.cos(toR(b.lat)) * Math.sin(dLng / 2) ** 2;
+            return 2 * R * Math.asin(Math.sqrt(s));
+        }
+        function renderPickupList() {
             const list = document.getElementById('pickupList');
             if (!list) return;
             const current = (A.user && A.user.defaultPickup) || A.selPickup || PICKUPS[0].id;
-            list.innerHTML = PICKUPS.map(pk => {
+            // Optionally sort by distance from detected user position
+            let items = PICKUPS.map(pk => ({
+                ...pk,
+                km: _userGeo && pk.lat != null ? haversineKm(_userGeo, pk) : null,
+            }));
+            if (_userGeo) items.sort((a, b) => (a.km ?? 9999) - (b.km ?? 9999));
+            list.innerHTML = items.map(pk => {
                 const active = pk.id === current;
+                const distLabel = pk.km != null
+                    ? `<p class="font-label text-[10px] text-primary font-bold mt-0.5">${pk.km.toFixed(1)} km</p>`
+                    : '';
                 return `<button onclick="setPickupZone('${pk.id}')"
                     class="w-full flex items-center gap-3 p-3.5 rounded-xl amb text-left active:scale-[.99] transition-transform"
                     style="background:${active ? 'rgba(0,102,111,.08)' : 'var(--surface-container-lowest, #fff)'};border:1.5px solid ${active ? '#00666f' : 'rgba(188,201,200,.25)'}">
@@ -5722,13 +5792,36 @@
                     <div class="flex-1 min-w-0">
                         <p class="font-headline font-bold text-sm text-on-surface truncate">${pk.n}</p>
                         <p class="font-label text-xs text-on-surface-variant truncate">${pk.a}</p>
+                        ${distLabel}
                     </div>
                     ${active ? '<span class="material-symbols-outlined text-primary" style="font-size:20px">check_circle</span>' : ''}
                 </button>`;
             }).join('');
+        }
+        function openPickupPicker() {
+            renderPickupList();
             openSheet('pickupSheet');
         }
+        function detectPickupLocation() {
+            if (!navigator.geolocation) { toast('GPS pa disponib sou aparèy ou'); return; }
+            const btn = document.getElementById('pickupGpsBtn');
+            const origHTML = btn ? btn.innerHTML : null;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="font-label text-sm font-bold">Ap chèche pozisyon…</span>';
+            }
+            navigator.geolocation.getCurrentPosition(pos => {
+                _userGeo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                renderPickupList();
+                toast('Pozisyon detekte — triyè pa distans');
+                if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
+            }, _err => {
+                toast('Pa ka jwenn pozisyon ou');
+                if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
+            }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
+        }
         window.openPickupPicker = openPickupPicker;
+        window.detectPickupLocation = detectPickupLocation;
 
         function setPickupZone(id) {
             const pk = PICKUPS.find(p => p.id === id);
@@ -6787,8 +6880,16 @@
                     product_id: A.chatId,
                     content: dbContent,
                 }).then(({ error }) => { if (error) console.warn('[Chat loc]', error.message); });
-                // Note: chat notification is handled by the DB trigger
-                // `trg_notify_on_new_message` (masks [LOC] payloads to a pin icon).
+                if (A.chatSellerId && A.chatSellerId !== A.user.uid) {
+                    db.from('notifications').insert({
+                        user_id: A.chatSellerId,
+                        type: 'chat',
+                        icon: 'location_on',
+                        title: 'Lokalisasyon pataje',
+                        body: (A.user.name || 'Yon kliyan') + ' pataje lokalisasyon li.',
+                        color: '#00666f',
+                    }).then(({ error }) => { if (error) console.warn('[Notif loc]', error.message); });
+                }
             }
         }
 
@@ -8012,12 +8113,21 @@
                                 return base;
                             });
                             renderChatMsgs(pid);
+                            // Decrement unread badge by how many of these were unread for me
+                            const wasUnread = data.filter(m => m.receiver_id === A.user.uid && !m.read).length;
+                            if (wasUnread > 0) {
+                                A.unreadMsgCount = Math.max(0, (A.unreadMsgCount || 0) - wasUnread);
+                                if (typeof updateMsgBadge === 'function') updateMsgBadge();
+                            }
                         }
                         // Mark received messages as read
                         db.from('messages').update({ read: true })
                             .eq('product_id', pid).eq('receiver_id', A.user.uid).eq('read', false);
                     });
             }
+
+            // Subscribe to live messages for this conversation
+            if (typeof subscribeToChat === 'function') subscribeToChat(pid);
         };
 
 
@@ -8384,21 +8494,49 @@
     window.logout = function() { supabaseLogout(); };
 
     // ── REALTIME CHAT ──
+    // Filters on the real `product_id` column (there is no `room_id`) and gates
+    // the payload handler to messages addressed to the current user so seller and
+    // buyer see each other's messages live without a refresh.
     let _rtChannel = null;
-    function subscribeToChat(roomId) {
-        if (!db || !A.user?.uid) return;
-        if (_rtChannel) db.removeChannel(_rtChannel);
-        _rtChannel = db.channel('chat:' + roomId)
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'room_id=eq.' + roomId }, payload => {
-                const m = payload.new; const pid = A.chatId;
-                if (!A.msgs[pid]) A.msgs[pid] = [];
-                if (m.sender_id !== A.user.uid) {
-                    A.msgs[pid].push({ s: false, t: m.content, tm: new Date(m.created_at).toLocaleTimeString('fr', {hour:'2-digit',minute:'2-digit'}) });
-                    renderChatMsgs(pid);
+    function subscribeToChat(pid) {
+        if (!db || !A.user?.uid || !pid) return;
+        if (_rtChannel) { try { db.removeChannel(_rtChannel); } catch (_) { } }
+        _rtChannel = db.channel('chat:' + pid + ':' + A.user.uid)
+            .on('postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'messages', filter: 'product_id=eq.' + pid },
+                payload => {
+                    const m = payload.new; if (!m) return;
+                    if (m.sender_id === A.user.uid) return;         // echo-suppress our own send
+                    if (m.receiver_id !== A.user.uid) return;       // not addressed to me
+                    if (!A.msgs[pid]) A.msgs[pid] = [];
+                    const base = {
+                        s: false, t: m.content,
+                        tm: new Date(m.created_at).toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' }),
+                    };
+                    const loc = (typeof parseMsgContent === 'function') ? parseMsgContent(m.content) : null;
+                    A.msgs[pid].push(loc ? Object.assign(base, loc) : base);
+                    // Only render if this chat is currently open
+                    if (A.chatId === pid) {
+                        renderChatMsgs(pid);
+                        // Mark as read immediately since the user is viewing the chat
+                        db.from('messages').update({ read: true }).eq('id', m.id);
+                    } else {
+                        // Arrived in background → bump the unread badge
+                        A.unreadMsgCount = (A.unreadMsgCount || 0) + 1;
+                        if (typeof updateMsgBadge === 'function') updateMsgBadge();
+                    }
                     if (typeof playNotifSound === 'function') playNotifSound();
-                }
-            }).subscribe();
+                })
+            .subscribe();
     }
+    function unsubscribeFromChat() {
+        if (_rtChannel) {
+            try { db.removeChannel(_rtChannel); } catch (_) { }
+            _rtChannel = null;
+        }
+    }
+    window.subscribeToChat = subscribeToChat;
+    window.unsubscribeFromChat = unsubscribeFromChat;
 
     // ── REALTIME NOTIFICATIONS ──
     // Listen for INSERTs on notifications scoped to the current user and merge them
