@@ -680,66 +680,35 @@
             display: flex;
         }
 
-        /* ── Wallet Card ── */
-        .wallet-card {
-            background: linear-gradient(135deg, #00666f, #00818c);
-            border-radius: 1rem;
-            padding: 1.25rem;
-            position: relative;
-            overflow: hidden;
+        /* ── Escrow Stepper ── */
+        .esc-step {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
         }
-
-        .wallet-card::after {
-            content: '';
-            position: absolute;
-            top: -30px;
-            right: -30px;
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: rgba(140, 242, 255, .08);
-            pointer-events: none;
+        .esc-bullet {
+            width: 28px; height: 28px; border-radius: 50%;
+            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 12px;
+            background: #e7e3dd; color: #7a7468;
+            border: 2px solid transparent;
         }
-
-        .wallet-card::before {
-            content: '';
-            position: absolute;
-            bottom: -20px;
-            left: -20px;
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, .04);
-            pointer-events: none;
+        .esc-step.done .esc-bullet {
+            background: #00666f; color: #fcf9f4;
         }
-
-        .wallet-balance {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 800;
-            font-size: 1.75rem;
-            color: #fcf9f4;
-            letter-spacing: -.02em;
+        .esc-step.active .esc-bullet {
+            background: #fcf9f4; color: #00666f;
+            border-color: #00666f;
+            box-shadow: 0 0 0 4px rgba(0,102,111,.12);
         }
-
-        .wallet-btn {
-            background: rgba(252, 249, 244, .15);
-            color: #fcf9f4;
-            font-family: 'Manrope', sans-serif;
-            font-weight: 700;
-            font-size: .8125rem;
-            padding: 10px 20px;
-            border-radius: .75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all .2s;
+        .esc-line {
+            width: 2px; flex: 0 0 2px;
+            background: #e7e3dd;
+            margin-left: 13px;
         }
-
-        .wallet-btn:hover,
-        .wallet-btn:active {
-            background: rgba(252, 249, 244, .25);
-        }
+        .esc-step.done ~ .esc-line,
+        .esc-line.done { background: #00666f; }
 
         /* ── DARK MODE — Midnight Teal Premium ── */
         body.dark {
@@ -2521,6 +2490,72 @@
         </div>
     </div>
 
+    <!-- ══ ESCROW — BUYER PAYMENT INSTRUCTIONS ══ -->
+    <div class="sheet" id="escrowPaySheet">
+        <div class="handle"></div>
+        <div class="text-center mb-4">
+            <div class="w-14 h-14 rounded-2xl cta flex items-center justify-center mx-auto mb-3 amb">
+                <span class="material-symbols-outlined fi text-white" style="font-size:26px">payments</span>
+            </div>
+            <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight">Peye ak MonCash</h3>
+            <p class="font-body text-sm text-on-surface-variant mt-1 leading-relaxed">
+                Voye montan an sou nimewo AyitiMarket. Lajan rete bloke nan eskwo jiskaske livrezon konfime.
+            </p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-4 mb-3" id="escPayInfo"></div>
+        <div class="rounded-xl p-4 mb-3" style="background:linear-gradient(135deg,#00666f,#00818c);color:#fcf9f4">
+            <p class="font-label text-[10px] font-bold uppercase tracking-[.12em]" style="color:rgba(252,249,244,.7)">Voye lajan a:</p>
+            <p class="font-headline font-extrabold text-2xl mt-1" id="escPayAdminNumber">—</p>
+            <p class="font-label text-[11px] mt-3" style="color:rgba(252,249,244,.7)">Montan egzak:</p>
+            <p class="font-headline font-extrabold text-xl" id="escPayAmount">—</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-3 mb-4">
+            <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1">Etap 2 — kole referans MonCash</p>
+            <input id="escPayRef" class="si" placeholder="ex: 123456789" inputmode="numeric"/>
+            <p class="font-label text-[10px] text-on-surface-variant mt-2">Apre ou voye lajan an, kole nimewo referans tranzaksyon an isit la. Admin ap verifye l.</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="closeSheets()" class="px-4 py-3 rounded-xl bg-surface-container font-label font-bold text-sm text-on-surface-variant">
+                Pita
+            </button>
+            <button onclick="submitPaymentRef()" class="flex-1 py-3 rounded-xl cta font-label font-bold text-sm active:scale-95">
+                <span class="material-symbols-outlined align-middle mr-1" style="font-size:16px">check_circle</span>
+                Mwen deja peye
+            </button>
+        </div>
+    </div>
+
+    <!-- ══ ESCROW — SELLER OTP CONFIRMATION ══ -->
+    <div class="sheet" id="escrowOtpSheet">
+        <div class="handle"></div>
+        <div class="text-center mb-4">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 amb" style="background:#00666f">
+                <span class="material-symbols-outlined fi text-white" style="font-size:26px">lock_open</span>
+            </div>
+            <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight">Konfime livrezon</h3>
+            <p class="font-body text-sm text-on-surface-variant mt-1 leading-relaxed">
+                Mande achtè a kòd 6-chif OTP li epi antre l anba pou libere eskwo a.
+            </p>
+        </div>
+        <input id="escOtpInput" class="si text-center" placeholder="••••••" inputmode="numeric" maxlength="6"
+               style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.75rem;font-weight:800;letter-spacing:.35em"/>
+        <p id="escOtpErr" class="font-label text-[12px] font-bold mt-2" style="color:#991b1b"></p>
+        <div class="flex items-start gap-2 p-3 rounded-xl mt-3" style="background:rgba(153,27,27,.06)">
+            <span class="material-symbols-outlined" style="font-size:16px;color:#991b1b">warning</span>
+            <p class="font-label text-[11px] text-on-surface-variant leading-relaxed">
+                <strong>5 esè maksimòm.</strong> Apre 5 esè move, komand ap ale otomatikman nan litij pou admin rezoud.
+            </p>
+        </div>
+        <div class="flex gap-3 mt-4">
+            <button onclick="closeSheets()" class="px-4 py-3 rounded-xl bg-surface-container font-label font-bold text-sm text-on-surface-variant">
+                Anile
+            </button>
+            <button onclick="confirmSellerOTP()" class="flex-1 py-3 rounded-xl cta font-label font-bold text-sm active:scale-95">
+                Konfime OTP
+            </button>
+        </div>
+    </div>
+
     <!-- ══ BOT SUPPORT SHEET — Asistan AyitiMarket ══ -->
     <div class="sheet" id="botSheet">
         <div class="handle"></div>
@@ -2883,6 +2918,13 @@
                 <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Non Fanmi</p>
                 <input id="editLastName" class="si" placeholder="ex: Baptiste" autocomplete="family-name"/>
             </div>
+            <div id="editMoncashRow">
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">
+                    Nimewo MonCash pou resevwa lajan <span class="text-on-surface-variant">(vandè sèlman)</span>
+                </p>
+                <input id="editMoncash" class="si" placeholder="ex: 509XXXXXXXX" inputmode="tel"/>
+                <p class="font-label text-[10px] text-on-surface-variant mt-1">Apre livrezon konfime, admin ap voye lajan ou sou nimewo sa a.</p>
+            </div>
         </div>
         <button onclick="saveProfile()" class="w-full py-3.5 rounded-xl cta font-headline font-bold text-sm active:scale-95 transition-transform mb-3">
             <span class="material-symbols-outlined align-middle mr-1" style="font-size:16px">save</span>Anrejistre
@@ -2960,6 +3002,14 @@
         const VERIF_REQUESTS = [];
         const ADMIN_ORDERS = [];
         const ADMIN_USERS = [];
+
+        // Platform config — hydrated from public.app_settings. Defaults are
+        // used until the first successful fetch returns (see loadAppSettings).
+        const APP_SETTINGS = {
+            admin_moncash_number: '',
+            fee_percent: 3,
+            escrow_auto_release_hours: 168,
+        };
 
         // ══════════════════════════════════════════════════════════
         //  STATE
@@ -3155,6 +3205,7 @@
                 loadNotifsFromSupabase();
                 if (typeof subscribeToNotifications === 'function') subscribeToNotifications();
                 if (typeof refreshUserStats === 'function') refreshUserStats();
+                if (typeof loadAppSettings === 'function') loadAppSettings();
             }
             updateNotifBadge();
             if (typeof updateMsgBadge === 'function') updateMsgBadge();
@@ -4092,23 +4143,58 @@
     </button>`;
         }
 
-        // Status → visual badge (color + icon + label)
+        // Status → visual badge (color + icon + label). Covers the full escrow
+        // state machine; legacy values kept as aliases for older rows.
+        const ORDER_STATUS_MAP = {
+            awaiting_payment:  { bg: '#fef3c7', fg: '#92400e', icon: 'payments',         label: 'Ap tann peman' },
+            payment_submitted: { bg: '#fde68a', fg: '#78350f', icon: 'hourglass_top',    label: 'Ap verifye peman' },
+            payment_verified:  { bg: '#dbeafe', fg: '#1e40af', icon: 'verified',         label: 'Eskwo aktive' },
+            ready_for_pickup:  { bg: '#e0e7ff', fg: '#3730a3', icon: 'inventory_2',      label: 'Pare pou kolèk' },
+            picked_up:         { bg: '#c7d2fe', fg: '#3730a3', icon: 'local_shipping',   label: 'Kolekte' },
+            otp_confirmed:     { bg: '#d1fae5', fg: '#065f46', icon: 'check_circle',     label: 'Livrezon konfime' },
+            released:          { bg: '#bbf7d0', fg: '#065f46', icon: 'paid',             label: 'Lajan libere' },
+            completed:         { bg: '#bbf7d0', fg: '#065f46', icon: 'task_alt',         label: 'Fini' },
+            cancelled:         { bg: '#fee2e2', fg: '#991b1b', icon: 'cancel',           label: 'Anile' },
+            disputed:          { bg: '#fee2e2', fg: '#991b1b', icon: 'report',           label: 'Litij' },
+            refunded:          { bg: '#fde68a', fg: '#78350f', icon: 'currency_exchange',label: 'Ranbouse' },
+            // Legacy aliases
+            pending:    { bg: '#fef3c7', fg: '#92400e', icon: 'hourglass_top',  label: 'An atant' },
+            confirmed:  { bg: '#dbeafe', fg: '#1e40af', icon: 'verified',       label: 'Konfime' },
+            shipped:    { bg: '#e0e7ff', fg: '#3730a3', icon: 'local_shipping', label: 'Livrezon' },
+            delivered:  { bg: '#d1fae5', fg: '#065f46', icon: 'check_circle',   label: 'Delivre' },
+        };
         function orderStatusBadge(status) {
-            const map = {
-                pending:    { bg: '#fef3c7', fg: '#92400e', icon: 'hourglass_top',  label: 'An atant' },
-                confirmed:  { bg: '#dbeafe', fg: '#1e40af', icon: 'verified',       label: 'Konfime' },
-                shipped:    { bg: '#e0e7ff', fg: '#3730a3', icon: 'local_shipping', label: 'Livrezon' },
-                delivered:  { bg: '#d1fae5', fg: '#065f46', icon: 'check_circle',   label: 'Delivre' },
-                cancelled:  { bg: '#fee2e2', fg: '#991b1b', icon: 'cancel',         label: 'Anile' },
-                disputed:   { bg: '#fde68a', fg: '#78350f', icon: 'report',         label: 'Litij' },
-            };
-            const s = map[status] || map.pending;
+            const s = ORDER_STATUS_MAP[status] || ORDER_STATUS_MAP.awaiting_payment;
             return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-label font-bold text-[10px]"
                 style="background:${s.bg};color:${s.fg}">
                 <span class="material-symbols-outlined" style="font-size:12px">${s.icon}</span>${s.label}
             </span>`;
         }
         window.orderStatusBadge = orderStatusBadge;
+
+        // Canonical escrow pipeline — used by the stepper UI for both parties.
+        // Rows off the happy path (cancelled/disputed/refunded) render a
+        // standalone status banner instead of the stepper.
+        const ESCROW_PIPELINE = [
+            'awaiting_payment',
+            'payment_submitted',
+            'payment_verified',
+            'ready_for_pickup',
+            'otp_confirmed',
+            'released',
+        ];
+        function escrowStepIndex(status) {
+            const i = ESCROW_PIPELINE.indexOf(status);
+            if (i >= 0) return i;
+            // Legacy mapping so old rows still render sensibly
+            if (status === 'pending') return 0;
+            if (status === 'confirmed') return 2;
+            if (status === 'shipped') return 3;
+            if (status === 'delivered') return 4;
+            if (status === 'completed') return 5;
+            return -1; // off-path (cancelled/disputed/refunded)
+        }
+        window.escrowStepIndex = escrowStepIndex;
 
         function renderOrderScreen() {
             const mount = document.getElementById("orderContent");
@@ -4135,7 +4221,6 @@
                     .select('*')
                     .order('created_at', { ascending: false })
                     .limit(200);
-                // Sellers see every order where they're the seller; buyers see theirs.
                 const filtered = isSeller
                     ? q.eq('seller_id', A.user.uid)
                     : q.eq('buyer_id', A.user.uid);
@@ -4149,43 +4234,156 @@
                     </div>`;
                     return;
                 }
-                list.innerHTML = data.map(o => {
-                    const partner = isSeller ? (o.buyer_name || 'Kliyan') : (o.seller_name || 'Vandè');
-                    const partnerRole = isSeller ? 'Achtè' : 'Vandè';
-                    const otherId = isSeller ? o.buyer_id : o.seller_id;
-                    const pidAttr = o.product_id ? `'${o.product_id}'` : 'null';
-                    const otherAttr = otherId ? `'${otherId}'` : 'null';
-                    const partnerNameSafe = (partner || '').replace(/'/g, "\\'");
-                    return `
-      <div class="bg-surface-container-lowest rounded-xl p-3 amb">
-        <div class="flex items-start gap-3">
-          <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center" style="background:rgba(0,102,111,.08)">
-            <span class="material-symbols-outlined fi text-primary" style="font-size:22px">shopping_bag</span>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-start justify-between gap-2">
-              <p class="font-headline font-bold text-sm text-on-surface truncate flex-1">${o.product_title || 'Pwodwi'}</p>
-              ${orderStatusBadge(o.status)}
-            </div>
-            <p class="font-label text-[11px] text-on-surface-variant mt-0.5">${partnerRole}: ${partner}</p>
-            <div class="flex items-center justify-between mt-1.5">
-              <p class="font-headline font-extrabold text-sm text-primary">${fp(o.total_amount || 0)} HTG</p>
-              <p class="font-label text-[10px] text-on-surface-variant">${timeAgo(o.created_at)}</p>
-            </div>
-            <div class="flex gap-2 mt-2">
-              ${o.product_id ? `<button onclick="openConversation(${pidAttr}, ${otherAttr}, '${partnerNameSafe}')" class="flex-1 py-1.5 rounded-lg bg-surface-container font-label font-bold text-[11px] active:scale-95"><span class="material-symbols-outlined align-middle" style="font-size:12px">chat</span> Kontakte</button>` : ''}
-              ${o.pickup_location ? `<span class="flex-1 py-1.5 rounded-lg text-center font-label text-[10px] text-on-surface-variant" style="background:rgba(0,102,111,.05)"><span class="material-symbols-outlined align-middle" style="font-size:12px">location_on</span> ${o.pickup_location}</span>` : ''}
-            </div>
-          </div>
-        </div>
-      </div>`;
-                }).join('');
+                list.innerHTML = data.map(o => renderOrderCard(o, isSeller)).join('');
             } catch(e) {
                 console.warn('[Orders]', e.message);
                 list.innerHTML = '<div class="text-center text-on-surface-variant py-8">Erè nan chaje komand yo</div>';
             }
         }
         window.loadUserOrdersFromSupabase = loadUserOrdersFromSupabase;
+
+        // ══════════════════════════════════════════════════════════
+        //  ESCROW UI — step-by-step tracker + role-specific actions
+        // ══════════════════════════════════════════════════════════
+        // Escrow pipeline labels shown in the stepper (buyer- & seller-facing).
+        const ESCROW_STEP_LABELS_BUYER = [
+            'Peye ak MonCash',
+            'Ap tann verifikasyon',
+            'Eskwo aktive',
+            'Pwodwi pare pou kolèk',
+            'Livrezon konfime',
+            'Tranzaksyon fèmen',
+        ];
+        const ESCROW_STEP_LABELS_SELLER = [
+            'Ap tann peman achtè',
+            'Peman deklare — admin ap verifye',
+            'Eskwo aktive — prepare pwodwi',
+            'Pwodwi pare — tann OTP',
+            'OTP konfime',
+            'Lajan libere sou MonCash',
+        ];
+
+        function renderEscrowStepper(order, isSeller) {
+            const currentIdx = escrowStepIndex(order.status);
+            if (currentIdx < 0) {
+                // Off-happy-path: render banner only
+                return `<div class="px-3 py-2 rounded-lg font-label text-[11px] font-bold mt-2"
+                    style="background:${ORDER_STATUS_MAP[order.status]?.bg || '#fee2e2'};
+                           color:${ORDER_STATUS_MAP[order.status]?.fg || '#991b1b'}">
+                    ${ORDER_STATUS_MAP[order.status]?.label || order.status}
+                </div>`;
+            }
+            const labels = isSeller ? ESCROW_STEP_LABELS_SELLER : ESCROW_STEP_LABELS_BUYER;
+            return '<div class="mt-3 border-t pt-3" style="border-color:#ede9e3">'
+                + labels.map((lab, i) => {
+                    const state = i < currentIdx ? 'done' : (i === currentIdx ? 'active' : 'pending');
+                    const tick = state === 'done' ? '✓' : String(i + 1);
+                    return `<div class="esc-step ${state}">
+                        <div class="esc-bullet">${tick}</div>
+                        <div class="flex-1 pt-1">
+                            <p class="font-label text-[12px] ${state === 'pending' ? 'text-on-surface-variant' : 'font-bold text-on-surface'}">${lab}</p>
+                        </div>
+                    </div>`;
+                }).join('')
+                + '</div>';
+        }
+
+        function escrowActionButtons(order, isSeller) {
+            const id = order.id;
+            const buttons = [];
+            if (!isSeller) {
+                // BUYER actions
+                if (order.status === 'awaiting_payment') {
+                    buttons.push(`<button onclick="openEscrowPaymentSheetById('${id}')"
+                        class="flex-1 py-2 rounded-lg font-label font-bold text-[12px] active:scale-95"
+                        style="background:#97422b;color:#fcf9f4">
+                        <span class="material-symbols-outlined align-middle" style="font-size:14px">payments</span>
+                        Peye kounye a
+                    </button>`);
+                    buttons.push(`<button onclick="cancelOrder('${id}')"
+                        class="px-3 py-2 rounded-lg font-label font-bold text-[12px] active:scale-95 bg-surface-container text-on-surface-variant">
+                        Anile
+                    </button>`);
+                }
+                if (order.status === 'ready_for_pickup') {
+                    buttons.push(`<button onclick="showBuyerOTP('${id}')"
+                        class="flex-1 py-2 rounded-lg font-label font-bold text-[12px] active:scale-95 cta">
+                        <span class="material-symbols-outlined align-middle" style="font-size:14px">pin</span>
+                        Wè kòd OTP mwen
+                    </button>`);
+                }
+                if (['ready_for_pickup','otp_confirmed','released'].includes(order.status)) {
+                    buttons.push(`<button onclick="openDispute('${id}')"
+                        class="px-3 py-2 rounded-lg font-label font-bold text-[12px] active:scale-95 bg-surface-container text-on-surface-variant">
+                        <span class="material-symbols-outlined align-middle" style="font-size:12px">report</span> Pwoblèm
+                    </button>`);
+                }
+            } else {
+                // SELLER actions
+                if (order.status === 'payment_verified') {
+                    buttons.push(`<button onclick="sellerMarkReady('${id}')"
+                        class="flex-1 py-2 rounded-lg font-label font-bold text-[12px] active:scale-95 cta">
+                        <span class="material-symbols-outlined align-middle" style="font-size:14px">inventory_2</span>
+                        Pwodwi pare pou kolèk
+                    </button>`);
+                }
+                if (order.status === 'ready_for_pickup') {
+                    buttons.push(`<button onclick="openSellerOTPSheet('${id}')"
+                        class="flex-1 py-2 rounded-lg font-label font-bold text-[12px] active:scale-95"
+                        style="background:#00666f;color:#fcf9f4">
+                        <span class="material-symbols-outlined align-middle" style="font-size:14px">lock_open</span>
+                        Antre kòd OTP achtè
+                    </button>`);
+                }
+                if (['ready_for_pickup','otp_confirmed'].includes(order.status)) {
+                    buttons.push(`<button onclick="openDispute('${id}')"
+                        class="px-3 py-2 rounded-lg font-label font-bold text-[12px] active:scale-95 bg-surface-container text-on-surface-variant">
+                        <span class="material-symbols-outlined align-middle" style="font-size:12px">report</span> Pwoblèm
+                    </button>`);
+                }
+            }
+            return buttons.length
+                ? `<div class="flex gap-2 mt-3">${buttons.join('')}</div>`
+                : '';
+        }
+
+        function renderOrderCard(o, isSeller) {
+            const partner = isSeller ? (o.buyer_name || 'Kliyan') : (o.seller_name || 'Vandè');
+            const partnerRole = isSeller ? 'Achtè' : 'Vandè';
+            const otherId = isSeller ? o.buyer_id : o.seller_id;
+            const pidAttr = o.product_id ? `'${o.product_id}'` : 'null';
+            const otherAttr = otherId ? `'${otherId}'` : 'null';
+            const partnerNameSafe = (partner || '').replace(/'/g, "\\'");
+            const amountLabel = isSeller
+                ? `<span class="text-on-surface-variant">Ou resevwa:</span> <strong class="text-primary">${fp(o.net_amount || (o.total_amount - (o.fee_amount||0)))} HTG</strong>`
+                : `<strong class="text-primary">${fp(o.total_amount || 0)} HTG</strong>`;
+            return `
+<div class="bg-surface-container-lowest rounded-xl p-3 amb">
+    <div class="flex items-start gap-3">
+        <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center" style="background:rgba(0,102,111,.08)">
+            <span class="material-symbols-outlined fi text-primary" style="font-size:22px">shopping_bag</span>
+        </div>
+        <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2">
+                <p class="font-headline font-bold text-sm text-on-surface truncate flex-1">${o.product_title || 'Pwodwi'}</p>
+                ${orderStatusBadge(o.status)}
+            </div>
+            <p class="font-label text-[11px] text-on-surface-variant mt-0.5">${partnerRole}: ${partner}</p>
+            <div class="flex items-center justify-between mt-1.5">
+                <p class="font-label text-[11px]">${amountLabel}</p>
+                <p class="font-label text-[10px] text-on-surface-variant">${timeAgo(o.created_at)}</p>
+            </div>
+            ${o.pickup_location ? `<p class="font-label text-[11px] text-on-surface-variant mt-1"><span class="material-symbols-outlined align-middle" style="font-size:12px">location_on</span> ${o.pickup_location}</p>` : ''}
+            ${renderEscrowStepper(o, isSeller)}
+            ${escrowActionButtons(o, isSeller)}
+            <div class="flex gap-2 mt-2">
+                ${o.product_id ? `<button onclick="openConversation(${pidAttr}, ${otherAttr}, '${partnerNameSafe}')" class="flex-1 py-1.5 rounded-lg bg-surface-container font-label font-bold text-[11px] active:scale-95"><span class="material-symbols-outlined align-middle" style="font-size:12px">chat</span> Kontakte ${partnerRole.toLowerCase()}</button>` : ''}
+            </div>
+        </div>
+    </div>
+</div>`;
+        }
+        window.renderOrderCard = renderOrderCard;
 
         function setPay(type, btn) {
             A.selPay = type;
@@ -4202,20 +4400,28 @@
             if (!A.isAuth || !A.user?.uid) { toast('Konekte pou kòmande'); return; }
             const pickup = PICKUPS.find(pk => pk.id === A.selPickup) || PICKUPS[0];
 
-            // Jenere OTP 6 chif pou livrezon
+            // Delivery OTP (6 digits) — buyer shows this to seller at pickup
             const otp = generateDeliveryOTP();
             A.currentOTP = otp;
             A.currentOrder = { product: p, pickup, payMethod: A.selPay };
 
+            const feePct = (APP_SETTINGS.fee_percent || 3) / 100;
             const unitPrice = p.p;
-            const feeAmount = Math.round(unitPrice * 0.03);
-            const totalAmount = unitPrice + feeAmount;
+            const feeAmount = Math.round(unitPrice * feePct);
+            const totalAmount = unitPrice;             // buyer pays sticker price
+            const netAmount = unitPrice - feeAmount;   // seller receives price minus fee
             const sellerName = p.sellerName || p.seller || 'Vandè';
 
-            // Insert order in Supabase
-            if (db && p.sellerId) {
+            if (!p.sellerId) {
+                console.warn('[Order] Pwodwi a pa gen sellerId — komand pa ka sove');
+                toast('Erè: pwodwi sa a pa ka kòmande');
+                return;
+            }
+
+            let newOrder = null;
+            if (db) {
                 try {
-                    const { error: ordErr } = await db.from('orders').insert({
+                    const { data, error: ordErr } = await db.from('orders').insert({
                         buyer_id: A.user.uid,
                         seller_id: p.sellerId,
                         product_id: p.id,
@@ -4226,75 +4432,57 @@
                         unit_price: unitPrice,
                         total_amount: totalAmount,
                         fee_amount: feeAmount,
-                        status: 'pending',
-                        payment_method: (A.selPay || 'moncash').toUpperCase(),
+                        net_amount: netAmount,
+                        status: 'awaiting_payment',
+                        payment_method: 'MONCASH',
                         pickup_location: pickup.n,
                         otp_code: otp,
-                    });
-                    if (ordErr) console.warn('[Order insert]', ordErr.message);
+                    }).select().single();
+                    if (ordErr) { console.warn('[Order insert]', ordErr.message); toast('Erè: ' + ordErr.message); return; }
+                    newOrder = data;
 
-                    // Decrement stock if > 0
+                    // Decrement stock optimistically (released back if order cancelled)
                     if (typeof p.s === 'number' && p.s > 0) {
                         const newStock = p.s - 1;
                         const newStatus = newStock <= 0 ? 'sold' : 'active';
-                        await db.from('products').update({
-                            stock: newStock,
-                            status: newStatus,
-                        }).eq('id', p.id);
+                        await db.from('products').update({ stock: newStock, status: newStatus }).eq('id', p.id);
                         p.s = newStock;
-                        // Hide only when stock reaches 0
                         if (newStock <= 0) {
                             const idx = PRODUCTS.findIndex(x => x.id === p.id);
                             if (idx >= 0) PRODUCTS[idx].s = 0;
                         }
                     }
 
-                    // Notify seller of new order
+                    // Notify seller: new pending-payment order
                     db.from('notifications').insert({
                         user_id: p.sellerId,
                         type: 'order',
                         icon: 'shopping_bag',
                         title: 'Nouvo komand!',
-                        body: (A.user.name || 'Yon kliyan') + ' kòmande ' + p.t + ' — ' + fp(totalAmount) + ' HTG',
+                        body: (A.user.name || 'Yon kliyan') + ' kòmande ' + p.t + ' — ap tann peman MonCash.',
                         color: '#00666f',
-                    }).then(({ error }) => { if (error) console.warn('[Notif order]', error.message); });
+                    });
 
-                    // Notify buyer (self) of order confirmation
+                    // Notify buyer (self): order created, need to pay
                     db.from('notifications').insert({
                         user_id: A.user.uid,
                         type: 'order',
-                        icon: 'check_circle',
-                        title: 'Komand konfime',
-                        body: 'Ou kòmande ' + p.t + '. Kòd OTP: ' + otp,
-                        color: '#059669',
+                        icon: 'payments',
+                        title: 'Komand kreye — peye kounye a',
+                        body: 'Voye ' + fp(totalAmount) + ' HTG MonCash pou fini komand ' + p.t + '.',
+                        color: '#97422b',
                     });
                 } catch(e) {
                     console.warn('[Order]', e.message);
                     toast('Erè anrejistre komand la, eseye ankò');
+                    return;
                 }
-            } else if (!p.sellerId) {
-                console.warn('[Order] Pwodwi a pa gen sellerId — komand pa ka sove');
-                toast('Erè: pwodwi sa a pa ka kòmande');
-                return;
             }
 
-            const ov = document.getElementById("successOverlay");
-            ov.classList.remove("hidden");
-            document.getElementById("succEmoji").innerHTML = '<span class="material-symbols-outlined fi" style="font-size:72px;color:#00666f">check_circle</span>';
-            document.getElementById("succTitle").textContent = "Komand Konfime!";
-            document.getElementById("succBody").innerHTML = `
-    ${sellerName} ap kontakte ou nan <strong>30 minit</strong>.<br/>
-    <strong>Pwen kolekte:</strong> ${pickup.n}<br/>
-    <strong>Peman:</strong> ${(A.selPay || 'moncash').toUpperCase()}<br/>
-    <strong>Total:</strong> ${fp(totalAmount)} HTG<br/><br/>
-    <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:12px;background:rgba(0,102,111,.08);margin-top:4px">
-      <span style="font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;color:#3d4949">Kòd Livrezon ou:</span>
-      <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800;color:#00666f;letter-spacing:.2em">${otp}</span>
-    </div>`;
-            document.getElementById("succEscrow").textContent = "Bay kòd sa bay kousye a lè li rive pou debloke peman Escrow la";
-            document.getElementById("succBtn").textContent = "Wè Kòd OTP Konplè →";
-            document.getElementById("succBtn").onclick = () => { closeSuccess(); showOTPSheet(); };
             updateNotifBadge();
+            // Show the payment instructions sheet (buyer must now MonCash the admin)
+            if (newOrder) openEscrowPaymentSheet(newOrder);
+            else toast('Komand kreye men konsèvasyon an fèt off-line');
         }
 
         function closeSuccess() { document.getElementById("successOverlay").classList.add("hidden"); }
@@ -5073,15 +5261,40 @@
             const parts = (u.name || '').split(' ');
             document.getElementById('editFirstName').value = parts[0] || '';
             document.getElementById('editLastName').value = parts.slice(1).join(' ') || '';
+            document.getElementById('editMoncash').value = u.moncashNumber || '';
+            // Hide the payout row for non-sellers
+            const row = document.getElementById('editMoncashRow');
+            if (row) {
+                const isSeller = u.role === 'seller' || u.role === 'admin';
+                row.style.display = isSeller ? '' : 'none';
+            }
         }
 
         function saveProfile() {
             const fn = document.getElementById('editFirstName').value.trim();
             const ln = document.getElementById('editLastName').value.trim();
+            const mc = (document.getElementById('editMoncash')?.value || '').replace(/\s+/g, '');
             if (!fn) { toast('Premye non obligatwa'); return; }
+            // MonCash number sanity check (optional field): Haitian format 509XXXXXXXX (11 digits)
+            if (mc && !/^5?09?\d{8,10}$/.test(mc)) {
+                toast('Nimewo MonCash pa valid (fòma 509XXXXXXXX)');
+                return;
+            }
             A.user.name = fn + (ln ? ' ' + ln : '');
             A.user.initials = fn.charAt(0) + (ln ? ln.charAt(0) : '');
+            A.user.moncashNumber = mc;
             localStorage.setItem('aym_user', JSON.stringify(A.user));
+            // Persist to Supabase profile
+            if (db && A.user.uid) {
+                db.from('profiles').update({
+                    first_name: fn,
+                    last_name: ln || null,
+                    display_name: A.user.name,
+                    moncash_number: mc || null,
+                }).eq('id', A.user.uid).then(({ error }) => {
+                    if (error) console.warn('[Profile save]', error.message);
+                });
+            }
             closeSheets();
             renderProfile();
             toast('Pwofil mete ajou');
@@ -5199,20 +5412,7 @@
             renderVerifList();
         }
 
-        function renderAdminOrders() {
-            document.getElementById("adminOrderList").innerHTML = ADMIN_ORDERS.map(o => `
-  <div class="bg-surface-container-lowest rounded-xl p-4 amb">
-    <div class="flex items-center justify-between mb-2">
-      <p class="font-headline font-bold text-sm text-on-surface">${o.id}</p>
-      <span class="font-label text-[10px] font-bold px-2 py-1 rounded-full ${o.status === 'pending' ? 'pill-pending' : o.status === 'shipped' ? 'pill-approved' : o.status === 'delivered' ? 'pill-active' : 'pill-rejected'}">${o.status}</span>
-    </div>
-    <p class="font-label text-xs text-on-surface-variant">${o.product} · ${o.buyer} → ${o.seller}</p>
-    <div class="flex items-center justify-between mt-2">
-      <p class="font-headline font-bold text-sm text-primary">${fp(o.amount)} HTG · ${o.method}</p>
-      ${o.status === 'pending' ? `<button onclick="toast('Komand ${o.id} eskalasyon')" class="px-3 py-1.5 rounded-lg bg-surface-container font-label text-xs font-bold text-on-surface-variant active:bg-surface-container-high">Jere</button>` : ''}
-    </div>
-  </div>`).join("");
-        }
+        // renderAdminOrders — real Supabase-backed version is declared later (3-tab escrow panel).
 
         function renderAdminUsers() {
             document.getElementById("adminUserList").innerHTML = ADMIN_USERS.map(u => `
@@ -5660,32 +5860,198 @@
             toast(`${name} rejte`);
         }
 
-        function renderAdminOrders() {
-            document.getElementById('adminOrderList').innerHTML = ADMIN_ORDERS.map(o => `
-  <div class="bg-surface-container-lowest rounded-xl p-4 amb">
-    <div class="flex items-center justify-between mb-1.5">
-      <p class="font-headline font-bold text-sm text-on-surface">${o.id}</p>
-      <span class="font-label text-[10px] font-bold px-2 py-1 rounded-full ${o.status === 'pending' ? 'pill-pending' : o.status === 'shipped' ? 'pill-approved' :
-                    o.status === 'delivered' ? 'pill-active' : 'pill-rejected'}">${o.status}</span>
-    </div>
-    <p class="font-label text-xs text-on-surface-variant">${o.product}</p>
-    <p class="font-label text-xs text-on-surface-variant">${o.buyer} → ${o.seller}</p>
-    <div class="flex items-center justify-between mt-2">
-      <p class="font-headline font-bold text-sm text-primary">${fp(o.amount)} HTG · ${o.method}</p>
-      ${o.status === 'pending' ? `<button onclick="adminResolveOrder('${o.id}')" class="px-3 py-1.5 rounded-lg bg-surface-container font-label text-xs font-bold text-on-surface-variant active:bg-surface-container-high">Jere</button>` : ''}
-    </div>
-  </div>`).join('');
-        }
+        // Admin orders panel — real Supabase data, 3 tabs: verify / release / disputes.
+        let _adminOrderTab = 'verify';
+        function setAdminOrderTab(tab) { _adminOrderTab = tab; renderAdminOrders(); }
+        window.setAdminOrderTab = setAdminOrderTab;
 
-        function adminResolveOrder(id) {
-            toast(`Komand ${id} — Aksyon admin`);
-            addNotif({
-                id: 'n_' + Date.now(), type: 'order', icon: 'admin_panel_settings',
-                title: 'Entèvansyon Admin', body: `Komand ${id} — Admin te aji.`,
-                time: 'Kounye a', read: false, color: '#97422b',
-            });
-            updateNotifBadge();
+        async function renderAdminOrders() {
+            const list = document.getElementById('adminOrderList');
+            if (!list) return;
+            if (!db || !A.user?.uid) { list.innerHTML = '<p class="text-on-surface-variant text-sm">Konekte pou wè komand yo</p>'; return; }
+
+            // Tab bar
+            const tabBtn = (id, label, icon) => `
+                <button onclick="setAdminOrderTab('${id}')"
+                    class="flex-1 py-2 rounded-lg font-label font-bold text-[11px] active:scale-95 transition-transform"
+                    style="background:${_adminOrderTab === id ? '#00666f' : 'transparent'};
+                           color:${_adminOrderTab === id ? '#fcf9f4' : '#3d4949'};
+                           border:1px solid ${_adminOrderTab === id ? '#00666f' : '#e5e2dd'}">
+                    <span class="material-symbols-outlined align-middle" style="font-size:13px">${icon}</span>
+                    ${label}
+                </button>`;
+            const tabsHTML = `<div class="flex gap-2 mb-3">
+                ${tabBtn('verify',  'Verifye peman', 'hourglass_top')}
+                ${tabBtn('release', 'Libere lajan',  'paid')}
+                ${tabBtn('dispute', 'Litij',         'report')}
+            </div>`;
+
+            const statusFilter = _adminOrderTab === 'verify'  ? 'payment_submitted'
+                               : _adminOrderTab === 'release' ? 'otp_confirmed'
+                               : 'disputed';
+
+            let data = [];
+            try {
+                const res = await db.from('orders').select('*')
+                    .eq('status', statusFilter)
+                    .order('created_at', { ascending: false })
+                    .limit(200);
+                if (res.error) throw res.error;
+                data = res.data || [];
+            } catch (e) {
+                list.innerHTML = tabsHTML + `<p class="text-on-surface-variant text-sm">Erè: ${e.message}</p>`;
+                return;
+            }
+
+            if (data.length === 0) {
+                list.innerHTML = tabsHTML + `
+                    <div class="flex flex-col items-center justify-center py-10 text-center">
+                        <span class="material-symbols-outlined text-on-surface-variant mb-2" style="font-size:40px">inbox</span>
+                        <p class="font-body text-sm text-on-surface-variant">Anyen pou wè</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = tabsHTML + data.map(o => {
+                const actions = [];
+                if (_adminOrderTab === 'verify') {
+                    actions.push(`<button onclick="adminVerifyPayment('${o.id}')" class="flex-1 py-2 rounded-lg cta font-label font-bold text-[11px] active:scale-95"><span class="material-symbols-outlined align-middle" style="font-size:13px">check_circle</span> Konfime peman</button>`);
+                    actions.push(`<button onclick="adminRefund('${o.id}')" class="px-3 py-2 rounded-lg bg-surface-container font-label font-bold text-[11px]">Ranbouse</button>`);
+                } else if (_adminOrderTab === 'release') {
+                    actions.push(`<button onclick="adminReleaseEscrow('${o.id}')" class="flex-1 py-2 rounded-lg font-label font-bold text-[11px] active:scale-95" style="background:#065f46;color:#fcf9f4"><span class="material-symbols-outlined align-middle" style="font-size:13px">paid</span> Lage lajan (${fp(o.net_amount || o.total_amount)} HTG)</button>`);
+                } else {
+                    actions.push(`<button onclick="adminResolveDispute('${o.id}','release')" class="flex-1 py-2 rounded-lg font-label font-bold text-[11px]" style="background:#065f46;color:#fcf9f4">Ba vandè a</button>`);
+                    actions.push(`<button onclick="adminResolveDispute('${o.id}','refund')" class="flex-1 py-2 rounded-lg font-label font-bold text-[11px]" style="background:#97422b;color:#fcf9f4">Ranbouse achtè</button>`);
+                }
+                return `
+                <div class="bg-surface-container-lowest rounded-xl p-3 amb mb-3">
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                        <p class="font-headline font-bold text-sm flex-1 truncate">${o.product_title || 'Pwodwi'}</p>
+                        ${orderStatusBadge(o.status)}
+                    </div>
+                    <p class="font-label text-[11px] text-on-surface-variant">#${(o.id || '').slice(0, 8)} · ${o.buyer_name || 'Achtè'} → ${o.seller_name || 'Vandè'}</p>
+                    <p class="font-label text-[11px] mt-1"><strong>Total:</strong> ${fp(o.total_amount || 0)} HTG · <strong>Net vandè:</strong> ${fp(o.net_amount || (o.total_amount - (o.fee_amount||0)))} HTG · <strong>Frè:</strong> ${fp(o.fee_amount || 0)} HTG</p>
+                    ${o.moncash_ref ? `<p class="font-label text-[11px] mt-1"><strong>Ref MonCash:</strong> <code style="background:#f4f1eb;padding:2px 6px;border-radius:4px">${o.moncash_ref}</code></p>` : ''}
+                    ${o.pickup_location ? `<p class="font-label text-[11px] text-on-surface-variant mt-1"><span class="material-symbols-outlined align-middle" style="font-size:12px">location_on</span> ${o.pickup_location}</p>` : ''}
+                    ${o.admin_note ? `<p class="font-label text-[11px] mt-1" style="color:#991b1b"><strong>Nòt:</strong> ${o.admin_note}</p>` : ''}
+                    <div class="flex gap-2 mt-3">${actions.join('')}</div>
+                </div>`;
+            }).join('');
         }
+        window.renderAdminOrders = renderAdminOrders;
+
+        async function adminVerifyPayment(orderId) {
+            if (!db) return;
+            const note = prompt('Nòt (opsyonèl) — ou konfime ou wè lajan an rive?', '');
+            const { error } = await db.rpc('advance_order_status', {
+                p_order_id: orderId, p_to_status: 'payment_verified',
+                p_moncash_ref: null, p_admin_note: note || null,
+            });
+            if (error) { toast('Erè: ' + error.message); return; }
+            toast('Peman verifye — eskwo aktive');
+            const o = await fetchOrder(orderId);
+            if (o) {
+                db.from('notifications').insert({
+                    user_id: o.seller_id, type: 'order', icon: 'verified',
+                    title: 'Eskwo aktive',
+                    body: 'Lajan pou "' + (o.product_title || 'komand') + '" bloke nan eskwo. Prepare pwodwi a.',
+                    color: '#1e40af',
+                });
+                db.from('notifications').insert({
+                    user_id: o.buyer_id, type: 'order', icon: 'verified',
+                    title: 'Peman verifye',
+                    body: 'Lajan ou bloke nan eskwo. Vandè ap prepare pwodwi a.',
+                    color: '#1e40af',
+                });
+            }
+            renderAdminOrders();
+        }
+        window.adminVerifyPayment = adminVerifyPayment;
+
+        async function adminReleaseEscrow(orderId) {
+            if (!db) return;
+            const o = await fetchOrder(orderId);
+            if (!o) { toast('Komand pa jwenn'); return; }
+            // Look up seller payout number
+            const { data: seller } = await db.from('profiles').select('moncash_number, display_name').eq('id', o.seller_id).maybeSingle();
+            if (!seller?.moncash_number) {
+                toast('Vandè a pa antre nimewo MonCash li');
+                return;
+            }
+            if (!confirm(`Lage ${fp(o.net_amount || o.total_amount)} HTG bay ${seller.display_name || 'vandè a'} sou ${seller.moncash_number}?`)) return;
+            // Call MonCash adapter (currently stubbed — real call when API ready)
+            const result = await moncashSendPayout(seller.moncash_number, o.net_amount || o.total_amount, o.id);
+            if (!result.ok) { toast('MonCash echwe: ' + (result.error || 'eseye ankò')); return; }
+            const { error } = await db.rpc('advance_order_status', {
+                p_order_id: orderId, p_to_status: 'released',
+                p_moncash_ref: null,
+                p_admin_note: 'Payout: ' + (result.transaction_id || 'simulated'),
+            });
+            if (error) { toast('Erè DB: ' + error.message); return; }
+            toast(result.simulated ? 'Simule: lajan dwe transfere manyèlman' : 'Lajan libere ✓');
+            db.from('notifications').insert({
+                user_id: o.seller_id, type: 'order', icon: 'paid',
+                title: 'Lajan libere',
+                body: fp(o.net_amount || o.total_amount) + ' HTG voye sou MonCash ' + seller.moncash_number,
+                color: '#065f46',
+            });
+            db.from('notifications').insert({
+                user_id: o.buyer_id, type: 'order', icon: 'task_alt',
+                title: 'Tranzaksyon fèmen',
+                body: 'Komand "' + (o.product_title || 'pwodwi') + '" fini. Mèsi!',
+                color: '#065f46',
+            });
+            renderAdminOrders();
+        }
+        window.adminReleaseEscrow = adminReleaseEscrow;
+
+        async function adminRefund(orderId) {
+            if (!db) return;
+            const note = prompt('Rezon ranbousman:', '');
+            if (!note) return;
+            const { error } = await db.rpc('advance_order_status', {
+                p_order_id: orderId, p_to_status: 'refunded',
+                p_moncash_ref: null, p_admin_note: note,
+            });
+            if (error) { toast('Erè: ' + error.message); return; }
+            toast('Komand ranbouse');
+            const o = await fetchOrder(orderId);
+            if (o) {
+                db.from('notifications').insert({
+                    user_id: o.buyer_id, type: 'order', icon: 'currency_exchange',
+                    title: 'Komand ranbouse',
+                    body: 'Admin ranbouse komand ou. Rezon: ' + note,
+                    color: '#97422b',
+                });
+            }
+            renderAdminOrders();
+        }
+        window.adminRefund = adminRefund;
+
+        async function adminResolveDispute(orderId, outcome) {
+            if (!db) return;
+            const note = prompt('Nòt rezolisyon litij:', '');
+            if (!note) return;
+            const toStatus = outcome === 'release' ? 'released' : 'refunded';
+            const { error } = await db.rpc('advance_order_status', {
+                p_order_id: orderId, p_to_status: toStatus,
+                p_moncash_ref: null, p_admin_note: '[LITIJ] ' + note,
+            });
+            if (error) { toast('Erè: ' + error.message); return; }
+            toast('Litij rezoud');
+            const o = await fetchOrder(orderId);
+            if (o) {
+                const recipients = [o.buyer_id, o.seller_id];
+                recipients.forEach(uid => db.from('notifications').insert({
+                    user_id: uid, type: 'order', icon: 'gavel',
+                    title: 'Litij rezoud',
+                    body: 'Admin rezoud litij sou "' + (o.product_title || 'komand') + '": ' + note,
+                    color: '#991b1b',
+                }));
+            }
+            renderAdminOrders();
+        }
+        window.adminResolveDispute = adminResolveDispute;
 
         function renderAdminUsers() {
             document.getElementById('adminUserList').innerHTML = ADMIN_USERS.map(u => `
@@ -6395,6 +6761,240 @@
             A.currentOrder = { product: p, pickup: PICKUPS[0] };
             showOTPSheet();
         }
+
+        // ══════════════════════════════════════════════════════════
+        //  ESCROW — client helpers (payment submit, OTP confirm, dispute)
+        // ══════════════════════════════════════════════════════════
+
+        async function loadAppSettings() {
+            if (!db) return;
+            try {
+                const { data, error } = await db.from('app_settings').select('*').eq('id', 1).maybeSingle();
+                if (error || !data) return;
+                APP_SETTINGS.admin_moncash_number     = data.admin_moncash_number || '';
+                APP_SETTINGS.fee_percent              = Number(data.fee_percent) || 3;
+                APP_SETTINGS.escrow_auto_release_hours= data.escrow_auto_release_hours || 168;
+            } catch (e) { console.warn('[app_settings]', e.message); }
+        }
+        window.loadAppSettings = loadAppSettings;
+
+        // ─ MonCash API adapter (stub) ─────────────────────────────
+        // Swap the body below with real Digicel API calls once credentials
+        // land. Every caller already provides amount + destination phone +
+        // order reference, so the contract is stable.
+        async function moncashSendPayout(toPhone, amountHTG, orderRef) {
+            console.info('[MonCash payout STUB]', { toPhone, amountHTG, orderRef });
+            // TODO: POST to Digicel MonCash merchant API with bearer token
+            return { ok: true, simulated: true, transaction_id: 'stub_' + Date.now() };
+        }
+        async function moncashVerifyReceipt(moncashRef, expectedAmount) {
+            console.info('[MonCash verify STUB]', { moncashRef, expectedAmount });
+            // TODO: Look up the transaction on MonCash and confirm amount/sender
+            return { ok: true, simulated: true };
+        }
+        window.moncashSendPayout = moncashSendPayout;
+        window.moncashVerifyReceipt = moncashVerifyReceipt;
+
+        async function fetchOrder(orderId) {
+            if (!db) return null;
+            const { data, error } = await db.from('orders').select('*').eq('id', orderId).maybeSingle();
+            if (error) { console.warn('[fetchOrder]', error.message); return null; }
+            return data;
+        }
+        window.fetchOrder = fetchOrder;
+
+        // ─ Buyer: payment instructions sheet ──────────────────────
+        function openEscrowPaymentSheet(order) {
+            A._escrowCurrent = order;
+            const info = document.getElementById('escPayInfo');
+            const num  = document.getElementById('escPayAdminNumber');
+            const amt  = document.getElementById('escPayAmount');
+            const ref  = document.getElementById('escPayRef');
+            if (ref) ref.value = order.moncash_ref || '';
+            if (info) info.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center" style="background:rgba(0,102,111,.08)">
+                        <span class="material-symbols-outlined fi text-primary" style="font-size:22px">shopping_bag</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-headline font-bold text-sm">${order.product_title || 'Pwodwi'}</p>
+                        <p class="font-label text-[11px] text-on-surface-variant">Komand #${(order.id || '').slice(0, 8)}</p>
+                    </div>
+                </div>`;
+            if (num) num.textContent = APP_SETTINGS.admin_moncash_number || '— Admin poko konfigire —';
+            if (amt) amt.textContent = fp(order.total_amount || 0) + ' HTG';
+            openSheet('escrowPaySheet');
+        }
+        window.openEscrowPaymentSheet = openEscrowPaymentSheet;
+
+        async function openEscrowPaymentSheetById(orderId) {
+            const o = await fetchOrder(orderId);
+            if (!o) { toast('Komand pa jwenn'); return; }
+            openEscrowPaymentSheet(o);
+        }
+        window.openEscrowPaymentSheetById = openEscrowPaymentSheetById;
+
+        async function submitPaymentRef() {
+            const order = A._escrowCurrent;
+            const refEl = document.getElementById('escPayRef');
+            if (!order || !refEl) return;
+            const ref = refEl.value.trim();
+            if (ref.length < 4) { toast('Antre referans tranzaksyon MonCash ou'); return; }
+            if (!db) { toast('Pa gen koneksyon'); return; }
+            const { data, error } = await db.rpc('advance_order_status', {
+                p_order_id: order.id,
+                p_to_status: 'payment_submitted',
+                p_moncash_ref: ref,
+                p_admin_note: null,
+            });
+            if (error) { console.warn('[submit payment]', error.message); toast('Erè: ' + error.message); return; }
+            closeSheets();
+            toast('Peman deklare — admin ap verifye');
+            // Notify admin(s)
+            db.from('profiles').select('id').eq('is_admin', true).then(({ data: admins }) => {
+                (admins || []).forEach(a => db.from('notifications').insert({
+                    user_id: a.id, type: 'order', icon: 'task',
+                    title: 'Peman pou verifye',
+                    body: (A.user.name || 'Yon achtè') + ' voye lajan pou ' + (order.product_title || 'yon komand') + '. Ref: ' + ref,
+                    color: '#97422b',
+                }));
+            });
+            if (typeof renderOrderScreen === 'function') renderOrderScreen();
+        }
+        window.submitPaymentRef = submitPaymentRef;
+
+        async function cancelOrder(orderId) {
+            if (!db) return;
+            if (!confirm('Ou si ou vle anile komand sa a?')) return;
+            const { error } = await db.rpc('advance_order_status', {
+                p_order_id: orderId, p_to_status: 'cancelled',
+                p_moncash_ref: null, p_admin_note: null,
+            });
+            if (error) { toast('Erè: ' + error.message); return; }
+            toast('Komand anile');
+            if (typeof renderOrderScreen === 'function') renderOrderScreen();
+        }
+        window.cancelOrder = cancelOrder;
+
+        // ─ Seller: mark ready + OTP confirm ───────────────────────
+        async function sellerMarkReady(orderId) {
+            if (!db) return;
+            const { data, error } = await db.rpc('advance_order_status', {
+                p_order_id: orderId, p_to_status: 'ready_for_pickup',
+                p_moncash_ref: null, p_admin_note: null,
+            });
+            if (error) { toast('Erè: ' + error.message); return; }
+            toast('Pwodwi deklare pare — achtè ka vin chèche li');
+            // Notify buyer
+            const o = await fetchOrder(orderId);
+            if (o) {
+                db.from('notifications').insert({
+                    user_id: o.buyer_id, type: 'order', icon: 'inventory_2',
+                    title: 'Pwodwi ou pare!',
+                    body: (o.product_title || 'Komand') + ' disponib nan ' + (o.pickup_location || 'pwen kolèk la') + '. Pran kòd OTP ou.',
+                    color: '#00666f',
+                });
+            }
+            if (typeof renderOrderScreen === 'function') renderOrderScreen();
+        }
+        window.sellerMarkReady = sellerMarkReady;
+
+        function openSellerOTPSheet(orderId) {
+            A._escrowCurrentId = orderId;
+            const input = document.getElementById('escOtpInput');
+            const err = document.getElementById('escOtpErr');
+            if (input) input.value = '';
+            if (err) err.textContent = '';
+            openSheet('escrowOtpSheet');
+            setTimeout(() => input?.focus(), 200);
+        }
+        window.openSellerOTPSheet = openSellerOTPSheet;
+
+        async function confirmSellerOTP() {
+            const orderId = A._escrowCurrentId;
+            const input = document.getElementById('escOtpInput');
+            const err   = document.getElementById('escOtpErr');
+            const otp = (input?.value || '').replace(/\D/g, '');
+            if (otp.length !== 6) { if (err) err.textContent = 'OTP gen 6 chif'; return; }
+            if (!db) return;
+            const { data, error } = await db.rpc('try_seller_otp', {
+                p_order_id: orderId, p_otp: otp,
+            });
+            if (error) { if (err) err.textContent = error.message; return; }
+            if (data && data.ok) {
+                closeSheets();
+                toast('OTP korèk — livrezon konfime ✓');
+                // Notify admins: escrow ready to release
+                db.from('profiles').select('id').eq('is_admin', true).then(({ data: admins }) => {
+                    (admins || []).forEach(a => db.from('notifications').insert({
+                        user_id: a.id, type: 'order', icon: 'paid',
+                        title: 'Lage lajan',
+                        body: 'Komand livre — lage lajan pou vandè a.',
+                        color: '#065f46',
+                    }));
+                });
+                // Notify buyer that delivery is confirmed
+                const o = await fetchOrder(orderId);
+                if (o) {
+                    db.from('notifications').insert({
+                        user_id: o.buyer_id, type: 'order', icon: 'check_circle',
+                        title: 'Livrezon konfime',
+                        body: 'OTP ou valide. Mèsi pou konfyans ou!',
+                        color: '#065f46',
+                    });
+                }
+                if (typeof renderOrderScreen === 'function') renderOrderScreen();
+            } else if (data && data.locked) {
+                if (err) err.textContent = 'Twòp esè move — komand al nan litij. Admin ap kontakte w.';
+            } else {
+                if (err) err.textContent = 'OTP pa korèk (' + (data?.attempts || '?') + '/5 esè)';
+            }
+        }
+        window.confirmSellerOTP = confirmSellerOTP;
+
+        // ─ Buyer: show their OTP for current order ────────────────
+        async function showBuyerOTP(orderId) {
+            const o = await fetchOrder(orderId);
+            if (!o || !o.otp_code) { toast('OTP pa disponib'); return; }
+            const ov = document.getElementById('successOverlay');
+            if (!ov) return;
+            ov.classList.remove('hidden');
+            document.getElementById('succEmoji').innerHTML = '<span class="material-symbols-outlined fi" style="font-size:72px;color:#00666f">pin</span>';
+            document.getElementById('succTitle').textContent = 'Kòd OTP ou';
+            document.getElementById('succBody').innerHTML = `
+                <p class="font-body text-sm mb-3">Bay kòd sa bay vandè a lè ou rive nan pwen kolèk la :</p>
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;border-radius:12px;background:rgba(0,102,111,.08);margin-top:4px">
+                    <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:2rem;font-weight:800;color:#00666f;letter-spacing:.3em">${o.otp_code}</span>
+                </div>
+                <p class="font-label text-[11px] text-on-surface-variant mt-3">Pwen kolèk: <strong>${o.pickup_location || '—'}</strong></p>`;
+            document.getElementById('succEscrow').textContent = 'PA bay kòd sa a okenn moun ki pa vandè a nan pwen kolèk la.';
+            document.getElementById('succBtn').textContent = 'Fèmen';
+            document.getElementById('succBtn').onclick = () => closeSuccess();
+        }
+        window.showBuyerOTP = showBuyerOTP;
+
+        // ─ Dispute (buyer or seller) ──────────────────────────────
+        async function openDispute(orderId) {
+            if (!db) return;
+            const reason = prompt('Dekri pwoblèm nan (admin ap wè li):');
+            if (!reason || reason.trim().length < 5) { toast('Antre yon deskripsyon plis detay'); return; }
+            const { error } = await db.rpc('advance_order_status', {
+                p_order_id: orderId, p_to_status: 'disputed',
+                p_moncash_ref: null, p_admin_note: reason.trim(),
+            });
+            if (error) { toast('Erè: ' + error.message); return; }
+            toast('Litij ouvri — admin ap kontakte w');
+            db.from('profiles').select('id').eq('is_admin', true).then(({ data: admins }) => {
+                (admins || []).forEach(a => db.from('notifications').insert({
+                    user_id: a.id, type: 'order', icon: 'report',
+                    title: 'Nouvo litij',
+                    body: (A.user.name || 'Yon itilizatè') + ': ' + reason.trim().slice(0, 100),
+                    color: '#991b1b',
+                }));
+            });
+            if (typeof renderOrderScreen === 'function') renderOrderScreen();
+        }
+        window.openDispute = openDispute;
 
         // ══════════════════════════════════════════════════════════
         //  OVERRIDE renderChatMsgs — sipòte voice + location
@@ -7708,74 +8308,9 @@
         }
 
         // ══════════════════════════════════════════════════════════
-        //  FEATURE 4 — INTEGRATED WALLET UI (Bous Mwen)
+        //  WALLET REMOVED — escrow flow replaces the client-side wallet.
+        //  See migration-2026-05.sql + order stepper for the new model.
         // ══════════════════════════════════════════════════════════
-
-        function getWalletBalance() {
-            return parseInt(localStorage.getItem('aym_wallet_balance') || '0', 10);
-        }
-
-        function setWalletBalance(amount) {
-            localStorage.setItem('aym_wallet_balance', String(amount));
-        }
-
-        function getWalletHTML() {
-            const bal = getWalletBalance();
-            return `
-  <div class="mx-5 mt-5">
-    <p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-2">Bous mwen</p>
-    <div class="wallet-card">
-      <div class="flex items-center gap-2 mb-3" style="position:relative;z-index:1">
-        <span class="material-symbols-outlined fi" style="font-size:20px;color:#8cf2ff">account_balance_wallet</span>
-        <p class="font-label text-[11px] font-bold" style="color:#8cf2ff">Bous AyitiMarket</p>
-      </div>
-      <p class="font-label text-xs" style="color:rgba(252,249,244,.6);position:relative;z-index:1">Balans disponib</p>
-      <p class="wallet-balance" id="walletBalanceDisplay" style="position:relative;z-index:1">${fp(bal)} HTG</p>
-      <div class="flex items-center gap-3 mt-4" style="position:relative;z-index:1">
-        <button onclick="rechargeWallet()" class="wallet-btn flex-1 justify-center">
-          <span class="material-symbols-outlined fi" style="font-size:16px">add_circle</span>
-          Rechaje ak MonCash
-        </button>
-        <button onclick="toast('Istorik tranzaksyon')" class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(252,249,244,.1)">
-          <span class="material-symbols-outlined fi" style="font-size:18px;color:#fcf9f4">receipt_long</span>
-        </button>
-      </div>
-    </div>
-  </div>`;
-        }
-
-        function rechargeWallet() {
-            const input = prompt('Ki montan ou vle rechaje? (an Goud HTG)', '1000');
-            if (input === null) return;
-            const amount = parseInt(input, 10);
-            if (isNaN(amount) || amount <= 0) {
-                toast('Antre yon montan valid');
-                return;
-            }
-            if (amount > 50000) {
-                toast('Montan maksimòm: 50,000 HTG');
-                return;
-            }
-            const oldBal = getWalletBalance();
-            const newBal = oldBal + amount;
-            setWalletBalance(newBal);
-            // Update display
-            const el = document.getElementById('walletBalanceDisplay');
-            if (el) {
-                el.style.transform = 'scale(1.1)';
-                el.style.transition = 'transform .3s ease';
-                el.textContent = `${fp(newBal)} HTG`;
-                setTimeout(() => { el.style.transform = 'scale(1)'; }, 300);
-            }
-            toast(`+${fp(amount)} HTG rechaje via MonCash ✓`);
-            // Add notification
-            addNotif({
-                id: 'w_' + Date.now(), type: 'order', icon: 'account_balance_wallet',
-                title: 'Rechaj MonCash', body: `+${fp(amount)} HTG ajoute nan bous ou. Nouvo balans: ${fp(newBal)} HTG`,
-                time: 'Kounye a', read: false, color: '#00666f',
-            });
-            updateNotifBadge();
-        }
 
         // ══════════════════════════════════════════════════════════
         //  OVERRIDE openProduct — Add Shop the Look + Video Reviews
@@ -7805,22 +8340,8 @@
             descDiv.appendChild(vrDiv);
         };
 
-        // ══════════════════════════════════════════════════════════
-        //  OVERRIDE renderProfile — Add Wallet Card
-        // ══════════════════════════════════════════════════════════
-        const _origRenderProfile = renderProfile;
-        window.renderProfile = function () {
-            _origRenderProfile();
-            const profileContent = document.getElementById('profileContent');
-            if (!profileContent) return;
-            // Find the role toggle div and insert wallet after stats
-            const statsGrid = profileContent.querySelector('.grid.grid-cols-3');
-            if (statsGrid) {
-                const walletContainer = document.createElement('div');
-                walletContainer.innerHTML = getWalletHTML();
-                statsGrid.parentElement.insertBefore(walletContainer.firstElementChild, statsGrid.nextSibling);
-            }
-        };
+        // Clean up any stale wallet state left over on older installs
+        try { localStorage.removeItem('aym_wallet_balance'); } catch (_) { }
 
         // ══════════════════════════════════════════════════════════
         //  OVERRIDE renderFeed — Add Flash Deals init
