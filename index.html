@@ -8057,11 +8057,14 @@
             // When I am the buyer, the "other party" is the seller.
             const iAmSeller = A.user && p.sellerId === A.user.uid;
             A.chatOtherId = otherPartyId || (iAmSeller ? null : p.sellerId);
-            A.chatSellerId = A.chatOtherId; // message recipient on send
             const partnerName = otherPartyName
                 || (iAmSeller ? 'Kliyan' : (p.sellerName || p.seller || 'Vandè'));
             const initials = (partnerName || 'V').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'V';
             _origOpenChatFor(pid);
+            // _origOpenChatFor overwrites A.chatSellerId = p.sellerId which is
+            // WRONG when the seller is the one viewing (they'd message themselves).
+            // Force it back to the true counterpart.
+            A.chatSellerId = A.chatOtherId;
             // Update chat header with correct partner info (fallback until DB fetch completes)
             const chatAvEl = document.getElementById('chatAv');
             const chatNameEl = document.getElementById('chatName');
@@ -8126,23 +8129,27 @@
                                 return base;
                             });
                             renderChatMsgs(pid);
-                            // Decrement unread badge by how many of these were unread for me
+                            // Optimistic local decrement so the header badge
+                            // clears immediately while the DB update propagates.
                             const wasUnread = data.filter(m => m.receiver_id === A.user.uid && !m.read).length;
                             if (wasUnread > 0) {
                                 A.unreadMsgCount = Math.max(0, (A.unreadMsgCount || 0) - wasUnread);
                                 if (typeof updateMsgBadge === 'function') updateMsgBadge();
                             }
                         }
-                        // Mark ALL unread messages from this contact as read (any product)
-                        if (otherId) {
-                            db.from('messages').update({ read: true })
+                        // Mark ALL unread messages from this contact as read (any product).
+                        // Await the response, then reconcile the badge against the DB so a
+                        // second open of the same chat can't leave a stale count behind.
+                        const markReadPromise = otherId
+                            ? db.from('messages').update({ read: true })
                                 .eq('sender_id', otherId)
                                 .eq('receiver_id', A.user.uid)
-                                .eq('read', false);
-                        } else {
-                            db.from('messages').update({ read: true })
+                                .eq('read', false)
+                            : db.from('messages').update({ read: true })
                                 .eq('product_id', pid).eq('receiver_id', A.user.uid).eq('read', false);
-                        }
+                        markReadPromise.then(() => {
+                            if (typeof refreshUserStats === 'function') refreshUserStats();
+                        });
                     });
             }
 
