@@ -4414,11 +4414,17 @@
             if (!db || !A.user?.uid) return;
             try {
                 const uid = A.user.uid;
+                // Clean up orphan self-sent messages left by a prior bug
+                // (sender_id === receiver_id). They'd otherwise inflate the
+                // unread counter forever since no UI opens them.
+                db.from('messages').update({ read: true })
+                    .eq('sender_id', uid).eq('receiver_id', uid).eq('read', false);
                 const [followersRes, salesRes, ordersRes, unreadMsgsRes] = await Promise.all([
                     db.from('followers').select('id', { count: 'exact', head: true }).eq('seller_id', uid),
                     db.from('orders').select('id', { count: 'exact', head: true }).eq('seller_id', uid),
                     db.from('orders').select('id', { count: 'exact', head: true }).eq('buyer_id', uid),
-                    db.from('messages').select('id', { count: 'exact', head: true }).eq('receiver_id', uid).eq('read', false),
+                    db.from('messages').select('id', { count: 'exact', head: true })
+                        .eq('receiver_id', uid).eq('read', false).neq('sender_id', uid),
                 ]);
                 A.followers = followersRes.count || 0;
                 A.user.salesCount = salesRes.count || 0;
