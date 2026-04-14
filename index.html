@@ -3285,10 +3285,16 @@
             if (onChat) {
                 if (typeof unsubscribeFromChat === 'function') unsubscribeFromChat();
                 A.chatId = null;
+                A.chatOtherId = null;
                 if (typeof refreshUserStats === 'function') refreshUserStats();
             }
             const prev = A.stack.pop() || "feed";
             navTo(prev);
+            // If we landed on the inbox, reload it so unread counts refresh
+            if (document.getElementById('s-inbox')?.classList.contains('on')
+                && typeof loadInboxFromSupabase === 'function') {
+                loadInboxFromSupabase();
+            }
         }
 
         function openProduct(id) {
@@ -4947,14 +4953,18 @@
                     return;
                 }
 
-                // Group by conversation key = productId + otherPartyId
+                // Group by CONTACT (otherPartyId) — one row per person, like WhatsApp.
+                // All messages across every product between the two users collapse here.
+                // Messages are already ordered newest-first, so the first sighting of
+                // an otherId becomes `lastMsg` (which also pins the most recent product).
                 const convs = new Map();
                 data.forEach(m => {
                     const otherId = m.sender_id === uid ? m.receiver_id : m.sender_id;
-                    const key = (m.product_id || 'na') + ':' + otherId;
+                    if (!otherId || otherId === uid) return; // ignore self / orphaned rows
+                    const key = otherId;
                     if (!convs.has(key)) {
                         convs.set(key, {
-                            productId: m.product_id,
+                            productId: m.product_id, // most recent product in this thread
                             otherId,
                             lastMsg: m,
                             unread: 0,
@@ -8091,12 +8101,15 @@
                 const otherId = (A.chatOtherId && A.chatOtherId !== A.user.uid)
                     ? A.chatOtherId
                     : (p.sellerId !== A.user.uid ? p.sellerId : null);
-                let query = db.from('messages').select('*').eq('product_id', pid);
+                // One thread per CONTACT — load EVERY message between the two users
+                // across all products they've ever discussed. No product_id filter here.
+                let query = db.from('messages').select('*');
                 if (otherId) {
                     query = query.or(`and(sender_id.eq.${A.user.uid},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${A.user.uid})`);
                 } else {
-                    // I'm the seller viewing their own product — show all messages where I'm involved
-                    query = query.or(`sender_id.eq.${A.user.uid},receiver_id.eq.${A.user.uid}`);
+                    // Fallback: seller viewing their own product with no counterpart yet
+                    query = query.eq('product_id', pid)
+                        .or(`sender_id.eq.${A.user.uid},receiver_id.eq.${A.user.uid}`);
                 }
                 query.order('created_at', { ascending: true }).limit(200)
                     .then(({ data, error }) => {
@@ -8120,14 +8133,23 @@
                                 if (typeof updateMsgBadge === 'function') updateMsgBadge();
                             }
                         }
-                        // Mark received messages as read
-                        db.from('messages').update({ read: true })
-                            .eq('product_id', pid).eq('receiver_id', A.user.uid).eq('read', false);
+                        // Mark ALL unread messages from this contact as read (any product)
+                        if (otherId) {
+                            db.from('messages').update({ read: true })
+                                .eq('sender_id', otherId)
+                                .eq('receiver_id', A.user.uid)
+                                .eq('read', false);
+                        } else {
+                            db.from('messages').update({ read: true })
+                                .eq('product_id', pid).eq('receiver_id', A.user.uid).eq('read', false);
+                        }
                     });
             }
 
-            // Subscribe to live messages for this conversation
-            if (typeof subscribeToChat === 'function') subscribeToChat(pid);
+            // Subscribe to live messages from this contact (any product)
+            if (typeof subscribeToChat === 'function') {
+                subscribeToChat(pid, A.chatOtherId);
+            }
         };
 
 
@@ -8494,37 +8516,39 @@
     window.logout = function() { supabaseLogout(); };
 
     // ── REALTIME CHAT ──
-    // Filters on the real `product_id` column (there is no `room_id`) and gates
-    // the payload handler to messages addressed to the current user so seller and
-    // buyer see each other's messages live without a refresh.
+    // Contact-scoped subscription: subscribe to every incoming message for me
+    // and accept those whose sender is the current chat partner — works across
+    // all products the two have ever messaged about. This matches the inbox
+    // "one thread per contact" model.
     let _rtChannel = null;
-    function subscribeToChat(pid) {
-        if (!db || !A.user?.uid || !pid) return;
+    function subscribeToChat(pid, otherId) {
+        if (!db || !A.user?.uid) return;
         if (_rtChannel) { try { db.removeChannel(_rtChannel); } catch (_) { } }
-        _rtChannel = db.channel('chat:' + pid + ':' + A.user.uid)
+        _rtChannel = db.channel('chat:' + A.user.uid + ':' + (otherId || 'all'))
             .on('postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'messages', filter: 'product_id=eq.' + pid },
+                { event: 'INSERT', schema: 'public', table: 'messages', filter: 'receiver_id=eq.' + A.user.uid },
                 payload => {
                     const m = payload.new; if (!m) return;
-                    if (m.sender_id === A.user.uid) return;         // echo-suppress our own send
-                    if (m.receiver_id !== A.user.uid) return;       // not addressed to me
-                    if (!A.msgs[pid]) A.msgs[pid] = [];
+                    if (m.sender_id === A.user.uid) return;         // echo-suppress
+                    // If we scoped to a specific contact, ignore others (they'll be
+                    // picked up by inbox refresh instead).
+                    if (otherId && m.sender_id !== otherId) {
+                        A.unreadMsgCount = (A.unreadMsgCount || 0) + 1;
+                        if (typeof updateMsgBadge === 'function') updateMsgBadge();
+                        if (typeof playNotifSound === 'function') playNotifSound();
+                        return;
+                    }
+                    const activePid = A.chatId;
+                    if (!A.msgs[activePid]) A.msgs[activePid] = [];
                     const base = {
                         s: false, t: m.content,
                         tm: new Date(m.created_at).toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' }),
                     };
                     const loc = (typeof parseMsgContent === 'function') ? parseMsgContent(m.content) : null;
-                    A.msgs[pid].push(loc ? Object.assign(base, loc) : base);
-                    // Only render if this chat is currently open
-                    if (A.chatId === pid) {
-                        renderChatMsgs(pid);
-                        // Mark as read immediately since the user is viewing the chat
-                        db.from('messages').update({ read: true }).eq('id', m.id);
-                    } else {
-                        // Arrived in background → bump the unread badge
-                        A.unreadMsgCount = (A.unreadMsgCount || 0) + 1;
-                        if (typeof updateMsgBadge === 'function') updateMsgBadge();
-                    }
+                    A.msgs[activePid].push(loc ? Object.assign(base, loc) : base);
+                    renderChatMsgs(activePid);
+                    // Mark as read immediately since the user is viewing the chat
+                    db.from('messages').update({ read: true }).eq('id', m.id);
                     if (typeof playNotifSound === 'function') playNotifSound();
                 })
             .subscribe();
