@@ -1106,39 +1106,23 @@
      TOP APP BAR (main app)
 ══════════════════════════════════════════════════════ -->
     <header class="fixed top-0 w-full z-50 glass hidden" id="topbar">
-        <div class="flex items-center justify-between px-4 pt-4 pb-3">
+        <div class="flex items-center justify-between px-3 pt-4 pb-3">
 
-            <!-- BÒ GÒCH — Back btn + Logo -->
-            <div class="flex items-center gap-2">
+            <!-- BÒ GÒCH — Back btn + Wordmark + role badge -->
+            <div class="flex items-center gap-1.5 min-w-0">
                 <button id="backbtn" onclick="goBack()"
                     class="hidden w-9 h-9 items-center justify-center rounded-full bg-surface-container-low active:bg-surface-container transition-colors">
                     <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">arrow_back</span>
                 </button>
-                <div id="headerLogoWrap">
-                    <!-- Logo fusionné: sak + AyitiMarket wordmark -->
-                    <div id="headerLogo" style="display:flex;align-items:center;gap:7px">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 480" fill="none" width="28" height="26" style="flex-shrink:0">
-                            <path d="M322 88 L374 122 L374 342 L322 324 Z" fill="#e8f0ef" id="bagSideHeader"/>
-                            <path d="M78 88 Q70 88 70 96 L70 324 Q70 332 78 332 L322 332 L322 88 Z" fill="#00666f"/>
-                            <path d="M70 324 Q70 340 84 344 L322 344 L374 356 L374 364 L84 364 Q68 358 66 340 L66 324 Z" fill="#005a62"/>
-                            <path d="M136 90 C136 30 208 30 208 90" stroke="#fcf9f4" stroke-width="30" stroke-linecap="round" fill="none"/>
-                            <path d="M136 90 C136 50 208 50 208 90" stroke="#00666f" stroke-width="13" stroke-linecap="round" fill="none"/>
-                            <path d="M218 90 C218 30 290 30 290 90" stroke="#fcf9f4" stroke-width="30" stroke-linecap="round" fill="none"/>
-                            <path d="M218 90 C218 50 290 50 290 90" stroke="#00666f" stroke-width="13" stroke-linecap="round" fill="none"/>
-                            <rect x="205" y="84" width="16" height="10" fill="#00666f"/>
-                            <line x1="168" y1="132" x2="106" y2="208" stroke="#fcf9f4" stroke-width="4" stroke-linecap="round"/>
-                            <rect x="52" y="186" width="112" height="148" rx="10" fill="#fcf9f4"/>
-                            <circle cx="108" cy="186" r="11" fill="#00666f"/>
-                            <circle cx="108" cy="186" r="5" fill="#fcf9f4"/>
-                            <path d="M90 334 L108 356 L126 334 Z" fill="#fcf9f4"/>
-                        </svg>
-                        <!-- Wordmark AyitiMarket — yon sèl blòk -->
-                        <div style="display:flex;align-items:baseline;gap:0">
-                            <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.05rem;color:#98443e;letter-spacing:-.03em;line-height:1">Ayiti</span><span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.05rem;color:#00666f;letter-spacing:-.03em;line-height:1">Market</span>
+                <div id="headerLogoWrap" class="min-w-0">
+                    <div id="headerLogo" style="display:flex;flex-direction:column;align-items:flex-start;gap:0">
+                        <!-- Wordmark AyitiMarket — text only, left-aligned -->
+                        <div style="display:flex;align-items:baseline;gap:0;line-height:1">
+                            <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.1rem;color:#98443e;letter-spacing:-.03em">Ayiti</span><span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.1rem;color:#00666f;letter-spacing:-.03em">Market</span>
                         </div>
+                        <span id="topRoleBadge" class="font-label text-[10px] font-bold" style="color:#3d4949;letter-spacing:.02em;margin-top:1px"></span>
                     </div>
                     <h1 class="font-headline font-bold text-base text-primary leading-none" id="toptitle" style="display:none">AyitiMarket</h1>
-                    <p class="font-label text-[9px] text-on-surface-variant mt-0.5" id="topsubt"><span id="topRoleBadge"></span></p>
                 </div>
             </div>
 
@@ -2262,7 +2246,11 @@
                 id="nt-all" onclick="switchNotifTab('all')">Tout <span id="nt-all-ct"
                     class="font-label text-[10px] font-bold text-primary"></span></button>
             <button class="notif-tab flex-1 py-2 rounded-lg font-label font-bold text-xs text-on-surface-variant"
+                id="nt-unread" onclick="switchNotifTab('unread')">Poko li</button>
+            <button class="notif-tab flex-1 py-2 rounded-lg font-label font-bold text-xs text-on-surface-variant"
                 id="nt-order" onclick="switchNotifTab('order')">Komand</button>
+            <button class="notif-tab flex-1 py-2 rounded-lg font-label font-bold text-xs text-on-surface-variant"
+                id="nt-chat" onclick="switchNotifTab('chat')">Mesaj</button>
             <button class="notif-tab flex-1 py-2 rounded-lg font-label font-bold text-xs text-on-surface-variant"
                 id="nt-system" onclick="switchNotifTab('system')">Sistèm</button>
         </div>
@@ -2554,6 +2542,67 @@
                 Konfime OTP
             </button>
         </div>
+    </div>
+
+    <!-- ══ RATING SHEET — Buyer rates seller after delivery ══ -->
+    <div class="sheet" id="ratingSheet">
+        <div class="handle"></div>
+        <div class="text-center mb-4">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 amb" style="background:rgba(0,102,111,.08)">
+                <span class="material-symbols-outlined fi text-primary" style="font-size:26px">star</span>
+            </div>
+            <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight">Note vandè a</h3>
+            <p class="font-body text-sm text-on-surface-variant mt-1 leading-relaxed" id="ratingSellerName"></p>
+        </div>
+        <div class="flex justify-center gap-2 mb-4" id="ratingStars">
+            <button onclick="setRatingStar(1)" class="rating-star" data-v="1"><span class="material-symbols-outlined" style="font-size:36px;color:#e5e2dd">star</span></button>
+            <button onclick="setRatingStar(2)" class="rating-star" data-v="2"><span class="material-symbols-outlined" style="font-size:36px;color:#e5e2dd">star</span></button>
+            <button onclick="setRatingStar(3)" class="rating-star" data-v="3"><span class="material-symbols-outlined" style="font-size:36px;color:#e5e2dd">star</span></button>
+            <button onclick="setRatingStar(4)" class="rating-star" data-v="4"><span class="material-symbols-outlined" style="font-size:36px;color:#e5e2dd">star</span></button>
+            <button onclick="setRatingStar(5)" class="rating-star" data-v="5"><span class="material-symbols-outlined" style="font-size:36px;color:#e5e2dd">star</span></button>
+        </div>
+        <textarea id="ratingComment" class="si resize-none" rows="3" placeholder="Kite yon kòmantè (opsyonèl)…"></textarea>
+        <div class="flex gap-3 mt-4">
+            <button onclick="closeSheets()" class="px-4 py-3 rounded-xl bg-surface-container font-label font-bold text-sm text-on-surface-variant">
+                Pita
+            </button>
+            <button onclick="submitRating()" class="flex-1 py-3 rounded-xl cta font-label font-bold text-sm active:scale-95">
+                Voye nòt
+            </button>
+        </div>
+    </div>
+
+    <!-- ══ ADMIN ANNOUNCEMENTS SHEET ══ -->
+    <div class="sheet" id="announceSheet">
+        <div class="handle"></div>
+        <div class="text-center mb-4">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 amb" style="background:rgba(0,102,111,.08)">
+                <span class="material-symbols-outlined fi text-primary" style="font-size:26px">campaign</span>
+            </div>
+            <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight">Anons Platfòm</h3>
+            <p class="font-body text-sm text-on-surface-variant mt-1">Kreye yon anons pou tout itilizatè yo</p>
+        </div>
+        <div class="space-y-3">
+            <input id="annTitle" class="si" placeholder="Tit anons la…"/>
+            <textarea id="annBody" class="si resize-none" rows="3" placeholder="Kontni anons la…"></textarea>
+            <div class="flex gap-2">
+                <select id="annAudience" class="si flex-1">
+                    <option value="all">Tout moun</option>
+                    <option value="buyers">Achtè yo sèlman</option>
+                    <option value="sellers">Vandè yo sèlman</option>
+                </select>
+            </div>
+            <button onclick="genAnnouncement()" id="annAiBtn"
+                class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl amb active:scale-[.99] transition-transform"
+                style="background:rgba(0,102,111,.08);color:#00666f">
+                <span class="material-symbols-outlined fi" style="font-size:16px">auto_awesome</span>
+                <span class="font-label text-sm font-bold">Jenere ak IA</span>
+            </button>
+            <button onclick="submitAnnouncement()" class="w-full py-3 rounded-xl cta font-label font-bold text-sm active:scale-95">
+                Pibliye anons
+            </button>
+        </div>
+        <div id="annList" class="mt-4 space-y-2"></div>
     </div>
 
     <!-- ══ BOT SUPPORT SHEET — Asistan AyitiMarket ══ -->
@@ -2980,15 +3029,18 @@
         const MKT = {};
 
         const AI_D = {
-            mode: (t, p, l) => `${t} — pyes elegant disponib nan men yon vandè verifye nan ${l}. Twal kalite, fini swayen. Pri fiks ${fp(p)} HTG. Livrezon zòn PAP. Kòmande vit!`,
-            cosmetique: (t, p, l) => `${t} — pwodwi otantik nan ${l} pou ${fp(p)} HTG. Engredyan natirèl, rezilta vizib an 2 semèn. Tout kalite po. Vandè verifye AyitiMarket.`,
-            accessoire: (t, p, l) => `${t} — pyes atizana inik nan ${fp(p)} HTG. Fèt pa bijoutye ayisyen nan ${l}. Idyal kòm kado. Estòk limite.`,
-            artisanat: (t, p, l) => `${t} — atizana ayisyen 100% otantik nan ${fp(p)} HTG. Fèt alamen nan ${l}. Motif tradisyonèl, pyes inik.`,
-            maison: (t, p, l) => `${t} — dekorasyon orijinal nan ${fp(p)} HTG. Disponib nan ${l}. Kalite premium. Livrezon PAP posib.`,
-            bebe: (t, p, l) => `${t} — pwodwi bebe sètifye nan ${fp(p)} HTG. Sekirize, dou, adapte pou timoun. Vandè sètifye. Livrezon rapid.`,
+            mode: (t, p, l, n) => `🔥 ${t} — DISPONIB KOUNYE A!\n\nPyes elegant ${t.toLowerCase()} disponib nan ${l}. Twal kalite siperyè, fini swayen. ${n > 0 ? `Gade ${n} foto yo pou wè detay vre pwodwi a.` : ''}\n\n💰 Pri: ${fp(p)} HTG (pri fiks)\n📍 ${l} · Livrezon zòn PAP\n✅ Vandè verifye AyitiMarket\n\nKòmande vit — estòk limite!`,
+            beaute: (t, p, l, n) => `✨ ${t} — Pou yon bèl aparans!\n\n${t} otantik pou swen bote ou. Engredyan natirèl, rezilta vizib. ${n > 0 ? `Wè ${n} foto yo pou wè pwodwi a an detay.` : ''}\n\n💰 Pri: ${fp(p)} HTG\n📍 ${l} · Livrezon rapid\n✅ Vandè verifye · Garanti orijinal`,
+            cosmetique: (t, p, l, n) => `💄 ${t} — Pwodwi otantik!\n\n${t} — kalite pwofesyonèl pou swen po ou ak bote ou. Engredyan natirèl, rezilta vizib an 2 semèn. ${n > 0 ? `Gade ${n} foto yo pou wè sa ou ap resevwa.` : ''}\n\n💰 Pri: ${fp(p)} HTG\n📍 ${l} · Tout kalite po\n✅ Vandè verifye AyitiMarket`,
+            electronique: (t, p, l, n) => `📱 ${t} — An stòk!\n\n${t} — aparèy elektwonik kalite garanti. Fonksyone pafè, ${n > 0 ? `gade ${n} foto yo pou wè kondisyon reyèl pwodwi a.` : 'bon kondisyon.'}\n\n💰 Pri: ${fp(p)} HTG\n📍 ${l} · Livrezon PAP\n🔋 Garanti fonksyonman · Vandè verifye`,
+            gaming: (t, p, l, n) => `🎮 ${t} — Pou vrè gamer yo!\n\n${t} — ekipman gaming pwofesyonèl. ${n > 0 ? `Tcheke ${n} foto yo pou wè tout detay.` : 'Kalite siperyè.'}\n\n💰 Pri: ${fp(p)} HTG\n📍 ${l}\n🕹️ Stòk limite · Kòmande anvan li fini!`,
+            accessoire: (t, p, l, n) => `💎 ${t} — Pyes inik!\n\n${t} — akseswa atizanal fèt pa bijoutye ayisyen nan ${l}. ${n > 0 ? `${n} foto otantik pou wè detay travay la.` : 'Pyes inik.'}\n\n💰 Pri: ${fp(p)} HTG\n🎁 Idyal kòm kado · Estòk limite\n✅ Vandè verifye AyitiMarket`,
+            artisanat: (t, p, l, n) => `🎨 ${t} — Atizana ayisyen 100% otantik!\n\n${t} — fèt alamen nan ${l}. Motif tradisyonèl, pyes inik. ${n > 0 ? `Gade ${n} foto yo pou admire detay travay la.` : ''}\n\n💰 Pri: ${fp(p)} HTG\n🇭🇹 Kilti ayisyen · Kado pafè`,
+            maison: (t, p, l, n) => `🏠 ${t} — Pou yon bèl kay!\n\n${t} — dekorasyon orijinal disponib nan ${l}. Kalite premium. ${n > 0 ? `Wè ${n} foto yo pou imajine li lakay ou.` : ''}\n\n💰 Pri: ${fp(p)} HTG\n📍 ${l} · Livrezon PAP posib`,
+            bebe: (t, p, l, n) => `👶 ${t} — Pou ti bebe ou!\n\n${t} — pwodwi bebe sekirize, materyèl dou. ${n > 0 ? `Gade ${n} foto yo pou wè kalite a.` : 'Adapte pou timoun.'}\n\n💰 Pri: ${fp(p)} HTG\n📍 ${l} · Livrezon rapid\n✅ Sètifye · Vandè verifye`,
         };
 
-        const PROMPTS = { mode: ["Twal kalite", "Pou okasyon espesyal", "Livrezon PAP", "Foto otantik"], cosmetique: ["Engredyan natirèl", "Orijin garanti", "Tout kalite po", "Livrezon rapid"], accessoire: ["Pyes inik", "Kado pafè", "Koulè fidèl", "Vandè verifye"], artisanat: ["Atizana ayisyen", "Fèt alamen", "Motif tradisyonèl", "Kado pafè"], maison: ["Dézay modèn", "Dekorasyon lokal", "Kalite premium", "Fèt avèk swen"], bebe: ["Sekirize", "Materyèl dou", "Kado nesans", "Sètifye"] };
+        const PROMPTS = { mode: ["Twal kalite", "Pou okasyon espesyal", "Livrezon PAP", "Foto otantik"], beaute: ["Pwodwi natirèl", "Swen po", "Rezilta vizib", "Orijinal"], cosmetique: ["Engredyan natirèl", "Orijin garanti", "Tout kalite po", "Livrezon rapid"], electronique: ["An bon eta", "Garanti", "Chajè enkli", "Livrezon PAP"], gaming: ["Pwofesyonèl", "RGB", "Gamer", "Pèfòmans"], accessoire: ["Pyes inik", "Kado pafè", "Koulè fidèl", "Vandè verifye"], artisanat: ["Atizana ayisyen", "Fèt alamen", "Motif tradisyonèl", "Kado pafè"], maison: ["Dézay modèn", "Dekorasyon lokal", "Kalite premium", "Fèt avèk swen"], bebe: ["Sekirize", "Materyèl dou", "Kado nesans", "Sètifye"] };
 
         const PICKUPS = [
             { id: "dg", ic: "location_on", n: "Estasyon Digicel Pétion-Ville", a: "Rue Panamericaine", lat: 18.5137, lng: -72.2856 },
@@ -3181,21 +3233,22 @@
             document.getElementById("bottomNav").classList.remove("hidden");
             document.getElementById("fab").classList.remove("hidden");
 
-            // Show admin tab if admin, cart tab for buyers
+            // Show admin tab if admin; hide publish/cart/FAB for admin
             if (A.user.role === "admin") {
                 document.getElementById("nav-admin").classList.remove("hidden");
+                document.getElementById("nav-pub").classList.add("hidden");
+                document.getElementById("nav-cart")?.classList.add("hidden");
+                document.getElementById("fab")?.classList.add("hidden");
             } else {
                 document.getElementById("nav-admin").classList.add("hidden");
+                document.getElementById("nav-pub").classList.remove("hidden");
+                document.getElementById("fab")?.classList.remove("hidden");
             }
-            // Show cart tab for buyers (non-admin, non-seller-only)
+            // Show cart tab for buyers (non-admin)
             const cartTab = document.getElementById("nav-cart");
-            if (cartTab) {
-                if (A.user.role === 'buyer' || (A.user.role !== 'admin')) {
-                    cartTab.classList.remove("hidden");
-                    cartTab.style.position = 'relative';
-                } else {
-                    cartTab.classList.add("hidden");
-                }
+            if (cartTab && A.user.role !== 'admin') {
+                cartTab.classList.remove("hidden");
+                cartTab.style.position = 'relative';
             }
             updateCartBadge();
 
@@ -3233,16 +3286,20 @@
             const av = document.getElementById("topAvatarInner");
             av.textContent = A.user.avatar || A.user.initials || "?";
 
-            // Role badge
+            // Role badge — short role label only (visible under wordmark)
             const rb = document.getElementById("topRoleBadge");
             if (A.user.role === "admin") {
-                rb.innerHTML = `<span class="admin-badge">ADMIN</span>`;
+                rb.textContent = "Admin";
+                rb.style.color = "#97422b";
             } else if (A.user.verifiedSeller) {
-                rb.innerHTML = `<span class="material-symbols-outlined fi text-primary" style="font-size:11px">verified</span><span>Vandè Verifye</span>`;
+                rb.textContent = "Vandè · Verifye";
+                rb.style.color = "#00666f";
             } else if (A.user.role === "seller") {
-                rb.innerHTML = `<span class="text-[#f99188] font-bold">Vandè · Verifikasyon an atant</span>`;
+                rb.textContent = "Vandè · An atant";
+                rb.style.color = "#97422b";
             } else {
-                rb.innerHTML = `<span>Achtè · ${A.user.phone || ""}</span>`;
+                rb.textContent = "Achtè";
+                rb.style.color = "#3d4949";
             }
         }
 
@@ -3352,6 +3409,10 @@
             A.curProd = PRODUCTS.find(x => x.id === id);
             if (!A.curProd) { toast('Pwodwi pa disponib'); return; }
             const p = A.curProd;
+            if (db && A.user?.uid) {
+                db.from('product_views').insert({ product_id: p.id, viewer_id: A.user.uid })
+                    .then(({ error }) => { if (error) console.warn('[View]', error.message); });
+            }
             A.stack.push(A.tab);
             document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
             document.getElementById("s-detail").classList.add("on");
@@ -3423,22 +3484,27 @@
     </div>`;
 
             document.getElementById("detailBar").classList.remove("hidden");
-            document.getElementById("detailBar").innerHTML = `
-    <button onclick="openChatFor(${dpid})" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high">
-      <span class="material-symbols-outlined" style="font-size:18px">chat</span>Mesaj
-    </button>
-    <button onclick="addToCart(${dpid})" class="w-12 h-12 ml-2 flex-shrink-0 flex items-center justify-center rounded-xl active:scale-90 transition-transform" style="background:rgba(0,102,111,.1)" title="Ajoute nan Panye">
-      <span class="material-symbols-outlined fi text-primary" style="font-size:20px">add_shopping_cart</span>
-    </button>
-    ${(p.c === 'mode' || p.c === 'cosmetique' || p.c === 'accessoire') ? `
-    <button onclick="openTryon(${dpid})"
-            class="w-12 h-12 ml-2 flex-shrink-0 flex items-center justify-center rounded-xl active:scale-90 transition-transform"
-            style="background:linear-gradient(135deg,#7c3aed,#4f46e5)" title="Eseyaj Vityèl">
-      <span class="material-symbols-outlined fi text-white" style="font-size:20px">try</span>
-    </button>`: ''}
-    <button onclick="startOrder(${dpid})" class="flex-[2] ml-2 flex items-center justify-center gap-2 py-3.5 rounded-xl cta font-headline font-bold text-base active:scale-[.98] amb">
-      <span class="material-symbols-outlined" style="font-size:18px">shopping_bag</span>Kòmande
-    </button>`;
+            const isAdmin = A.user?.role === 'admin';
+            document.getElementById("detailBar").innerHTML = isAdmin
+            ? `<button onclick="openChatFor(${dpid})" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high">
+                <span class="material-symbols-outlined" style="font-size:18px">chat</span>Kontakte vandè
+              </button>
+              <span class="flex-1 text-center font-label text-xs text-on-surface-variant py-3.5">Vandè: ${p.sellerName || '—'}</span>`
+            : `<button onclick="openChatFor(${dpid})" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high">
+                <span class="material-symbols-outlined" style="font-size:18px">chat</span>Mesaj
+              </button>
+              <button onclick="addToCart(${dpid})" class="w-12 h-12 ml-2 flex-shrink-0 flex items-center justify-center rounded-xl active:scale-90 transition-transform" style="background:rgba(0,102,111,.1)" title="Ajoute nan Panye">
+                <span class="material-symbols-outlined fi text-primary" style="font-size:20px">add_shopping_cart</span>
+              </button>
+              ${(p.c === 'mode' || p.c === 'cosmetique' || p.c === 'accessoire') ? `
+              <button onclick="openTryon(${dpid})"
+                      class="w-12 h-12 ml-2 flex-shrink-0 flex items-center justify-center rounded-xl active:scale-90 transition-transform"
+                      style="background:linear-gradient(135deg,#7c3aed,#4f46e5)" title="Eseyaj Vityèl">
+                <span class="material-symbols-outlined fi text-white" style="font-size:20px">try</span>
+              </button>`: ''}
+              <button onclick="startOrder(${dpid})" class="flex-[2] ml-2 flex items-center justify-center gap-2 py-3.5 rounded-xl cta font-headline font-bold text-base active:scale-[.98] amb">
+                <span class="material-symbols-outlined" style="font-size:18px">shopping_bag</span>Kòmande
+              </button>`;
 
             track("view", p.c);
             // Rann pwodwi similè yo apre yon ti délai
@@ -3733,7 +3799,8 @@
             document.getElementById("aiBadge").classList.add("flex");
             await sl(500 + Math.random() * 400);
             const fn = AI_D[cat] || AI_D.mode;
-            const desc = fn(title, price, loc);
+            const photoCount = uploadedPhotos ? uploadedPhotos.length : 0;
+            const desc = fn(title, price, loc, photoCount);
             const ta = document.getElementById("fDesc"); ta.value = "";
             for (let i = 0; i <= desc.length; i++) { ta.value = desc.slice(0, i); await sl(16); }
             if (!document.getElementById("fPrice").value && MKT[cat]) {
@@ -4042,6 +4109,24 @@
                 addStep('storefront', 'Pwodwi vizib nan feed ✓');
                 addStep('notifications', 'Status: active — Pibliye!');
 
+                // Notify followers: new product from a seller they follow.
+                if (newProduct) {
+                    db.from('followers').select('follower_id').eq('seller_id', A.user.uid)
+                        .then(({ data: fs }) => {
+                            (fs || []).forEach(f => {
+                                if (!f.follower_id || f.follower_id === A.user.uid) return;
+                                db.from('notifications').insert({
+                                    user_id: f.follower_id,
+                                    type: 'promo',
+                                    icon: 'storefront',
+                                    title: 'Nouvo pwodwi nan yon boutik ou swiv',
+                                    body: (A.user.name || 'Yon vandè') + ' fèk pibliye: ' + t,
+                                    color: '#97422b',
+                                });
+                            });
+                        });
+                }
+
                 toast("Pwodwi pibliye avèk siksè!");
 
                 // Reset form
@@ -4234,6 +4319,16 @@
                     </div>`;
                     return;
                 }
+                if (!isSeller) {
+                    const pids = [...new Set(data.filter(o => o.product_id).map(o => o.product_id))];
+                    if (pids.length > 0) {
+                        const { data: rated } = await db.from('reviews')
+                            .select('product_id').eq('reviewer_id', A.user.uid)
+                            .in('product_id', pids);
+                        const ratedSet = new Set((rated || []).map(r => r.product_id));
+                        data.forEach(o => { if (ratedSet.has(o.product_id)) o._rated = true; });
+                    }
+                }
                 list.innerHTML = data.map(o => renderOrderCard(o, isSeller)).join('');
             } catch(e) {
                 console.warn('[Orders]', e.message);
@@ -4316,6 +4411,14 @@
                     buttons.push(`<button onclick="openDispute('${id}')"
                         class="px-3 py-2 rounded-lg font-label font-bold text-[12px] active:scale-95 bg-surface-container text-on-surface-variant">
                         <span class="material-symbols-outlined align-middle" style="font-size:12px">report</span> Pwoblèm
+                    </button>`);
+                }
+                if (['otp_confirmed','released','completed','delivered'].includes(order.status) && !order._rated) {
+                    buttons.push(`<button onclick="openRatingSheet('${id}','${order.seller_id}','${order.product_id}','${(order.seller_name||'Vandè').replace(/'/g,"\\'")}')"
+                        class="flex-1 py-2 rounded-lg font-label font-bold text-[12px] active:scale-95"
+                        style="background:rgba(0,102,111,.08);color:#00666f">
+                        <span class="material-symbols-outlined align-middle" style="font-size:14px">star</span>
+                        Note vandè a
                     </button>`);
                 }
             } else {
@@ -4658,6 +4761,22 @@
       </div>
     </div>
     <!-- Stats -->
+    ${u.role === 'admin' ? `
+    <div class="mx-5 -mt-8 relative z-10 grid grid-cols-3 bg-surface-container-lowest rounded-xl amb overflow-hidden">
+      <div class="flex flex-col items-center py-4 bg-surface-container-low">
+        <span class="font-headline font-extrabold text-xl text-primary" id="kpiAdminVerif">0</span>
+        <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">Verifikasyon</span>
+      </div>
+      <div class="flex flex-col items-center py-4">
+        <span class="font-headline font-extrabold text-xl text-primary" id="kpiAdminOrders">0</span>
+        <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">Komand aktif</span>
+      </div>
+      <div class="flex flex-col items-center py-4 bg-surface-container-low">
+        <span class="font-headline font-extrabold text-xl text-primary" id="kpiAdminUsers">0</span>
+        <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">Itilizatè</span>
+      </div>
+    </div>
+    ` : `
     <div class="mx-5 -mt-8 relative z-10 grid ${u.role==='buyer'&&!u.verifiedSeller ? 'grid-cols-1' : 'grid-cols-3'} bg-surface-container-lowest rounded-xl amb overflow-hidden">
       ${u.role==='buyer'&&!u.verifiedSeller ? `
       <div class="flex flex-col items-center py-5">
@@ -4670,45 +4789,52 @@
         <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">Favori</span>
       </div>
       <div class="flex flex-col items-center py-4">
-        <span class="font-headline font-extrabold text-xl text-primary">${u.role==='seller'||u.role==='admin' ? (u.salesCount || 0) : (u.orderCount || 0)}</span>
-        <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">${u.role==='seller'||u.role==='admin' ? 'Lavant' : 'Komand'}</span>
+        <span class="font-headline font-extrabold text-xl text-primary">${u.role==='seller' ? (u.salesCount || 0) : (u.orderCount || 0)}</span>
+        <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">${u.role==='seller' ? 'Lavant' : 'Komand'}</span>
       </div>
       <div class="flex flex-col items-center py-4 bg-surface-container-low">
-        <span class="font-headline font-extrabold text-xl text-primary">${u.role==='seller'||u.role==='admin' ? (u.ratingAvg || 0) : '★'}</span>
-        <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">${u.role==='seller'||u.role==='admin' ? 'Nòt' : 'Nivo'}</span>
+        <span class="font-headline font-extrabold text-xl text-primary">${u.role==='seller' ? (u.ratingAvg || 0) : '★'}</span>
+        <span class="font-label text-[9px] uppercase tracking-[.08em] text-on-surface-variant mt-0.5">${u.role==='seller' ? 'Nòt' : 'Nivo'}</span>
       </div>
       `}
     </div>
+    `}
 
-    <!-- Role toggle -->
+    <!-- Role toggle (hidden for admin) -->
+    ${u.role !== 'admin' ? `
     <div class="mx-5 mt-5 bg-surface-container-highest rounded-xl p-1 flex gap-1">
-      <button class="flex-1 py-2.5 rounded-lg ${u.role !== 'seller' && u.role !== 'admin' ? 'bg-surface-container-lowest font-headline font-bold text-sm text-on-surface amb' : 'font-headline font-bold text-sm text-on-surface-variant'} active:scale-95">Achtè</button>
-      <button class="${u.role === 'seller' || u.role === 'admin' ? 'flex-1 py-2.5 rounded-lg bg-surface-container-lowest font-headline font-bold text-sm text-on-surface amb active:scale-95' : 'flex-1 py-2.5 rounded-lg font-headline font-bold text-sm text-on-surface-variant active:scale-95'}" onclick="navTo('pub')">Vandè</button>
+      <button class="flex-1 py-2.5 rounded-lg ${u.role !== 'seller' ? 'bg-surface-container-lowest font-headline font-bold text-sm text-on-surface amb' : 'font-headline font-bold text-sm text-on-surface-variant'} active:scale-95">Achtè</button>
+      <button class="${u.role === 'seller' ? 'flex-1 py-2.5 rounded-lg bg-surface-container-lowest font-headline font-bold text-sm text-on-surface amb active:scale-95' : 'flex-1 py-2.5 rounded-lg font-headline font-bold text-sm text-on-surface-variant active:scale-95'}" onclick="navTo('pub')">Vandè</button>
     </div>
+    ` : ''}
 
     <!-- Menu -->
     <div class="mx-5 mt-5 space-y-[.55rem]">
       ${(() => {
         const items = [];
-        if (u.role === 'buyer' || (u.role !== 'seller' && u.role !== 'admin')) {
-            items.push({ i: "shopping_cart", l: "Panye Mwen", s: A.cart ? A.cart.length + " atik" : "0 atik", a: "openCartScreen()" });
-        }
-        items.push({ i: "shopping_bag", l: "Istorik Komand", s: (u.orderCount || 0) + " komand", a: "navTo('order')" });
-        items.push({ i: "forum", l: "Mesaj yo", s: (A.unreadMsgCount || 0) > 0 ? (A.unreadMsgCount + ' nouvo mesaj') : 'Tout konvèsasyon ou yo', a: "openInbox()" });
-        if (u.role === 'seller' || u.role === 'admin') {
-            items.push({ i: "storefront", l: "Boutik Mwen", s: "Pwodwi, stòk, lavant", a: "openBoutiqueScreen()" });
-            items.push({ i: "group", l: "Kliyan Abonnen", s: (A.followers || 0) + " abonnen", a: "openFollowersScreen()" });
-        }
-        items.push({ i: "favorite", l: "Favori Mwen", s: A.favs.size + " pwodwi", a: "toast('Favori yo')" });
-        const curPickup = PICKUPS.find(pk => pk.id === (A.user?.defaultPickup || A.selPickup)) || PICKUPS[0];
-        items.push({ i: "location_on", l: "Pwen Kolekte", s: curPickup.n, a: "openPickupPicker()" });
-        if (u.role === 'buyer') {
-            items.push({ i: "store", l: "Vin yon Vandè", s: "Soumèt ID ou", a: "openSheet('verifySheet')" });
-        }
         if (u.role === 'admin') {
-            items.push({ i: "admin_panel_settings", l: "Panel Admin", s: "Aksè konplè", a: "navTo('admin')" });
+            items.push({ i: "admin_panel_settings", l: "Panel Admin", s: "Verifikasyon, komand, itilizatè", a: "navTo('admin')" });
+            items.push({ i: "forum", l: "Mesaj yo", s: (A.unreadMsgCount || 0) > 0 ? (A.unreadMsgCount + ' nouvo mesaj') : 'Tout konvèsasyon', a: "openInbox()" });
+            items.push({ i: "campaign", l: "Anons yo", s: "Jere anons platfòm", a: "openSheet('announceSheet')" });
+            items.push({ i: "settings", l: "Paramèt", s: "Son, notifikasyon, pataj", a: "openSheet('settingsSheet')" });
+        } else {
+            if (u.role === 'buyer' || (u.role !== 'seller')) {
+                items.push({ i: "shopping_cart", l: "Panye Mwen", s: A.cart ? A.cart.length + " atik" : "0 atik", a: "openCartScreen()" });
+            }
+            items.push({ i: "shopping_bag", l: "Istorik Komand", s: (u.orderCount || 0) + " komand", a: "navTo('order')" });
+            items.push({ i: "forum", l: "Mesaj yo", s: (A.unreadMsgCount || 0) > 0 ? (A.unreadMsgCount + ' nouvo mesaj') : 'Tout konvèsasyon ou yo', a: "openInbox()" });
+            if (u.role === 'seller') {
+                items.push({ i: "storefront", l: "Boutik Mwen", s: "Pwodwi, stòk, lavant", a: "openBoutiqueScreen()" });
+                items.push({ i: "group", l: "Kliyan Abonnen", s: (A.followers || 0) + " abonnen", a: "openFollowersScreen()" });
+            }
+            items.push({ i: "favorite", l: "Favori Mwen", s: A.favs.size + " pwodwi", a: "toast('Favori yo')" });
+            const curPickup = PICKUPS.find(pk => pk.id === (A.user?.defaultPickup || A.selPickup)) || PICKUPS[0];
+            items.push({ i: "location_on", l: "Pwen Kolekte", s: curPickup.n, a: "openPickupPicker()" });
+            if (u.role === 'buyer') {
+                items.push({ i: "store", l: "Vin yon Vandè", s: "Soumèt ID ou", a: "openSheet('verifySheet')" });
+            }
+            items.push({ i: "settings", l: "Paramèt", s: "Son, notifikasyon, pataj", a: "openSheet('settingsSheet')" });
         }
-        items.push({ i: "settings", l: "Paramèt", s: "Son, notifikasyon, pataj", a: "openSheet('settingsSheet')" });
         return items.map(m => `
       <button class="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl bg-surface-container-lowest active:bg-surface-container-low amb" onclick="${m.a}">
         <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(0,102,111,.08)">
@@ -5370,17 +5496,14 @@
       </div>
       <span class="font-label text-[10px] font-bold px-2 py-1 rounded-full ${v.status === 'pending' ? 'pill-pending' : v.status === 'approved' ? 'pill-approved' : 'pill-rejected'}">${v.status === 'pending' ? 'An Atant' : v.status === 'approved' ? 'Apwouve' : 'Rejte'}</span>
     </div>
-    ${v.status === 'pending' ? `
-    <div class="flex gap-2 mb-3">
-      <!-- Simulated ID preview -->
-      <div class="flex-1 rounded-lg p-3 flex items-center gap-2" style="background:#f6f3ee">
-        <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">badge</span>
-        <div>
-          <p class="font-label text-xs font-bold text-on-surface">id_card.jpg</p>
-          <p class="font-label text-[10px] text-on-surface-variant">Supabase Storage · 1.2MB</p>
-        </div>
-      </div>
+    <div class="flex gap-2 mb-3 flex-wrap">
+      ${v.photos?.front ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openLightbox('${v.photos.front.publicUrl || v.photos.front.dataUrl}')"><img src="${v.photos.front.publicUrl || v.photos.front.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${v.photos?.back ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openLightbox('${v.photos.back.publicUrl || v.photos.back.dataUrl}')"><img src="${v.photos.back.publicUrl || v.photos.back.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${v.photos?.selfie ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openLightbox('${v.photos.selfie.publicUrl || v.photos.selfie.dataUrl}')"><img src="${v.photos.selfie.publicUrl || v.photos.selfie.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${!v.photos?.front && !v.photos?.back && !v.photos?.selfie ? `<div class="flex-1 rounded-lg p-3 flex items-center gap-2" style="background:#f6f3ee"><span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">badge</span><div><p class="font-label text-xs font-bold text-on-surface">${v.idType || 'ID'}</p><p class="font-label text-[10px] text-on-surface-variant">Pa gen foto disponib</p></div></div>` : ''}
     </div>
+    ${v.idType ? `<p class="font-label text-[10px] text-on-surface-variant mb-2">Tip: <strong>${v.idType === 'cin' ? 'CIN' : v.idType === 'passport' ? 'Paspò' : v.idType}</strong></p>` : ''}
+    ${v.status === 'pending' ? `
     <div class="flex gap-2">
       <button onclick="approveVerif('${v.uid}','${v.name}')" class="flex-1 py-2.5 rounded-xl cta font-label font-bold text-sm active:scale-95">
         <span class="material-symbols-outlined align-middle" style="font-size:15px">check_circle</span> Apwouve
@@ -5389,7 +5512,7 @@
         <span class="material-symbols-outlined align-middle" style="font-size:15px">cancel</span> Rejte
       </button>
     </div>`:
-                    `<p class="font-label text-xs text-on-surface-variant">${v.status === 'approved' ? 'Kont vandè verifye nan Supabase' : 'Demann rejte'}</p>`}
+                    `<p class="font-label text-xs text-on-surface-variant">${v.status === 'approved' ? 'Kont vandè verifye ✓' : 'Demann rejte'}</p>`}
   </div>`).join("");
         }
 
@@ -5415,7 +5538,10 @@
         // renderAdminOrders — real Supabase-backed version is declared later (3-tab escrow panel).
 
         function renderAdminUsers() {
-            document.getElementById("adminUserList").innerHTML = ADMIN_USERS.map(u => `
+            const visible = ADMIN_USERS.filter(u => u.role !== 'admin');
+            document.getElementById("adminUserList").innerHTML = visible.length === 0
+                ? '<p class="text-on-surface-variant text-sm text-center py-8">Pa gen itilizatè</p>'
+                : visible.map(u => `
   <div class="bg-surface-container-lowest rounded-xl p-4 amb flex items-center gap-3">
     <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(0,102,111,.1)"><span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1;color:#00666f">person</span></div>
     <div class="flex-1 min-w-0">
@@ -5423,7 +5549,7 @@
         <p class="font-headline font-bold text-sm text-on-surface">${u.name}</p>
         ${u.verified ? `<span class="material-symbols-outlined fi text-primary" style="font-size:13px">verified</span>` : ''}
       </div>
-      <p class="font-label text-xs text-on-surface-variant">${u.role} · ${u.status === 'active' ? 'Aktif' : u.status === 'banned' ? 'Bloke' : 'An atant'}</p>
+      <p class="font-label text-xs text-on-surface-variant">${u.role === 'seller' ? 'Vandè' : 'Achtè'} · ${u.status === 'active' ? 'Aktif' : u.status === 'banned' ? 'Bloke' : 'An atant'} · ${u.orders || 0} komand · ${u.sales || 0} lavant</p>
     </div>
     <div class="flex gap-1.5 flex-shrink-0">
       ${u.status === 'active' ? `<button onclick="toast('${u.name} bloke')" class="px-2.5 py-1.5 rounded-lg font-label text-[10px] font-bold text-secondary active:opacity-70" style="background:rgba(152,68,62,.08)">Bloke</button>` : ''}
@@ -5860,8 +5986,8 @@
             toast(`${name} rejte`);
         }
 
-        // Admin orders panel — real Supabase data, 3 tabs: verify / release / disputes.
-        let _adminOrderTab = 'verify';
+        // Admin orders panel — real Supabase data, 4 tabs: all / verify / release / disputes.
+        let _adminOrderTab = 'all';
         function setAdminOrderTab(tab) { _adminOrderTab = tab; renderAdminOrders(); }
         window.setAdminOrderTab = setAdminOrderTab;
 
@@ -5880,22 +6006,25 @@
                     <span class="material-symbols-outlined align-middle" style="font-size:13px">${icon}</span>
                     ${label}
                 </button>`;
-            const tabsHTML = `<div class="flex gap-2 mb-3">
-                ${tabBtn('verify',  'Verifye peman', 'hourglass_top')}
-                ${tabBtn('release', 'Libere lajan',  'paid')}
+            const tabsHTML = `<div class="flex gap-2 mb-3 overflow-x-auto noscroll">
+                ${tabBtn('all',     'Tout',          'list_alt')}
+                ${tabBtn('verify',  'Verifye',       'hourglass_top')}
+                ${tabBtn('release', 'Libere',        'paid')}
                 ${tabBtn('dispute', 'Litij',         'report')}
             </div>`;
 
-            const statusFilter = _adminOrderTab === 'verify'  ? 'payment_submitted'
+            const statusFilter = _adminOrderTab === 'all'     ? null
+                               : _adminOrderTab === 'verify'  ? 'payment_submitted'
                                : _adminOrderTab === 'release' ? 'otp_confirmed'
                                : 'disputed';
 
             let data = [];
             try {
-                const res = await db.from('orders').select('*')
-                    .eq('status', statusFilter)
+                let q = db.from('orders').select('*')
                     .order('created_at', { ascending: false })
                     .limit(200);
+                if (statusFilter) q = q.eq('status', statusFilter);
+                const res = await q;
                 if (res.error) throw res.error;
                 data = res.data || [];
             } catch (e) {
@@ -5914,15 +6043,16 @@
 
             list.innerHTML = tabsHTML + data.map(o => {
                 const actions = [];
-                if (_adminOrderTab === 'verify') {
+                if (o.status === 'payment_submitted') {
                     actions.push(`<button onclick="adminVerifyPayment('${o.id}')" class="flex-1 py-2 rounded-lg cta font-label font-bold text-[11px] active:scale-95"><span class="material-symbols-outlined align-middle" style="font-size:13px">check_circle</span> Konfime peman</button>`);
                     actions.push(`<button onclick="adminRefund('${o.id}')" class="px-3 py-2 rounded-lg bg-surface-container font-label font-bold text-[11px]">Ranbouse</button>`);
-                } else if (_adminOrderTab === 'release') {
+                } else if (o.status === 'otp_confirmed') {
                     actions.push(`<button onclick="adminReleaseEscrow('${o.id}')" class="flex-1 py-2 rounded-lg font-label font-bold text-[11px] active:scale-95" style="background:#065f46;color:#fcf9f4"><span class="material-symbols-outlined align-middle" style="font-size:13px">paid</span> Lage lajan (${fp(o.net_amount || o.total_amount)} HTG)</button>`);
-                } else {
+                } else if (o.status === 'disputed') {
                     actions.push(`<button onclick="adminResolveDispute('${o.id}','release')" class="flex-1 py-2 rounded-lg font-label font-bold text-[11px]" style="background:#065f46;color:#fcf9f4">Ba vandè a</button>`);
                     actions.push(`<button onclick="adminResolveDispute('${o.id}','refund')" class="flex-1 py-2 rounded-lg font-label font-bold text-[11px]" style="background:#97422b;color:#fcf9f4">Ranbouse achtè</button>`);
                 }
+                const stepperHtml = _adminOrderTab === 'all' ? renderEscrowStepper(o, false) : '';
                 return `
                 <div class="bg-surface-container-lowest rounded-xl p-3 amb mb-3">
                     <div class="flex items-start justify-between gap-2 mb-1">
@@ -5934,7 +6064,9 @@
                     ${o.moncash_ref ? `<p class="font-label text-[11px] mt-1"><strong>Ref MonCash:</strong> <code style="background:#f4f1eb;padding:2px 6px;border-radius:4px">${o.moncash_ref}</code></p>` : ''}
                     ${o.pickup_location ? `<p class="font-label text-[11px] text-on-surface-variant mt-1"><span class="material-symbols-outlined align-middle" style="font-size:12px">location_on</span> ${o.pickup_location}</p>` : ''}
                     ${o.admin_note ? `<p class="font-label text-[11px] mt-1" style="color:#991b1b"><strong>Nòt:</strong> ${o.admin_note}</p>` : ''}
-                    <div class="flex gap-2 mt-3">${actions.join('')}</div>
+                    <p class="font-label text-[10px] text-on-surface-variant mt-1">${o.created_at ? timeAgo(o.created_at) : ''} ${o.paid_at ? ' · Peye: ' + timeAgo(o.paid_at) : ''}${o.verified_at ? ' · Verifye: ' + timeAgo(o.verified_at) : ''}${o.delivered_at ? ' · Livre: ' + timeAgo(o.delivered_at) : ''}${o.released_at ? ' · Libere: ' + timeAgo(o.released_at) : ''}</p>
+                    ${stepperHtml}
+                    ${actions.length ? `<div class="flex gap-2 mt-3">${actions.join('')}</div>` : ''}
                 </div>`;
             }).join('');
         }
@@ -6197,6 +6329,15 @@
                 renderPickupList();
                 toast('Pozisyon detekte — triyè pa distans');
                 if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
+                // Persist geo so pickup sort works immediately next session.
+                if (db && A.user?.uid) {
+                    db.from('profiles').update({
+                        geo_lat: _userGeo.lat,
+                        geo_lng: _userGeo.lng,
+                        geo_updated_at: new Date().toISOString(),
+                    }).eq('id', A.user.uid)
+                      .then(({ error }) => { if (error) console.warn('[Geo persist]', error.message); });
+                }
             }, _err => {
                 toast('Pa ka jwenn pozisyon ou');
                 if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
@@ -6213,7 +6354,15 @@
                 A.user.defaultPickup = id;
                 try { localStorage.setItem('aym_user', JSON.stringify(A.user)); } catch (_) { }
                 if (db && A.user.uid) {
-                    db.from('profiles').update({ location: pk.n })
+                    // Persist both the pickup ID and its human-readable location
+                    // so the backend can reason about it later.
+                    const patch = { location: pk.n, pickup_point_id: id };
+                    if (_userGeo) {
+                        patch.geo_lat = _userGeo.lat;
+                        patch.geo_lng = _userGeo.lng;
+                        patch.geo_updated_at = new Date().toISOString();
+                    }
+                    db.from('profiles').update(patch)
                         .eq('id', A.user.uid)
                         .then(({ error }) => { if (error) console.warn('[Pickup]', error.message); });
                 }
@@ -6257,7 +6406,9 @@
                 loadNotifsFromSupabase();
             }
 
-            const filtered = tab === 'all' ? NOTIFS : NOTIFS.filter(n => n.type === tab);
+            const filtered = tab === 'all' ? NOTIFS
+                : tab === 'unread' ? NOTIFS.filter(n => !n.read)
+                : NOTIFS.filter(n => n.type === tab);
             const unreadAll = NOTIFS.filter(n => !n.read).length;
             const ct = document.getElementById('nt-all-ct');
             if (ct) ct.textContent = unreadAll > 0 ? `(${unreadAll})` : '';
@@ -6995,6 +7146,116 @@
             if (typeof renderOrderScreen === 'function') renderOrderScreen();
         }
         window.openDispute = openDispute;
+
+        // ─ Buyer: rate seller after delivery ──────────────────────
+        let _ratingState = { orderId: null, sellerId: null, productId: null, stars: 0 };
+        function openRatingSheet(orderId, sellerId, productId, sellerName) {
+            _ratingState = { orderId, sellerId, productId, stars: 0 };
+            const nameEl = document.getElementById('ratingSellerName');
+            if (nameEl) nameEl.textContent = 'Ki jan ou evalye ' + (sellerName || 'vandè a') + '?';
+            const comment = document.getElementById('ratingComment');
+            if (comment) comment.value = '';
+            document.querySelectorAll('.rating-star span').forEach(s => s.style.color = '#e5e2dd');
+            openSheet('ratingSheet');
+        }
+        window.openRatingSheet = openRatingSheet;
+
+        function setRatingStar(n) {
+            _ratingState.stars = n;
+            document.querySelectorAll('.rating-star').forEach(btn => {
+                const v = parseInt(btn.dataset.v);
+                btn.querySelector('span').style.color = v <= n ? '#f59e0b' : '#e5e2dd';
+            });
+        }
+        window.setRatingStar = setRatingStar;
+
+        async function submitRating() {
+            const { orderId, sellerId, productId, stars } = _ratingState;
+            if (!stars || stars < 1) { toast('Chwazi yon nòt (1-5 zetwal)'); return; }
+            if (!db || !A.user?.uid) { toast('Pa gen koneksyon'); return; }
+            const comment = (document.getElementById('ratingComment')?.value || '').trim();
+            const { error } = await db.from('reviews').insert({
+                reviewer_id: A.user.uid,
+                product_id: productId,
+                seller_id: sellerId,
+                rating: stars,
+                comment: comment || null,
+            });
+            if (error) {
+                if (error.message?.includes('duplicate') || error.code === '23505') {
+                    toast('Ou deja note komand sa a');
+                } else {
+                    toast('Erè: ' + error.message);
+                }
+                return;
+            }
+            closeSheets();
+            toast('Mèsi pou nòt ou! ★' + stars);
+            db.from('notifications').insert({
+                user_id: sellerId, type: 'system', icon: 'star',
+                title: 'Nouvo evalyasyon',
+                body: (A.user.name || 'Yon achtè') + ' ba ou ' + stars + ' zetwal.',
+                color: '#f59e0b',
+            });
+            if (typeof renderOrderScreen === 'function') renderOrderScreen();
+        }
+        window.submitRating = submitRating;
+
+        // ─ Admin: announcements ───────────────────────────────────
+        async function genAnnouncement() {
+            const title = document.getElementById('annTitle')?.value.trim();
+            const audience = document.getElementById('annAudience')?.value || 'all';
+            const aud = { all: 'tout itilizatè', buyers: 'achtè yo', sellers: 'vandè yo' }[audience];
+            const templates = [
+                `Chè ${aud}, AyitiMarket toujou ap grandi! Dekouvri nouvo pwodwi chak jou. Mèsi pou konfyans ou.`,
+                `Nouvo fonksyonalite disponib sou AyitiMarket! ${title ? title + '. ' : ''}Eseye li jodi a.`,
+                `Atansyon ${aud}! Pwomosyon espesyal sou AyitiMarket. Pa rate okazyon sa a.`,
+                `Bon nouvèl pou ${aud}! ${title || 'Nou gen gwo mizajou pou ou.'} Rete branche pou plis detay.`,
+            ];
+            const body = document.getElementById('annBody');
+            if (body) {
+                const tpl = templates[Math.floor(Math.random() * templates.length)];
+                body.value = '';
+                for (let i = 0; i <= tpl.length; i++) { body.value = tpl.slice(0, i); await sl(14); }
+            }
+        }
+        window.genAnnouncement = genAnnouncement;
+
+        async function submitAnnouncement() {
+            const title = document.getElementById('annTitle')?.value.trim();
+            const body = document.getElementById('annBody')?.value.trim();
+            const audience = document.getElementById('annAudience')?.value || 'all';
+            if (!title || !body) { toast('Ranpli tit ak kontni anons la'); return; }
+            if (!db || !A.user?.uid) return;
+            const { error } = await db.from('announcements').insert({
+                admin_id: A.user.uid, title, body, audience, active: true,
+                generated_by_ai: false,
+            });
+            if (error) { toast('Erè: ' + error.message); return; }
+            toast('Anons pibliye!');
+            document.getElementById('annTitle').value = '';
+            document.getElementById('annBody').value = '';
+            loadAnnouncements();
+        }
+        window.submitAnnouncement = submitAnnouncement;
+
+        async function loadAnnouncements() {
+            const list = document.getElementById('annList');
+            if (!list || !db) return;
+            const { data } = await db.from('announcements').select('*')
+                .order('created_at', { ascending: false }).limit(10);
+            if (!data || data.length === 0) { list.innerHTML = ''; return; }
+            list.innerHTML = '<p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-2">Anons resan</p>'
+                + data.map(a => `
+                <div class="bg-surface-container-lowest rounded-xl p-3 amb">
+                    <div class="flex items-start justify-between gap-2">
+                        <p class="font-headline font-bold text-sm">${a.title}</p>
+                        <span class="font-label text-[10px] ${a.active ? 'text-primary' : 'text-on-surface-variant'}">${a.active ? 'Aktif' : 'Fèmen'}</span>
+                    </div>
+                    <p class="font-body text-xs text-on-surface-variant mt-1">${a.body}</p>
+                    <p class="font-label text-[10px] text-on-surface-variant mt-1">${timeAgo(a.created_at)} · ${a.audience}</p>
+                </div>`).join('');
+        }
 
         // ══════════════════════════════════════════════════════════
         //  OVERRIDE renderChatMsgs — sipòte voice + location
@@ -7910,24 +8171,24 @@
         // ══════════════════════════════════════════════════════════
         const BOT_ANSWERS = {
             pay: {
-                q: 'Comment payer ?',
-                r: `Sou AyitiMarket, ou peye ak <strong>MonCash</strong> sèlman — Peye dirèkteman ak nimewo Digicel ou. 3% frè sèvis aplike. Lajan ou pwoteje pa sistèm Escrow: lajan bloke jouk ou konfime resepsyon pwodwi a.`
+                q: 'Comment payer ? (MonCash)',
+                r: `Sou AyitiMarket, ou peye ak <strong>MonCash</strong> sèlman.\n\n<strong>Etap yo:</strong>\n<strong>1.</strong> Kòmande pwodwi a → chwazi pwen kolèk\n<strong>2.</strong> Klike "Peye kounye a" → wè nimewo MonCash admin\n<strong>3.</strong> Transfere lajan nan nimewo sa a via MonCash\n<strong>4.</strong> Kole referans tranzaksyon MonCash nan fòm nan\n<strong>5.</strong> Admin verifye peman an → eskwo aktive\n\n💡 3% frè sèvis aplike. Lajan ou pwoteje pa Escrow jouk livrezon konfime.`
             },
             track: {
                 q: 'Swiv komand mwen',
-                r: `Ale nan onglet <strong>"Komand"</strong> anba ekran an. Ou ka wè:\n• Statut komand ou (An atant · Konfime · An wout)\n• <strong>Kòd OTP</strong> pou bay kousye a\n• Pwen kolekte ou chwazi a`
+                r: `Ale nan onglet <strong>"Komand"</strong> anba ekran an.\n\n<strong>Etap ou pral wè:</strong>\n• <strong>Ap tann peman</strong> — ou poko peye\n• <strong>Ap verifye peman</strong> — admin ap tcheke referans MonCash\n• <strong>Eskwo aktive</strong> — lajan bloke, vandè ap prepare pwodwi\n• <strong>Pare pou kolèk</strong> — ale nan pwen kolèk, pran kòd OTP ou\n• <strong>Livrezon konfime</strong> — vandè te antre OTP korèk\n• <strong>Lajan libere</strong> — vandè resevwa peman\n\n🔑 Bay kòd OTP ou <strong>sèlman</strong> bay vandè a nan pwen kolèk la!`
             },
             sell: {
                 q: 'Kijan pou mwen vann ?',
-                r: `Pou vann sou AyitiMarket:\n\n<strong>1.</strong> Ale nan Pwofil → "Vin yon Vandè"\n<strong>2.</strong> Soumèt yon pyès idantite (CIN / Paspò)\n<strong>3.</strong> Admin verifye nan 24h\n<strong>4.</strong> Pibliye pwodwi ou ak IA nou an`
+                r: `Pou vann sou AyitiMarket:\n\n<strong>1.</strong> Ale nan Pwofil → "Vin yon Vandè"\n<strong>2.</strong> Soumèt yon pyès idantite (CIN / Paspò)\n<strong>3.</strong> Admin verifye nan 24h\n<strong>4.</strong> Pibliye pwodwi ou ak IA nou an\n\n<strong>Lè yon kliyan kòmande:</strong>\n• Admin verifye peman → ou resevwa notifikasyon\n• Prepare pwodwi a nan pwen kolèk\n• Klike "Pwodwi pare" → tann achtè a\n• Lè achtè a rive, mande li kòd OTP 6-chif la\n• Antre OTP → livrezon konfime → admin lage lajan sou MonCash ou`
             },
             escrow: {
                 q: 'Kijan Escrow pwoteje mwen ?',
-                r: `<strong>Escrow = Lajan Bloke</strong>\n\nLè ou kòmande, lajan an bloke nan sistèm AyitiMarket — ni vandè ni nou pa ka touche li.\n\nLajan debloke <strong>sèlman</strong> lè ou konfime resepsyon pwodwi a ak kòd OTP ou.\n\n<strong>7 jou</strong> pou ouvri yon litig si gen pwoblèm.`
+                r: `<strong>🛡️ Escrow = Lajan Bloke pou pwoteje tout moun</strong>\n\n<strong>Pou achtè:</strong>\n• Lajan ou bloke — vandè PA ka touche li anvan ou konfime\n• Ou resevwa yon kòd OTP 6-chif\n• Bay kòd la sèlman lè ou resevwa pwodwi a\n• Si gen pwoblèm: ouvri yon litij, admin ap ede ou\n\n<strong>Pou vandè:</strong>\n• Lajan garanti — achtè pa ka anile apre verifikasyon\n• Antre kòd OTP achtè a pou konfime livrezon\n• Admin lage lajan sou MonCash ou apre konfirmasyon\n\n⚠️ <strong>5 esè OTP maksimòm</strong> — apre sa, komand ale nan litij otomatikman.\n⏰ <strong>7 jou</strong> pou ouvri yon litig si gen pwoblèm.`
             },
             admin: {
                 q: 'Kontakte Admin',
-                r: `Ranpli fòm tiket anba a. Admin pral reponn ou nan <strong>2 èdtan</strong> pandan jounen oswa nan <strong>maten</strong> si se aswè.`,
+                r: `Ranpli fòm tiket anba a. Admin pral reponn ou nan <strong>2 èdtan</strong> pandan jounen oswa nan <strong>maten</strong> si se aswè.\n\nAdmin ka ede ou ak:\n• Pwoblèm peman / verifikasyon MonCash\n• Litij ant achtè ak vandè\n• Pwoblèm livrezon / pwen kolèk\n• Verifikasyon kont vandè\n• Nenpòt lòt kesyon`,
                 ticket: true
             }
         };
@@ -7979,24 +8240,25 @@
             const type = document.getElementById('ticketType').value;
             const msg = document.getElementById('ticketMsg').value.trim();
             if (!msg) { toast('Ekri mesaj ou anvan'); return; }
+            const ticketId = 'TK-' + Math.floor(Math.random() * 9000 + 1000);
 
-            // Ajouter notif admin
-            addNotif({
-                id: 'ticket_' + Date.now(), type: 'system',
-                icon: 'confirmation_number', color: '#97422b',
-                title: 'Nouvo Tiket Sipò',
-                body: `${type}: ${msg.slice(0, 60)}…`,
-                time: 'Kounye a', read: false,
-                action: () => { closeSheets(); navTo('admin'); }
-            });
+            if (db && A.user?.uid) {
+                db.from('profiles').select('id').eq('is_admin', true).then(({ data: admins }) => {
+                    (admins || []).forEach(a => db.from('notifications').insert({
+                        user_id: a.id, type: 'system', icon: 'confirmation_number',
+                        title: 'Tiket sipò: ' + ticketId,
+                        body: (A.user.name || 'Yon itilizatè') + ' (' + type + '): ' + msg.slice(0, 120),
+                        color: '#97422b',
+                    }));
+                });
+            }
 
             closeSheets();
             showSuccess('verified_icon', 'Tiket Voye!',
-                `Tiket ou (#TK-${Math.floor(Math.random() * 9000 + 1000)}) transmèt bay Admin.\nRepons nan 2 èdtan.`,
+                `Tiket ou (${ticketId}) transmèt bay Admin.\nRepons nan 2 èdtan.`,
                 'Ou pral resevwa yon notifikasyon lè Admin reponn',
                 'Dakò'
             );
-            updateNotifBadge();
         }
 
         // Quiet Night Mode
@@ -9275,7 +9537,9 @@
             const listEl = document.getElementById('notifList');
             if (listEl) {
                 const activeTab = document.querySelector('.notif-tab.bg-surface-container-lowest')?.id?.replace('nt-', '') || 'all';
-                const filtered = activeTab === 'all' ? NOTIFS : NOTIFS.filter(n => n.type === activeTab);
+                const filtered = activeTab === 'all' ? NOTIFS
+                    : activeTab === 'unread' ? NOTIFS.filter(n => !n.read)
+                    : NOTIFS.filter(n => n.type === activeTab);
                 const ct = document.getElementById('nt-all-ct');
                 if (ct) { const u = NOTIFS.filter(n => !n.read).length; ct.textContent = u > 0 ? `(${u})` : ''; }
                 listEl.innerHTML = filtered.length === 0
@@ -9387,6 +9651,13 @@
             renderVerifList();
             renderAdminOrders();
             renderAdminUsers();
+            // Update profile KPIs if visible
+            const kav = document.getElementById('kpiAdminVerif');
+            if (kav) kav.textContent = VERIF_REQUESTS.filter(v => v.status === 'pending').length;
+            const kao = document.getElementById('kpiAdminOrders');
+            if (kao) kao.textContent = ADMIN_ORDERS.length;
+            const kau = document.getElementById('kpiAdminUsers');
+            if (kau) kau.textContent = ADMIN_USERS.length;
         } catch (e) { console.warn('[Admin]', e.message); }
     }
 
