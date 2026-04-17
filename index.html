@@ -1264,6 +1264,8 @@
                     class="cchip flex-shrink-0 px-4 py-2 rounded-full font-label font-semibold text-[12px] bg-surface-container-highest text-on-surface active:scale-95"
                     onclick="filterFeed(this,'artisanat')">Atizana</button>
             </div>
+            <!-- Announcement banner -->
+            <div id="feedAnnounceBanner" class="hidden mb-3"></div>
             <!-- Grid -->
             <div class="masonry" id="feedGrid"></div>
         </div>
@@ -3233,12 +3235,12 @@
             document.getElementById("bottomNav").classList.remove("hidden");
             document.getElementById("fab").classList.remove("hidden");
 
-            // Show admin tab if admin; hide publish/cart/FAB for admin
+            // Show admin tab if admin; swap FAB actions for admin
             if (A.user.role === "admin") {
                 document.getElementById("nav-admin").classList.remove("hidden");
                 document.getElementById("nav-pub").classList.add("hidden");
                 document.getElementById("nav-cart")?.classList.add("hidden");
-                document.getElementById("fab")?.classList.add("hidden");
+                setupAdminFab();
             } else {
                 document.getElementById("nav-admin").classList.add("hidden");
                 document.getElementById("nav-pub").classList.remove("hidden");
@@ -3347,7 +3349,9 @@
             document.getElementById("backbtn").classList.add("hidden");
             document.getElementById("backbtn").classList.remove("flex");
             document.getElementById("bottomNav").classList.remove("hidden");
-            document.getElementById("fab").classList.remove("hidden");
+            if (A.user?.role !== 'admin' || tab === 'feed' || tab === 'admin') {
+                document.getElementById("fab").classList.remove("hidden");
+            }
             if (typeof fabSpeedDial === 'function') fabSpeedDial(false);
 
             const titles = { feed: "", pub: "Pibliye Pwodwi", order: "Kòmande", profile: "Pwofil Mwen", admin: "Panel Admin" };
@@ -3548,6 +3552,7 @@
                 const greet = document.getElementById("feedGreet");
                 if (greet) greet.textContent = 'Bonjou, ' + A.user.name.split(" ")[0];
             }
+            if (typeof loadFeedAnnouncements === 'function') loadFeedAnnouncements();
         }
 
         function renderFeedLocal(g, filter) {
@@ -6272,6 +6277,31 @@
         }
         window.fabSpeedDial = fabSpeedDial;
 
+        function setupAdminFab() {
+            const fab = document.getElementById('fab');
+            const actions = document.getElementById('fabActions');
+            if (!fab || !actions) return;
+            fab.classList.remove('hidden');
+            actions.innerHTML = `
+                <div class="flex items-center gap-2" style="animation:fabIn .18s ease">
+                    <span class="font-label text-[11px] font-bold text-on-surface px-2 py-1 rounded-full bg-surface-container-lowest amb">Anons</span>
+                    <button onclick="fabSpeedDial(false);openSheet('announceSheet')"
+                        class="w-11 h-11 rounded-full flex items-center justify-center active:scale-90 amb"
+                        style="background:#00666f;color:#fff" aria-label="Anons">
+                        <span class="material-symbols-outlined fi" style="font-size:20px">campaign</span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-2" style="animation:fabIn .22s ease">
+                    <span class="font-label text-[11px] font-bold text-on-surface px-2 py-1 rounded-full bg-surface-container-lowest amb">Asistan Bot</span>
+                    <button onclick="fabSpeedDial(false);openSheet('botSheet')"
+                        class="w-11 h-11 rounded-full flex items-center justify-center active:scale-90 amb"
+                        style="background:#97422b;color:#fff" aria-label="Asistan Bot">
+                        <span class="material-symbols-outlined fi" style="font-size:20px">support_agent</span>
+                    </button>
+                </div>`;
+        }
+        window.setupAdminFab = setupAdminFab;
+
         // ── Pwen Kolekte picker ──
         let _userGeo = null;
         function haversineKm(a, b) {
@@ -7232,10 +7262,30 @@
                 generated_by_ai: false,
             });
             if (error) { toast('Erè: ' + error.message); return; }
-            toast('Anons pibliye!');
+            toast('Anons pibliye — notifikasyon voye bay tout moun!');
             document.getElementById('annTitle').value = '';
             document.getElementById('annBody').value = '';
             loadAnnouncements();
+            // Broadcast to all matching users as notifications
+            const roleFilter = audience === 'buyers' ? 'buyer' : audience === 'sellers' ? 'seller' : null;
+            let q = db.from('profiles').select('id, role');
+            if (roleFilter) q = q.eq('role', roleFilter);
+            const { data: users } = await q.limit(500);
+            if (users) {
+                const notifs = users
+                    .filter(u => u.id !== A.user.uid)
+                    .map(u => ({
+                        user_id: u.id, type: 'system', icon: 'campaign',
+                        title: '📢 ' + title, body: body,
+                        color: '#00666f',
+                    }));
+                if (notifs.length > 0) {
+                    for (let i = 0; i < notifs.length; i += 50) {
+                        db.from('notifications').insert(notifs.slice(i, i + 50));
+                    }
+                }
+            }
+            closeSheets();
         }
         window.submitAnnouncement = submitAnnouncement;
 
@@ -7254,6 +7304,30 @@
                     </div>
                     <p class="font-body text-xs text-on-surface-variant mt-1">${a.body}</p>
                     <p class="font-label text-[10px] text-on-surface-variant mt-1">${timeAgo(a.created_at)} · ${a.audience}</p>
+                </div>`).join('');
+        }
+
+        async function loadFeedAnnouncements() {
+            const banner = document.getElementById('feedAnnounceBanner');
+            if (!banner || !db) return;
+            const role = A.user?.role || 'buyer';
+            const { data } = await db.from('announcements').select('*')
+                .eq('active', true)
+                .or('audience.eq.all,audience.eq.' + (role === 'seller' ? 'sellers' : 'buyers'))
+                .order('created_at', { ascending: false }).limit(3);
+            if (!data || data.length === 0) { banner.classList.add('hidden'); return; }
+            banner.classList.remove('hidden');
+            banner.innerHTML = data.map(a => `
+                <div class="rounded-xl p-3.5 mb-2 flex items-start gap-3" style="background:rgba(0,102,111,.07)">
+                    <span class="material-symbols-outlined fi text-primary flex-shrink-0 mt-0.5" style="font-size:20px">campaign</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-headline font-bold text-sm text-on-surface">${a.title}</p>
+                        <p class="font-body text-xs text-on-surface-variant mt-0.5 leading-relaxed">${a.body}</p>
+                        <p class="font-label text-[10px] text-on-surface-variant mt-1">${timeAgo(a.created_at)}</p>
+                    </div>
+                    <button onclick="this.closest('[id=feedAnnounceBanner]>div')?.remove()" class="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full active:bg-surface-container">
+                        <span class="material-symbols-outlined text-on-surface-variant" style="font-size:14px">close</span>
+                    </button>
                 </div>`).join('');
         }
 
