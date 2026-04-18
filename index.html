@@ -3511,21 +3511,20 @@
                 <span class="material-symbols-outlined" style="font-size:18px">chat</span>Kontakte vandè
               </button>
               <span class="flex-1 text-center font-label text-xs text-on-surface-variant py-3.5">Vandè: ${p.sellerName || '—'}</span>`
-            : `<button onclick="openChatFor(${dpid})" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high">
-                <span class="material-symbols-outlined" style="font-size:18px">chat</span>Mesaj
-              </button>
-              <button onclick="addToCart(${dpid})" class="w-12 h-12 ml-2 flex-shrink-0 flex items-center justify-center rounded-xl active:scale-90 transition-transform" style="background:rgba(0,102,111,.1)" title="Ajoute nan Panye">
-                <span class="material-symbols-outlined fi text-primary" style="font-size:20px">add_shopping_cart</span>
-              </button>
-              ${(p.c === 'mode' || p.c === 'cosmetique' || p.c === 'accessoire') ? `
-              <button onclick="openTryon(${dpid})"
-                      class="w-12 h-12 ml-2 flex-shrink-0 flex items-center justify-center rounded-xl active:scale-90 transition-transform"
-                      style="background:linear-gradient(135deg,#7c3aed,#4f46e5)" title="Eseyaj Vityèl">
-                <span class="material-symbols-outlined fi text-white" style="font-size:20px">try</span>
-              </button>`: ''}
-              <button onclick="startOrder(${dpid})" class="flex-[2] ml-2 flex items-center justify-center gap-2 py-3.5 rounded-xl cta font-headline font-bold text-base active:scale-[.98] amb">
-                <span class="material-symbols-outlined" style="font-size:18px">shopping_bag</span>Kòmande
-              </button>`;
+            : (() => {
+                const oos = typeof p.s === 'number' && p.s <= 0;
+                const chatBtn = '<button onclick="openChatFor(' + dpid + ')" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high"><span class="material-symbols-outlined" style="font-size:18px">chat</span>Mesaj</button>';
+                if (oos) {
+                    return chatBtn + '<span class="flex-[2] ml-2 flex items-center justify-center gap-2 py-3.5 rounded-xl font-headline font-bold text-base" style="background:#e5e2dd;color:#5c6160;cursor:not-allowed"><span class="material-symbols-outlined" style="font-size:18px">remove_shopping_cart</span>Epuize</span>';
+                }
+                let html = chatBtn;
+                html += '<button onclick="addToCart(' + dpid + ')" class="w-12 h-12 ml-2 flex-shrink-0 flex items-center justify-center rounded-xl active:scale-90 transition-transform" style="background:rgba(0,102,111,.1)" title="Ajoute nan Panye"><span class="material-symbols-outlined fi text-primary" style="font-size:20px">add_shopping_cart</span></button>';
+                if (p.c === 'mode' || p.c === 'cosmetique' || p.c === 'accessoire') {
+                    html += '<button onclick="openTryon(' + dpid + ')" class="w-12 h-12 ml-2 flex-shrink-0 flex items-center justify-center rounded-xl active:scale-90 transition-transform" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)" title="Eseyaj Vityèl"><span class="material-symbols-outlined fi text-white" style="font-size:20px">try</span></button>';
+                }
+                html += '<button onclick="startOrder(' + dpid + ')" class="flex-[2] ml-2 flex items-center justify-center gap-2 py-3.5 rounded-xl cta font-headline font-bold text-base active:scale-[.98] amb"><span class="material-symbols-outlined" style="font-size:18px">shopping_bag</span>Kòmande</button>';
+                return html;
+            })();
 
             track("view", p.c);
             // Rann pwodwi similè yo apre yon ti délai
@@ -3724,6 +3723,10 @@
             const badgeHtml = p.b
                 ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full" style="font-size:9px;background:${p.b === 'Verifye' ? 'rgba(0,102,111,.88)' : p.b === 'Reko IA' ? 'rgba(151,66,43,.88)' : 'rgba(90,215,230,.88)'};color:#fff">${p.b}</span>`
                 : '';
+            const outOfStock = typeof p.s === 'number' && p.s <= 0;
+            const oosOverlay = outOfStock
+                ? `<div class="absolute inset-0 flex items-center justify-center" style="background:rgba(0,0,0,.45)"><span class="font-headline font-extrabold text-white px-3 py-1 rounded-full" style="font-size:11px;background:rgba(151,66,43,.9)">Epuize</span></div>`
+                : '';
             const favColor = fav ? '#f99188' : '#3d4949';
             const pid = typeof p.id === 'string' ? `'${p.id}'` : p.id;
             return `
@@ -3731,6 +3734,7 @@
     <div class="bg-surface-container-lowest rounded-xl overflow-hidden amb active:scale-[.97] transition-transform" onclick="openProduct(${pid})">
       <div class="relative w-full" style="height:${imgHeight}px;overflow:hidden;background:#f0ede8">
         ${imgHtml}
+        ${oosOverlay}
         <button onclick="event.stopPropagation();toggleFav(${pid})"
                 class="absolute top-2.5 right-2.5 w-8 h-8 flex items-center justify-center rounded-full"
                 style="background:rgba(252,249,244,.88);backdrop-filter:blur(4px)"
@@ -4569,13 +4573,10 @@
                     // Decrement stock optimistically (released back if order cancelled)
                     if (typeof p.s === 'number' && p.s > 0) {
                         const newStock = p.s - 1;
-                        const newStatus = newStock <= 0 ? 'sold' : 'active';
-                        await db.from('products').update({ stock: newStock, status: newStatus }).eq('id', p.id);
+                        await db.from('products').update({ stock: newStock }).eq('id', p.id);
                         p.s = newStock;
-                        if (newStock <= 0) {
-                            const idx = PRODUCTS.findIndex(x => x.id === p.id);
-                            if (idx >= 0) PRODUCTS[idx].s = 0;
-                        }
+                        const idx = PRODUCTS.findIndex(x => x.id === p.id);
+                        if (idx >= 0) PRODUCTS[idx].s = newStock;
                     }
 
                     // Notify seller: new pending-payment order
@@ -9715,7 +9716,6 @@
                 let q = db.from('products')
                     .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
                     .eq('status', 'active')
-                    .gt('stock', 0)
                     .order('created_at', { ascending: false })
                     .limit(filters.limit || 100);
                 if (filters.category && filters.category !== 'all') q = q.eq('category', filters.category);
