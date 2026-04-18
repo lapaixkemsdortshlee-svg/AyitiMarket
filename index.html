@@ -6574,39 +6574,45 @@
                 active.classList.add('bg-surface-container-lowest', 'text-on-surface', 'amb');
                 active.classList.remove('text-on-surface-variant');
             }
-            renderNotifs(tab);
+            renderNotifList(tab);
         }
 
-        function renderNotifs(tab = 'all') {
-            // Load notifications from Supabase (always fetch fresh when opening)
-            if (db && A.user?.uid) {
-                loadNotifsFromSupabase();
-            }
-
+        function renderNotifList(tab) {
             const filtered = tab === 'all' ? NOTIFS
                 : tab === 'unread' ? NOTIFS.filter(n => !n.read)
                 : NOTIFS.filter(n => n.type === tab);
             const unreadAll = NOTIFS.filter(n => !n.read).length;
             const ct = document.getElementById('nt-all-ct');
-            if (ct) ct.textContent = unreadAll > 0 ? `(${unreadAll})` : '';
-
-            document.getElementById('notifList').innerHTML = filtered.length === 0
-                ? `<p class="font-body text-sm text-on-surface-variant text-center py-8">Pa gen notifikasyon.</p>`
+            if (ct) ct.textContent = unreadAll > 0 ? '(' + unreadAll + ')' : '';
+            const el = document.getElementById('notifList');
+            if (!el) return;
+            el.innerHTML = filtered.length === 0
+                ? '<p class="font-body text-sm text-on-surface-variant text-center py-8">Pa gen notifikasyon.</p>'
                 : filtered.map(n => `
   <div class="flex items-start gap-3 p-3.5 rounded-xl cursor-pointer transition-colors active:bg-surface-container-low ${n.read ? 'bg-surface-container-low' : 'bg-surface-container-lowest amb'}"
        onclick="readNotif('${n.id}')">
     <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 relative" style="background:${n.color}18">
       <span class="material-symbols-outlined fi" style="font-size:18px;color:${n.color}">${n.icon}</span>
-      ${!n.read ? `<span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full" style="background:#f99188;border:2px solid #fcf9f4"></span>` : ''}
+      ${!n.read ? '<span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full" style="background:#f99188;border:2px solid #fcf9f4"></span>' : ''}
     </div>
     <div class="flex-1 min-w-0">
       <p class="font-headline font-bold text-sm text-on-surface ${n.read ? 'opacity-70' : ''}">${n.title}</p>
-      <p class="font-body text-xs text-on-surface-variant mt-0.5 leading-relaxed">${n.body}</p>
+      <p class="font-body text-xs text-on-surface-variant mt-0.5 leading-relaxed">${n.body || ''}</p>
     </div>
     <span class="font-label text-[10px] text-on-surface-variant flex-shrink-0 mt-0.5">${n.time}</span>
   </div>`).join('');
-
             updateNotifBadge();
+        }
+
+        function renderNotifs(tab) {
+            tab = tab || 'all';
+            const el = document.getElementById('notifList');
+            if (el) el.innerHTML = '<div class="flex justify-center py-8"><span class="font-body text-sm text-on-surface-variant">Ap chaje…</span></div>';
+            if (db && A.user?.uid) {
+                loadNotifsFromSupabase(tab);
+            } else {
+                renderNotifList(tab);
+            }
         }
 
         function readNotif(id) {
@@ -6621,7 +6627,7 @@
                 }
                 if (n.action) { closeSheets(); n.action(); return; }
             }
-            renderNotifs(document.querySelector('.notif-tab.bg-surface-container-lowest')?.id?.replace('nt-', '') || 'all');
+            renderNotifList(document.querySelector('.notif-tab.bg-surface-container-lowest')?.id?.replace('nt-', '') || 'all');
             updateNotifBadge();
         }
 
@@ -9825,49 +9831,33 @@
 
     // ── Fetch notifications from Supabase ──
     let _notifLoading = false;
-    async function loadNotifsFromSupabase() {
-        if (!db || !A.user?.uid || _notifLoading) return;
+    async function loadNotifsFromSupabase(renderTab) {
+        if (!db || !A.user?.uid) return;
+        if (_notifLoading) return;
         _notifLoading = true;
         try {
             const { data, error } = await db.from('notifications')
                 .select('*').eq('user_id', A.user.uid)
-                .order('created_at', { ascending: false }).limit(30);
+                .order('created_at', { ascending: false }).limit(100);
             if (error) throw error;
             NOTIFS.length = 0;
             (data || []).forEach(n => {
                 NOTIFS.push({
                     id: n.id, type: n.type || 'system', icon: n.icon || 'notifications',
-                    title: n.title, body: n.body, time: timeAgo(n.created_at),
+                    title: n.title, body: n.body || '', time: timeAgo(n.created_at),
                     read: n.read || false, color: n.color || '#00666f',
                 });
             });
             updateNotifBadge();
-            // Re-render the list if the sheet is open
-            const listEl = document.getElementById('notifList');
-            if (listEl) {
-                const activeTab = document.querySelector('.notif-tab.bg-surface-container-lowest')?.id?.replace('nt-', '') || 'all';
-                const filtered = activeTab === 'all' ? NOTIFS
-                    : activeTab === 'unread' ? NOTIFS.filter(n => !n.read)
-                    : NOTIFS.filter(n => n.type === activeTab);
-                const ct = document.getElementById('nt-all-ct');
-                if (ct) { const u = NOTIFS.filter(n => !n.read).length; ct.textContent = u > 0 ? `(${u})` : ''; }
-                listEl.innerHTML = filtered.length === 0
-                    ? `<p class="font-body text-sm text-on-surface-variant text-center py-8">Pa gen notifikasyon.</p>`
-                    : filtered.map(n => `
-  <div class="flex items-start gap-3 p-3.5 rounded-xl cursor-pointer transition-colors active:bg-surface-container-low ${n.read ? 'bg-surface-container-low' : 'bg-surface-container-lowest amb'}"
-       onclick="readNotif('${n.id}')">
-    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 relative" style="background:${n.color}18">
-      <span class="material-symbols-outlined fi" style="font-size:18px;color:${n.color}">${n.icon}</span>
-      ${!n.read ? `<span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full" style="background:#f99188;border:2px solid #fcf9f4"></span>` : ''}
-    </div>
-    <div class="flex-1 min-w-0">
-      <p class="font-headline font-bold text-sm text-on-surface ${n.read ? 'opacity-70' : ''}">${n.title}</p>
-      <p class="font-body text-xs text-on-surface-variant mt-0.5 leading-relaxed">${n.body}</p>
-    </div>
-    <span class="font-label text-[10px] text-on-surface-variant flex-shrink-0 mt-0.5">${n.time}</span>
-  </div>`).join('');
-            }
-        } catch (e) { console.warn('[Notifs]', e.message); }
+            const tab = renderTab
+                || document.querySelector('.notif-tab.bg-surface-container-lowest')?.id?.replace('nt-', '')
+                || 'all';
+            if (typeof renderNotifList === 'function') renderNotifList(tab);
+        } catch (e) {
+            console.warn('[Notifs]', e.message);
+            const el = document.getElementById('notifList');
+            if (el) el.innerHTML = '<p class="font-body text-sm text-on-surface-variant text-center py-8">Erè chajman — reyesye.</p>';
+        }
         finally { _notifLoading = false; }
     }
 
