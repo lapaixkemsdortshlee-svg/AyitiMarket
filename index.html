@@ -1660,6 +1660,11 @@
                     id="at-users" onclick="switchAdminTab('users')">
                     Itilizatè
                 </button>
+                <button
+                    class="admin-tab flex-1 py-2.5 rounded-lg font-label font-bold text-sm text-on-surface-variant active:scale-95 transition-transform"
+                    id="at-convos" onclick="switchAdminTab('convos')">
+                    Mesaj
+                </button>
             </div>
 
             <!-- Tab: Verifications -->
@@ -1681,6 +1686,18 @@
                 <p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-3">
                     Itilizatè yo</p>
                 <div class="space-y-3" id="adminUserList"></div>
+            </div>
+
+            <!-- Tab: Conversations -->
+            <div id="admin-convos" class="hidden">
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-3">
+                    Konvèsasyon Achtè / Vandè</p>
+                <div class="space-y-3" id="adminConvoList">
+                    <div class="text-center py-8">
+                        <span class="material-symbols-outlined text-on-surface-variant" style="font-size:36px">forum</span>
+                        <p class="font-body text-sm text-on-surface-variant mt-2">Ap chaje konvèsasyon…</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -4690,7 +4707,7 @@
                 });
                 // Notify the receiver of the new message
                 if (A.chatSellerId && A.chatSellerId !== A.user.uid) {
-                    const preview = t.startsWith('[LOC]') ? '📍 Lokalisasyon pataje' : t.slice(0, 80);
+                    const preview = t.startsWith('[LOC]') ? '📍 Lokalisasyon pataje' : t.startsWith('[VOICE]') ? '🎙️ Nòt vokal' : t.slice(0, 80);
                     db.from('notifications').insert({
                         user_id: A.chatSellerId,
                         type: 'chat',
@@ -5324,6 +5341,7 @@
                     const preview = (() => {
                         const raw = c.lastMsg.content || '';
                         if (raw.startsWith('[LOC]')) return '📍 Lokalisasyon pataje';
+                        if (raw.startsWith('[VOICE]')) return '🎙️ Nòt vokal';
                         return raw.length > 80 ? raw.slice(0, 80) + '…' : raw;
                     })();
                     const pidAttr = typeof c.productId === 'string' ? `'${c.productId.replace(/'/g, "\\'")}'` : c.productId;
@@ -5485,7 +5503,8 @@
         function switchAdminTab(tab) {
             document.querySelectorAll(".admin-tab").forEach(b => { b.className = b.className.replace("bg-surface-container-lowest font-headline font-bold text-sm text-on-surface amb", "font-label font-bold text-sm text-on-surface-variant"); });
             document.getElementById("at-" + tab).className = document.getElementById("at-" + tab).className.replace("font-label font-bold text-sm text-on-surface-variant", "bg-surface-container-lowest font-headline font-bold text-sm text-on-surface amb");
-            ["verif", "orders", "users"].forEach(t => { document.getElementById("admin-" + t).classList.toggle("hidden", t !== tab); });
+            ["verif", "orders", "users", "convos"].forEach(t => { document.getElementById("admin-" + t).classList.toggle("hidden", t !== tab); });
+            if (tab === 'convos') loadAdminConversations();
         }
 
         function renderVerifList() {
@@ -5957,7 +5976,7 @@
             if (idx >= 0) VERIF_REQUESTS[idx].status = 'approved';
             // Update in Supabase
             if (db) {
-                db.from('profiles').update({ verified_seller: true, role: 'seller' }).eq('id', uid)
+                db.from('profiles').update({ verified_seller: true, role: 'seller' }).eq('id', uid).neq('role', 'admin')
                     .then(({ error }) => { if (error) console.warn('[Admin] Approve error:', error.message); });
                 db.from('verification_requests').update({ status: 'approved' }).eq('user_id', uid)
                     .then(({ error }) => { if (error) console.warn('[Admin] Verif update error:', error.message); });
@@ -6214,6 +6233,88 @@
             renderAdminUsers();
             toast(`${name} bloke`);
         }
+
+        // ── Admin: Conversations viewer (read-only) ──
+        var _adminConvos = [];
+        async function loadAdminConversations() {
+            if (!db || A.user?.role !== 'admin') return;
+            var el = document.getElementById('adminConvoList');
+            if (el) el.innerHTML = '<div class="text-center py-8"><p class="font-body text-sm text-on-surface-variant">Ap chaje…</p></div>';
+            var { data, error } = await db.from('messages')
+                .select('id, sender_id, receiver_id, product_id, content, created_at, read')
+                .order('created_at', { ascending: false })
+                .limit(200);
+            if (error || !data) {
+                if (el) el.innerHTML = '<p class="text-center font-body text-sm text-on-surface-variant py-8">Pa ka chaje konvèsasyon</p>';
+                return;
+            }
+            var threads = {};
+            data.forEach(function(m) {
+                var pair = [m.sender_id, m.receiver_id].sort().join('|');
+                if (!threads[pair]) threads[pair] = { pair: pair, sender: m.sender_id, receiver: m.receiver_id, msgs: [], last: m };
+                threads[pair].msgs.push(m);
+            });
+            _adminConvos = Object.values(threads).sort(function(a, b) {
+                return new Date(b.last.created_at) - new Date(a.last.created_at);
+            });
+            var uids = new Set();
+            _adminConvos.forEach(function(c) { uids.add(c.sender); uids.add(c.receiver); });
+            var { data: profiles } = await db.from('profiles').select('id, display_name, first_name, last_name, avatar_url').in('id', Array.from(uids));
+            var pMap = {};
+            (profiles || []).forEach(function(p) { pMap[p.id] = p; });
+
+            if (!_adminConvos.length) {
+                if (el) el.innerHTML = '<p class="text-center font-body text-sm text-on-surface-variant py-8">Pa gen konvèsasyon</p>';
+                return;
+            }
+            if (el) el.innerHTML = _adminConvos.map(function(c, idx) {
+                var p1 = pMap[c.sender] || {};
+                var p2 = pMap[c.receiver] || {};
+                var n1 = p1.display_name || [p1.first_name, p1.last_name].filter(Boolean).join(' ') || 'Itilizatè';
+                var n2 = p2.display_name || [p2.first_name, p2.last_name].filter(Boolean).join(' ') || 'Itilizatè';
+                var raw = c.last.content || '';
+                var preview = raw.startsWith('[LOC]') ? '📍 Lokalisasyon' : raw.startsWith('[VOICE]') ? '🎙️ Vokal' : (raw.length > 50 ? raw.slice(0, 50) + '…' : raw);
+                var ago = typeof timeAgo === 'function' ? timeAgo(c.last.created_at) : '';
+                return '<div class="bg-surface-container-lowest rounded-xl p-3 amb cursor-pointer active:bg-surface-container-low" onclick="viewAdminConvo(' + idx + ')">' +
+                    '<div class="flex items-center gap-3">' +
+                    '<div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(0,102,111,.1)"><span class="material-symbols-outlined" style="font-size:20px;color:#00666f">forum</span></div>' +
+                    '<div class="flex-1 min-w-0">' +
+                    '<p class="font-headline font-bold text-sm text-on-surface truncate">' + n1 + ' ↔ ' + n2 + '</p>' +
+                    '<p class="font-body text-xs text-on-surface-variant truncate">' + preview + '</p>' +
+                    '</div>' +
+                    '<span class="font-label text-[10px] text-on-surface-variant flex-shrink-0">' + ago + '</span>' +
+                    '</div></div>';
+            }).join('');
+        }
+        function viewAdminConvo(idx) {
+            var c = _adminConvos[idx];
+            if (!c) return;
+            var html = '<div class="fixed inset-0 z-[200] bg-black/50 flex items-end justify-center" id="adminConvoOverlay" onclick="if(event.target===this)this.remove()">' +
+                '<div class="w-full max-w-md bg-surface rounded-t-[1.5rem] max-h-[85vh] flex flex-col">' +
+                '<div class="flex items-center justify-between px-4 py-3 border-b" style="border-color:rgba(188,201,200,.15)">' +
+                '<p class="font-headline font-bold text-sm text-on-surface">Konvèsasyon (lekti sèlman)</p>' +
+                '<button onclick="document.getElementById(\'adminConvoOverlay\').remove()" class="w-8 h-8 rounded-full flex items-center justify-center amb"><span class="material-symbols-outlined" style="font-size:18px">close</span></button>' +
+                '</div>' +
+                '<div class="flex-1 overflow-y-auto p-4 space-y-2">';
+            c.msgs.slice().reverse().forEach(function(m) {
+                var raw = m.content || '';
+                var display = raw;
+                if (raw.startsWith('[LOC]')) display = '📍 Lokalisasyon pataje';
+                else if (raw.startsWith('[VOICE]')) display = '🎙️ Nòt vokal';
+                var side = m.sender_id === c.sender ? 'justify-end' : 'justify-start';
+                var bg = m.sender_id === c.sender ? 'bsent' : 'brecv amb';
+                var tm = new Date(m.created_at).toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' });
+                html += '<div class="flex ' + side + '">' +
+                    '<div class="max-w-[76%] px-4 py-2.5 ' + bg + '">' +
+                    '<p class="font-body text-sm leading-relaxed">' + display + '</p>' +
+                    '<p class="font-label text-[10px] mt-1 ' + (m.sender_id === c.sender ? 'text-white/60' : 'text-on-surface-variant') + '">' + tm + '</p>' +
+                    '</div></div>';
+            });
+            html += '</div></div></div>';
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+        window.viewAdminConvo = viewAdminConvo;
+        window.loadAdminConversations = loadAdminConversations;
 
         // ══════════════════════════════════════════════════════════
         //  POINT 6 — CENTRE DE NOTIFICATIONS + FCM STUB
@@ -8482,12 +8583,31 @@
             if (VIBRATE_ON && navigator.vibrate) navigator.vibrate(30);
         }
 
-        function submitFeedback() {
-            const msg = document.getElementById('feedbackMsg')?.value?.trim();
+        async function submitFeedback() {
+            var msg = document.getElementById('feedbackMsg')?.value?.trim();
             if (!feedbackRating) { toast('Chwazi yon nòt anvan'); return; }
             closeSheets();
+            toast('Ap voye feedback…');
+            if (db && A.user?.uid) {
+                var body = '★'.repeat(feedbackRating) + (msg ? ' — ' + msg : '');
+                var { data: admins } = await db.from('profiles').select('id').eq('role', 'admin').limit(5);
+                if (admins && admins.length) {
+                    var notifs = admins.map(function(a) {
+                        return {
+                            user_id: a.id, type: 'system', icon: 'rate_review',
+                            title: 'Nouvo Feedback',
+                            body: (A.user.name || 'Yon itilizatè') + ': ' + body,
+                            color: '#f59e0b'
+                        };
+                    });
+                    db.from('notifications').insert(notifs)
+                        .then(function(r) { if (r.error) console.warn('[Feedback]', r.error.message); });
+                }
+            }
             toast('Mèsi pou feedback ou! ' + '★'.repeat(feedbackRating));
             playNotifSound();
+            document.getElementById('feedbackMsg').value = '';
+            feedbackRating = 0;
         }
 
         function shareApp() {
@@ -9190,9 +9310,8 @@
                 const { data } = await Promise.race([
                     db.from('profiles').upsert({
                         id: uid, first_name: fn, last_name: ln,
-                        role: null,
                         avatar_url: meta.avatar_url || meta.picture || null,
-                    }, { onConflict: 'id' }).select().single(),
+                    }, { onConflict: 'id', ignoreDuplicates: false }).select().single(),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
                 ]);
                 profile = data;
@@ -9373,6 +9492,7 @@
     //  ROLE SELECTION — Save to Supabase
     // ══════════════════════════════════════════════════════════
     async function supabaseSaveRole(role, phone, bizName, location) {
+        if (A.user?.role === 'admin') { toast('Admin pa ka chanje wòl'); hideAuthLoader(); return; }
         showAuthLoader('Ap anrejistre wòl...');
         let updateSuccess = false;
 
