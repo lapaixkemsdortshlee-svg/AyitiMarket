@@ -6656,39 +6656,55 @@
             const dur = `${Math.floor(elapsed / 60)}:${s < 10 ? '0' + s : s}`;
             const sizeKb = Math.round(blob.size / 1024);
             const tm = new Date().toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' });
-            const localUrl = URL.createObjectURL(blob);
             const pid = A.chatId;
 
-            if (!A.msgs[pid]) A.msgs[pid] = [];
-            A.msgs[pid].push({ s: true, type: 'voice', url: localUrl, dur, size: sizeKb, tm });
-            renderChatMsgs(pid);
+            toast('Ap voye nòt vokal…');
 
             try {
-                const path = `voice/${A.user.uid}/${Date.now()}.webm`;
-                const { error: upErr } = await db.storage.from('product-images').upload(path, blob, {
-                    contentType: 'audio/webm', upsert: true
-                });
-                if (upErr) throw upErr;
-                const { data: urlData } = db.storage.from('product-images').getPublicUrl(path);
-                const publicUrl = urlData?.publicUrl;
-                if (!publicUrl) throw new Error('No public URL');
+                let voiceUrl = null;
+                const ts = Date.now();
+                const file = new File([blob], 'voice_' + ts + '.webm', { type: 'audio/webm' });
+                const paths = [
+                    A.user.uid + '/voice_' + ts + '.webm',
+                    'voice/' + A.user.uid + '/' + ts + '.webm',
+                    'products/' + A.user.uid + '/voice_' + ts + '.webm'
+                ];
+                for (const path of paths) {
+                    const { error: upErr } = await db.storage.from('product-images').upload(path, file, {
+                        contentType: 'audio/webm', upsert: true
+                    });
+                    if (!upErr) {
+                        const { data: urlData } = db.storage.from('product-images').getPublicUrl(path);
+                        if (urlData?.publicUrl) { voiceUrl = urlData.publicUrl; break; }
+                    }
+                }
 
-                const voicePayload = JSON.stringify({ url: publicUrl, dur, size: sizeKb });
-                const dbContent = '[VOICE]' + voicePayload;
-                await db.from('messages').insert({
+                if (!voiceUrl) {
+                    voiceUrl = await new Promise(function(resolve, reject) {
+                        var reader = new FileReader();
+                        reader.onloadend = function() { resolve(reader.result); };
+                        reader.onerror = function() { reject(new Error('Base64 failed')); };
+                        reader.readAsDataURL(blob);
+                    });
+                }
+
+                var voicePayload = JSON.stringify({ url: voiceUrl, dur: dur, size: sizeKb });
+                var dbContent = '[VOICE]' + voicePayload;
+                var { error: msgErr } = await db.from('messages').insert({
                     sender_id: A.user.uid,
                     receiver_id: A.chatSellerId,
                     product_id: pid,
                     content: dbContent,
                 });
+                if (msgErr) throw msgErr;
 
-                const last = A.msgs[pid][A.msgs[pid].length - 1];
-                if (last && last.type === 'voice' && last.url === localUrl) last.url = publicUrl;
-
-                toast(`Nòt vokal voye — ${dur}`);
+                if (!A.msgs[pid]) A.msgs[pid] = [];
+                A.msgs[pid].push({ s: true, type: 'voice', url: voiceUrl, dur: dur, size: sizeKb, tm: tm });
+                renderChatMsgs(pid);
+                toast('Nòt vokal voye — ' + dur);
             } catch (err) {
                 console.warn('[Voice send]', err);
-                toast('Erè: pa ka voye nòt vokal');
+                toast('Erè: pa ka voye nòt vokal — ' + (err.message || 'reyesye'));
             }
         }
 
