@@ -6559,7 +6559,6 @@
         }
 
         async function startVoiceRecord() {
-            // Demander permission micro
             if (!navigator.mediaDevices?.getUserMedia) {
                 toast('Mikwo pa sipòte nan navigatè sa a');
                 return;
@@ -6567,22 +6566,40 @@
             try {
                 VOICE.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 VOICE.chunks = [];
-                VOICE.recorder = new MediaRecorder(VOICE.stream);
+                var options = {};
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    options.mimeType = 'audio/webm;codecs=opus';
+                } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                    options.mimeType = 'audio/webm';
+                }
+                VOICE.recorder = new MediaRecorder(VOICE.stream, options);
 
-                VOICE.recorder.ondataavailable = e => VOICE.chunks.push(e.data);
-                VOICE.recorder.onstop = () => {
-                    const blob = new Blob(VOICE.chunks, { type: 'audio/webm' });
-                    sendVoiceMessage(blob);
-                    VOICE.stream.getTracks().forEach(t => t.stop());
+                VOICE.recorder.ondataavailable = function(e) {
+                    if (e.data && e.data.size > 0) VOICE.chunks.push(e.data);
+                };
+                VOICE.recorder.onstop = function() {
+                    var blob = new Blob(VOICE.chunks, { type: options.mimeType || 'audio/webm' });
+                    if (VOICE.stream) {
+                        VOICE.stream.getTracks().forEach(function(t) { t.stop(); });
+                        VOICE.stream = null;
+                    }
+                    if (blob.size > 0) {
+                        sendVoiceMessage(blob).catch(function(err) {
+                            console.warn('[Voice onstop]', err);
+                            toast('Erè vokal: ' + (err.message || 'Reyesye'));
+                        });
+                    } else {
+                        toast('Anrejistreman vid — reyesye');
+                    }
                 };
 
-                VOICE.recorder.start();
+                VOICE.recorder.start(500);
                 VOICE.startTime = Date.now();
                 showVoiceBar();
                 startRecordTimer();
 
             } catch (err) {
-                const msgs = {
+                var msgs = {
                     NotAllowedError: 'Aksè mikwo refize — aktive pèmisyon nan navigatè ou',
                     NotFoundError: 'Pa jwenn mikwo sou aparèy ou',
                     NotSupportedError: 'Mikwo pa sipòte',
@@ -6621,7 +6638,7 @@
                 const el = document.getElementById('recTimer');
                 if (el) el.textContent = `${m}:${s < 10 ? '0' + s : s}`;
                 // Limiter à 2 minutes
-                if (elapsed >= 120) stopAndSendVoice();
+                if (elapsed >= 30) stopAndSendVoice();
             }, 1000);
         }
 
@@ -6649,46 +6666,48 @@
         }
 
         async function sendVoiceMessage(blob) {
-            if (!A.chatId || !A.user?.uid) return;
-            const elapsed = Math.floor((Date.now() - VOICE.startTime) / 1000);
-            if (elapsed < 1) { toast('Nòt twò kout'); return; }
-            const s = elapsed % 60;
-            const dur = `${Math.floor(elapsed / 60)}:${s < 10 ? '0' + s : s}`;
-            const sizeKb = Math.round(blob.size / 1024);
-            const tm = new Date().toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' });
-            const localUrl = URL.createObjectURL(blob);
-            const pid = A.chatId;
+            var pid = A.chatId;
+            var sellerId = A.chatSellerId;
+            var uid = A.user?.uid;
+            if (!pid || !uid || !sellerId) {
+                toast('Chat pa pare — reyesye');
+                return;
+            }
+            var elapsed = Math.floor((Date.now() - (VOICE.startTime || Date.now())) / 1000);
+            if (elapsed < 1) elapsed = 1;
+            var sec = elapsed % 60;
+            var dur = Math.floor(elapsed / 60) + ':' + (sec < 10 ? '0' + sec : sec);
+            var sizeKb = Math.round(blob.size / 1024);
+            var tm = new Date().toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' });
 
-            if (!A.msgs[pid]) A.msgs[pid] = [];
-            A.msgs[pid].push({ s: true, type: 'voice', url: localUrl, dur, size: sizeKb, tm });
-            renderChatMsgs(pid);
+            toast('Ap voye nòt vokal…');
 
             try {
-                const path = `voice/${A.user.uid}/${Date.now()}.webm`;
-                const { error: upErr } = await db.storage.from('product-images').upload(path, blob, {
-                    contentType: 'audio/webm', upsert: true
+                var dataUrl = await new Promise(function(resolve, reject) {
+                    var reader = new FileReader();
+                    reader.onloadend = function() { resolve(reader.result); };
+                    reader.onerror = function() { reject(new Error('Pa ka li odyo')); };
+                    reader.readAsDataURL(blob);
                 });
-                if (upErr) throw upErr;
-                const { data: urlData } = db.storage.from('product-images').getPublicUrl(path);
-                const publicUrl = urlData?.publicUrl;
-                if (!publicUrl) throw new Error('No public URL');
 
-                const voicePayload = JSON.stringify({ url: publicUrl, dur, size: sizeKb });
-                const dbContent = '[VOICE]' + voicePayload;
-                await db.from('messages').insert({
-                    sender_id: A.user.uid,
-                    receiver_id: A.chatSellerId,
+                var payload = JSON.stringify({ url: dataUrl, dur: dur, size: sizeKb });
+                var dbContent = '[VOICE]' + payload;
+
+                var result = await db.from('messages').insert({
+                    sender_id: uid,
+                    receiver_id: sellerId,
                     product_id: pid,
                     content: dbContent,
                 });
+                if (result.error) throw new Error(result.error.message || 'DB insert echwe');
 
-                const last = A.msgs[pid][A.msgs[pid].length - 1];
-                if (last && last.type === 'voice' && last.url === localUrl) last.url = publicUrl;
-
-                toast(`Nòt vokal voye — ${dur}`);
+                if (!A.msgs[pid]) A.msgs[pid] = [];
+                A.msgs[pid].push({ s: true, type: 'voice', url: dataUrl, dur: dur, size: sizeKb, tm: tm });
+                renderChatMsgs(pid);
+                toast('Nòt vokal voye — ' + dur);
             } catch (err) {
                 console.warn('[Voice send]', err);
-                toast('Erè: pa ka voye nòt vokal');
+                toast('Erè vokal: ' + (err.message || 'reyesye'));
             }
         }
 
