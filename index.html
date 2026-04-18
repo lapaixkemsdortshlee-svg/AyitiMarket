@@ -6316,6 +6316,52 @@
         window.viewAdminConvo = viewAdminConvo;
         window.loadAdminConversations = loadAdminConversations;
 
+        // ── Admin: Feedback Inbox ──
+        async function openAdminFeedback() {
+            var html = '<div class="fixed inset-0 z-[200] bg-black/50 flex items-end justify-center" id="adminFeedbackOverlay" onclick="if(event.target===this)this.remove()">' +
+                '<div class="w-full max-w-md bg-surface rounded-t-[1.5rem] max-h-[85vh] flex flex-col">' +
+                '<div class="flex items-center justify-between px-4 py-3 border-b" style="border-color:rgba(188,201,200,.15)">' +
+                '<p class="font-headline font-bold text-sm text-on-surface">Feedback Itilizatè yo</p>' +
+                '<button onclick="document.getElementById(\'adminFeedbackOverlay\').remove()" class="w-8 h-8 rounded-full flex items-center justify-center amb"><span class="material-symbols-outlined" style="font-size:18px">close</span></button>' +
+                '</div>' +
+                '<div class="flex-1 overflow-y-auto p-4 space-y-3" id="adminFeedbackBody">' +
+                '<p class="text-center font-body text-sm text-on-surface-variant py-4">Ap chaje…</p>' +
+                '</div></div></div>';
+            document.body.insertAdjacentHTML('beforeend', html);
+
+            if (!db || A.user?.role !== 'admin') return;
+            var { data, error } = await db.from('notifications')
+                .select('id, user_id, title, body, color, read, created_at')
+                .eq('user_id', A.user.uid)
+                .eq('icon', 'rate_review')
+                .order('created_at', { ascending: false })
+                .limit(50);
+
+            var el = document.getElementById('adminFeedbackBody');
+            if (error || !data || !data.length) {
+                if (el) el.innerHTML = '<div class="text-center py-8"><span class="material-symbols-outlined text-on-surface-variant" style="font-size:36px">inbox</span><p class="font-body text-sm text-on-surface-variant mt-2">Pa gen feedback pou kounye a</p></div>';
+                return;
+            }
+            if (el) el.innerHTML = data.map(function(f) {
+                var ago = typeof timeAgo === 'function' ? timeAgo(f.created_at) : '';
+                var isTicket = (f.title || '').indexOf('Tiket') >= 0;
+                return '<div class="bg-surface-container-lowest rounded-xl p-3 amb">' +
+                    '<div class="flex items-center gap-3">' +
+                    '<div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background:' + (isTicket ? 'rgba(151,66,43,.1)' : 'rgba(245,158,11,.1)') + '">' +
+                    '<span class="material-symbols-outlined" style="font-size:18px;color:' + (isTicket ? '#97422b' : '#f59e0b') + '">' + (isTicket ? 'confirmation_number' : 'rate_review') + '</span></div>' +
+                    '<div class="flex-1 min-w-0">' +
+                    '<p class="font-headline font-bold text-xs text-on-surface">' + (f.title || 'Feedback') + '</p>' +
+                    '<p class="font-body text-xs text-on-surface-variant truncate">' + (f.body || '') + '</p>' +
+                    '</div>' +
+                    '<span class="font-label text-[10px] text-on-surface-variant flex-shrink-0">' + ago + '</span>' +
+                    '</div></div>';
+            }).join('');
+
+            db.from('notifications').update({ read: true })
+                .eq('user_id', A.user.uid).eq('icon', 'rate_review').eq('read', false);
+        }
+        window.openAdminFeedback = openAdminFeedback;
+
         // ══════════════════════════════════════════════════════════
         //  POINT 6 — CENTRE DE NOTIFICATIONS + FCM STUB
         // ══════════════════════════════════════════════════════════
@@ -6393,11 +6439,11 @@
                     </button>
                 </div>
                 <div class="flex items-center gap-2" style="animation:fabIn .22s ease">
-                    <span class="font-label text-[11px] font-bold text-on-surface px-2 py-1 rounded-full bg-surface-container-lowest amb">Asistan Bot</span>
-                    <button onclick="fabSpeedDial(false);openSheet('botSheet')"
+                    <span class="font-label text-[11px] font-bold text-on-surface px-2 py-1 rounded-full bg-surface-container-lowest amb">Feedback</span>
+                    <button onclick="fabSpeedDial(false);openAdminFeedback()"
                         class="w-11 h-11 rounded-full flex items-center justify-center active:scale-90 amb"
-                        style="background:#97422b;color:#fff" aria-label="Asistan Bot">
-                        <span class="material-symbols-outlined fi" style="font-size:20px">support_agent</span>
+                        style="background:#97422b;color:#fff" aria-label="Feedback">
+                        <span class="material-symbols-outlined fi" style="font-size:20px">rate_review</span>
                     </button>
                 </div>`;
         }
@@ -7195,7 +7241,7 @@
             closeSheets();
             toast('Peman deklare — admin ap verifye');
             // Notify admin(s)
-            db.from('profiles').select('id').eq('is_admin', true).then(({ data: admins }) => {
+            db.from('profiles').select('id').eq('role', 'admin').then(({ data: admins }) => {
                 (admins || []).forEach(a => db.from('notifications').insert({
                     user_id: a.id, type: 'order', icon: 'task',
                     title: 'Peman pou verifye',
@@ -7269,7 +7315,7 @@
                 closeSheets();
                 toast('OTP korèk — livrezon konfime ✓');
                 // Notify admins: escrow ready to release
-                db.from('profiles').select('id').eq('is_admin', true).then(({ data: admins }) => {
+                db.from('profiles').select('id').eq('role', 'admin').then(({ data: admins }) => {
                     (admins || []).forEach(a => db.from('notifications').insert({
                         user_id: a.id, type: 'order', icon: 'paid',
                         title: 'Lage lajan',
@@ -7328,7 +7374,7 @@
             });
             if (error) { toast('Erè: ' + error.message); return; }
             toast('Litij ouvri — admin ap kontakte w');
-            db.from('profiles').select('id').eq('is_admin', true).then(({ data: admins }) => {
+            db.from('profiles').select('id').eq('role', 'admin').then(({ data: admins }) => {
                 (admins || []).forEach(a => db.from('notifications').insert({
                     user_id: a.id, type: 'order', icon: 'report',
                     title: 'Nouvo litij',
@@ -8487,9 +8533,9 @@
             const ticketId = 'TK-' + Math.floor(Math.random() * 9000 + 1000);
 
             if (db && A.user?.uid) {
-                db.from('profiles').select('id').eq('is_admin', true).then(({ data: admins }) => {
+                db.from('profiles').select('id').eq('role', 'admin').then(({ data: admins }) => {
                     (admins || []).forEach(a => db.from('notifications').insert({
-                        user_id: a.id, type: 'system', icon: 'confirmation_number',
+                        user_id: a.id, type: 'system', icon: 'rate_review',
                         title: 'Tiket sipò: ' + ticketId,
                         body: (A.user.name || 'Yon itilizatè') + ' (' + type + '): ' + msg.slice(0, 120),
                         color: '#97422b',
