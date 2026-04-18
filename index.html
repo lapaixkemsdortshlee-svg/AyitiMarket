@@ -1537,7 +1537,7 @@
         <div class="pt-[88px] pb-[80px] px-4 flex flex-col gap-2.5 min-h-dvh" id="chatMsgs"></div>
 
         <!-- Chat Input Bar Premium -->
-        <div class="fixed bottom-0 left-0 right-0 z-40 glass px-3 py-2.5" style="border-top:1px solid rgba(188,201,200,.08)">
+        <div id="chatInputBar" class="fixed bottom-0 left-0 right-0 z-40 glass px-3 py-2.5" style="border-top:1px solid rgba(188,201,200,.08)">
             <div class="flex items-end gap-2">
                 <!-- Location button -->
                 <button onclick="openMapSheet()"
@@ -6592,21 +6592,23 @@
         }
 
         function showVoiceBar() {
-            document.querySelector('.fixed.bottom-\\[72px\\].z-40').style.display = 'none';
-            document.getElementById('voiceBar').classList.remove('hidden');
-            document.getElementById('voiceBar').style.display = 'flex';
-            // Animer la barre de progression
-            let w = 0;
+            const bar = document.getElementById('chatInputBar');
+            if (bar) bar.style.display = 'none';
+            const vb = document.getElementById('voiceBar');
+            if (vb) { vb.classList.remove('hidden'); vb.style.display = 'flex'; }
+            const timer = document.getElementById('recTimer');
+            if (timer) timer.textContent = '0:00';
             VOICE._waveInterval = setInterval(() => {
-                w = (w + Math.random() * 8) % 100;
                 const bar = document.getElementById('waveBar');
                 if (bar) bar.style.width = (30 + Math.random() * 60) + '%';
             }, 200);
         }
 
         function hideVoiceBar() {
-            document.querySelector('.fixed.bottom-\\[72px\\].z-40').style.display = '';
-            document.getElementById('voiceBar').classList.add('hidden');
+            const bar = document.getElementById('chatInputBar');
+            if (bar) bar.style.display = '';
+            const vb = document.getElementById('voiceBar');
+            if (vb) { vb.classList.add('hidden'); vb.style.display = ''; }
             clearInterval(VOICE._waveInterval);
             clearInterval(VOICE.timerInterval);
         }
@@ -6625,58 +6627,99 @@
 
         function cancelVoice() {
             if (VOICE.recorder && VOICE.recorder.state !== 'inactive') {
-                VOICE.recorder.stream.getTracks().forEach(t => t.stop());
-                VOICE.recorder = null;
+                VOICE.recorder.ondataavailable = null;
+                VOICE.recorder.onstop = null;
+                VOICE.recorder.stop();
+            }
+            VOICE.recorder = null;
+            VOICE.chunks = [];
+            if (VOICE.stream) {
+                VOICE.stream.getTracks().forEach(t => t.stop());
+                VOICE.stream = null;
             }
             hideVoiceBar();
             toast('Nòt vokal anile');
         }
 
         function stopAndSendVoice() {
+            hideVoiceBar();
             if (VOICE.recorder && VOICE.recorder.state !== 'inactive') {
                 VOICE.recorder.stop();
             }
-            hideVoiceBar();
         }
 
-        function sendVoiceMessage(blob) {
-            if (!A.chatId) return;
+        async function sendVoiceMessage(blob) {
+            if (!A.chatId || !A.user?.uid) return;
             const elapsed = Math.floor((Date.now() - VOICE.startTime) / 1000);
-            const dur = `${Math.floor(elapsed / 60)}:${(elapsed % 60) < 10 ? '0' + (elapsed % 60) : elapsed % 60}`;
-            const url = URL.createObjectURL(blob);
+            if (elapsed < 1) { toast('Nòt twò kout'); return; }
+            const s = elapsed % 60;
+            const dur = `${Math.floor(elapsed / 60)}:${s < 10 ? '0' + s : s}`;
+            const sizeKb = Math.round(blob.size / 1024);
             const tm = new Date().toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' });
+            const localUrl = URL.createObjectURL(blob);
+            const pid = A.chatId;
 
-            A.msgs[A.chatId].push({ s: true, type: 'voice', url, dur, size: Math.round(blob.size / 1024), tm });
-            renderChatMsgs(A.chatId);
-            toast(`Nòt vokal voye — ${dur}`);
+            if (!A.msgs[pid]) A.msgs[pid] = [];
+            A.msgs[pid].push({ s: true, type: 'voice', url: localUrl, dur, size: sizeKb, tm });
+            renderChatMsgs(pid);
 
-            // Auto-reply avec délai
-            setTimeout(() => {
-                A.msgs[A.chatId].push({ s: false, t: 'Mwen tande mesaj ou! Mwen ap reponn ou talè.', tm: new Date().toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit' }) });
-                renderChatMsgs(A.chatId);
-            }, 1500);
+            try {
+                const path = `voice/${A.user.uid}/${Date.now()}.webm`;
+                const { error: upErr } = await db.storage.from('product-images').upload(path, blob, {
+                    contentType: 'audio/webm', upsert: true
+                });
+                if (upErr) throw upErr;
+                const { data: urlData } = db.storage.from('product-images').getPublicUrl(path);
+                const publicUrl = urlData?.publicUrl;
+                if (!publicUrl) throw new Error('No public URL');
+
+                const voicePayload = JSON.stringify({ url: publicUrl, dur, size: sizeKb });
+                const dbContent = '[VOICE]' + voicePayload;
+                await db.from('messages').insert({
+                    sender_id: A.user.uid,
+                    receiver_id: A.chatSellerId,
+                    product_id: pid,
+                    content: dbContent,
+                });
+
+                const last = A.msgs[pid][A.msgs[pid].length - 1];
+                if (last && last.type === 'voice' && last.url === localUrl) last.url = publicUrl;
+
+                toast(`Nòt vokal voye — ${dur}`);
+            } catch (err) {
+                console.warn('[Voice send]', err);
+                toast('Erè: pa ka voye nòt vokal');
+            }
         }
 
-        // Bubble nòt vokal
         function voiceBubble(m) {
+            const sent = m.s !== false;
+            const align = sent ? 'justify-end' : 'justify-start';
+            const corner = sent ? 'rounded-br-[.25rem]' : 'rounded-bl-[.25rem]';
+            const bg = sent ? 'bsent' : 'brecv amb';
+            const txtCol = sent ? 'text-white' : 'text-on-surface';
+            const subCol = sent ? 'text-white/60' : 'text-on-surface-variant';
+            const btnBg = sent ? 'rgba(255,255,255,.2)' : 'rgba(0,102,111,.12)';
+            const barFg = sent ? 'rgba(255,255,255,' : 'rgba(0,102,111,';
+            const safeUrl = (m.url || '').replace(/'/g, '%27');
+            const uid = 'v' + Math.random().toString(36).slice(2, 8);
             return `
-  <div class="flex justify-end">
-    <div class="rounded-[1.25rem] rounded-br-[.25rem] px-4 py-3 bsent" style="min-width:200px;max-width:80%">
+  <div class="flex ${align}">
+    <div class="rounded-[1.25rem] ${corner} px-4 py-3 ${bg}" style="min-width:200px;max-width:80%">
       <div class="flex items-center gap-3">
-        <button onclick="playVoice('${m.url}',this)"
+        <button onclick="playVoice('${safeUrl}',this)"
                 class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                style="background:rgba(255,255,255,.2)">
-          <span class="material-symbols-outlined fi text-white" style="font-size:18px" id="playIco_${Date.now()}">play_arrow</span>
+                style="background:${btnBg}">
+          <span class="material-symbols-outlined fi ${txtCol}" style="font-size:18px" id="${uid}">play_arrow</span>
         </button>
-        <!-- Waveform visual -->
         <div class="flex-1 flex items-center gap-0.5 h-6">
-          ${Array.from({ length: 20 }, (_, i) => `<div style="width:3px;border-radius:9999px;background:rgba(255,255,255,${.3 + Math.random() * .6});height:${4 + Math.round(Math.random() * 16)}px"></div>`).join('')}
+          ${Array.from({ length: 20 }, () => `<div style="width:3px;border-radius:9999px;background:${barFg}${(.3 + Math.random() * .6).toFixed(2)});height:${4 + Math.round(Math.random() * 16)}px"></div>`).join('')}
         </div>
-        <span class="font-label text-[10px] text-white/70 flex-shrink-0">${m.dur}</span>
+        <span class="font-label text-[10px] ${subCol} flex-shrink-0">${m.dur || '0:00'}</span>
       </div>
       <div class="flex items-center justify-between mt-1.5">
-        <span class="font-label text-[10px] text-white/50">${m.size}KB · audio</span>
-        <span class="font-label text-[10px] text-white/60">${m.tm}</span>
+        <span class="font-label text-[10px] ${subCol}">${m.size ? m.size + 'KB · ' : ''}audio</span>
+        <span class="font-label text-[10px] ${subCol}">${m.tm}</span>
       </div>
     </div>
   </div>`;
@@ -7846,12 +7889,19 @@
 
         // Parse a raw DB message into the chat-friendly shape (location vs text)
         function parseMsgContent(raw) {
-            if (typeof raw === 'string' && raw.startsWith('[LOC]')) {
+            if (typeof raw !== 'string') return null;
+            if (raw.startsWith('[LOC]')) {
                 try {
                     const payload = JSON.parse(raw.slice(5));
                     const coords = { lat: payload.lat, lng: payload.lng };
                     const mapsUrl = `https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lng}#map=15/${coords.lat}/${coords.lng}`;
                     return { type: 'location', coords, nearest: payload.nearest || null, mapsUrl };
+                } catch(e) { /* fall through */ }
+            }
+            if (raw.startsWith('[VOICE]')) {
+                try {
+                    const payload = JSON.parse(raw.slice(7));
+                    return { type: 'voice', url: payload.url, dur: payload.dur || '0:00', size: payload.size || 0 };
                 } catch(e) { /* fall through */ }
             }
             return null;
