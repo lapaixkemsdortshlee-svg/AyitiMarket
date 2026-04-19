@@ -6145,7 +6145,7 @@
                 p_admin_note: 'Payout: ' + (result.transaction_id || 'simulated'),
             });
             if (error) { toast('Erè DB: ' + error.message); return; }
-            toast(result.simulated ? 'Simule: lajan dwe transfere manyèlman' : 'Lajan libere ✓');
+            toast(result.simulated ? 'Lajan libere — transfere manyèlman via MonCash' : 'Lajan libere via MonCash ✓');
             db.from('notifications').insert({
                 user_id: o.seller_id, type: 'order', icon: 'paid',
                 title: 'Lajan libere',
@@ -6670,8 +6670,7 @@
             }
         }
 
-        // Push notifications handled by Supabase Realtime + service worker
-        function simulatePushNotif() { /* Removed — production uses real push */ }
+        // Push notifications handled by Supabase Realtime
         function showSuccess(emoji, title, body, escrow, btnLabel) {
             const ov = document.getElementById("successOverlay"); ov.classList.remove("hidden");
             const iconMap = { "verified_icon": "verified", "hourglass_icon": "hourglass_top", "check": "check_circle", "default": "check_circle" };
@@ -8200,32 +8199,20 @@
                 `linear-gradient(145deg,${color}22,${color}08)`;
         }
 
-        // Capture photo for AR try-on
         function tryonCapture() {
-            const btn = document.getElementById('tryonCaptureBtn');
-            const preview = document.getElementById('tryonPreview');
             const ph = document.getElementById('tryonPlaceholder');
-
-            btn.innerHTML = `<span class="material-symbols-outlined fi text-white sp" style="font-size:20px">autorenew</span> Ap traite…`;
-            btn.disabled = true;
-
-            setTimeout(() => {
-                // AR result rendering
-                ph.innerHTML = `
+            const preview = document.getElementById('tryonPreview');
+            ph.innerHTML = `
       <div class="text-center px-4">
         <span class="material-symbols-outlined fi" style="font-size:44px;color:#7c3aed">checkroom</span>
-        <p class="font-headline font-bold text-sm text-on-surface mt-2">Simulasyon AR</p>
+        <p class="font-headline font-bold text-sm text-on-surface mt-2">Eseyaj Vityèl</p>
         <p class="font-label text-xs text-on-surface-variant mt-1 leading-relaxed">
-          ML Kit ap detekte kò ou<br/>epi aplikasyon pwodwi a sou ou.<br/>
-          <span style="color:#7c3aed;font-weight:700">Phase 2 — disponib talè</span>
+          Fonksyon sa a ap vini byento.<br/>
+          <span style="color:#7c3aed;font-weight:700">Ap devlope — disponib talè</span>
         </p>
       </div>`;
-                preview.style.background = 'linear-gradient(145deg,rgba(124,58,237,.12),rgba(79,70,229,.06))';
-
-                btn.innerHTML = `<span class="material-symbols-outlined fi text-white" style="font-size:20px">check_circle</span> Simulasyon fini`;
-                btn.disabled = false;
-                toast('AR simulasyon kreye — Phase 2 ap entegre ML Kit reyèl');
-            }, 1800);
+            preview.style.background = 'linear-gradient(145deg,rgba(124,58,237,.12),rgba(79,70,229,.06))';
+            toast('Eseyaj vityèl ap disponib talè');
         }
 
         // Notifier pour Phase 2
@@ -9290,13 +9277,6 @@
             { emoji:'🦅', label:'Kap Palmis' },
         ];
 
-        // Emoji/Sticker panel retired — interface premium
-        function initEmojiPanel() {}
-        function toggleEmojiPanel() {}
-        function closeEmojiPanel() {}
-        function switchEmojiTab() {}
-        function insertEmoji() {}
-        function insertSticker() {}
 
     </script>
 
