@@ -1001,9 +1001,20 @@
                     ifr.title = 'AyitiMarket Onboarding';
                     ifr.setAttribute('allow', 'autoplay');
                     ifr.style.cssText = 'width:100%;height:100%;border:0;display:block;background:transparent';
-                    ifr.addEventListener('load', () => { c.removeAttribute('data-loading'); });
+                    // Resolve once the iframe has loaded so callers can wait
+                    // for the first paint before hiding the splash on top.
+                    const loaded = new Promise(resolve => {
+                        ifr.addEventListener('load', () => {
+                            c.removeAttribute('data-loading');
+                            // Small buffer so Babel finishes compiling the
+                            // <script type="text/babel"> and React commits
+                            // the first render before we fade the splash.
+                            setTimeout(resolve, 60);
+                        }, { once: true });
+                    });
                     ifr.srcdoc = html;
                     c.appendChild(ifr);
+                    return loaded;
                 } catch (err) {
                     console.warn('[Onboarding] Fetch failed, skipping to login:', err);
                     // Don't trap the user on a blank screen if onboarding
@@ -3239,26 +3250,29 @@
         window._authResolved = false; // Supabase va mettre sa à true
 
         window.addEventListener("load", () => {
-            // Splash minimum 1.8s, puis décision
-            setTimeout(() => {
-                hideSplash();
-
-                // Onboarding gate (in-page): show onboarding for first-visit users.
-                // Uses #s-onboarding + iframe(onboarding.html). See mountOnboarding()
-                // and window.__completeOnboarding() helpers earlier in this file.
-                if (!localStorage.getItem('aym_onboarded')) {
+            // Splash minimum 2.4s, puis décision
+            setTimeout(async () => {
+                // Onboarding gate (in-page): show onboarding for first-visit
+                // users. Mount it UNDER the splash, wait for its first paint,
+                // then fade the splash away — this cross-fade hides both the
+                // post-splash black flash and the Supabase login flash that
+                // would otherwise appear between splash and onboarding.
+                if (!localStorage.getItem('aym_onboarded')
+                    && typeof window.mountOnboarding === 'function') {
                     console.log('[Boot] Premye vizit → Onboarding');
-                    if (typeof window.mountOnboarding === 'function') {
-                        // Supabase INITIAL_SESSION may have already flipped
-                        // #s-login to .on while the splash was up. Suppress
-                        // it now so we don't flash login between splash and
-                        // onboarding.
-                        document.getElementById('s-login')?.classList.remove('on');
-                        window.mountOnboarding();
-                        return;
-                    }
+                    document.getElementById('s-login')?.classList.remove('on');
+                    // Cap the wait at 900ms so slow connections don't hang
+                    // on a frozen splash; mountOnboarding has its own
+                    // fail-open fallback if the fetch ultimately errors.
+                    await Promise.race([
+                        window.mountOnboarding(),
+                        new Promise(r => setTimeout(r, 900)),
+                    ]);
+                    hideSplash();
+                    return;
                 }
 
+                hideSplash();
                 continuePostSplash();
             }, 2400);
         });
