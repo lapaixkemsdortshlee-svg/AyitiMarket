@@ -961,19 +961,38 @@
         // Loads onboarding.html in an iframe inside #s-onboarding so we keep
         // the React/Babel cost off returning users entirely.
         (function () {
-            window.mountOnboarding = function () {
+            window.mountOnboarding = async function () {
                 const c = document.getElementById('s-onboarding');
                 if (!c || c.dataset.mounted === '1') return;
                 c.dataset.mounted = '1';
                 c.dataset.loading = '1';
                 c.classList.add('on');
-                const ifr = document.createElement('iframe');
-                ifr.src = 'onboarding.html?embedded=1';
-                ifr.title = 'AyitiMarket Onboarding';
-                ifr.setAttribute('allow', 'autoplay');
-                ifr.style.cssText = 'width:100%;height:100%;border:0;display:block;background:transparent';
-                ifr.addEventListener('load', () => { c.removeAttribute('data-loading'); });
-                c.appendChild(ifr);
+                try {
+                    // Fetch onboarding.html and embed via iframe srcdoc. Going
+                    // through srcdoc sidesteps X-Frame-Options on the page
+                    // response (the attribute value isn't an HTTP response)
+                    // while still running the content same-origin with us.
+                    const res = await fetch('onboarding.html', { credentials: 'same-origin' });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const html = await res.text();
+                    const ifr = document.createElement('iframe');
+                    ifr.title = 'AyitiMarket Onboarding';
+                    ifr.setAttribute('allow', 'autoplay');
+                    ifr.style.cssText = 'width:100%;height:100%;border:0;display:block;background:transparent';
+                    ifr.addEventListener('load', () => { c.removeAttribute('data-loading'); });
+                    ifr.srcdoc = html;
+                    c.appendChild(ifr);
+                } catch (err) {
+                    console.warn('[Onboarding] Fetch failed, skipping to login:', err);
+                    // Don't trap the user on a blank screen if onboarding
+                    // can't load. Mark them as onboarded and proceed.
+                    try { localStorage.setItem('aym_onboarded', '1'); } catch (_) { }
+                    c.classList.remove('on');
+                    c.style.display = 'none';
+                    c.removeAttribute('data-mounted');
+                    c.removeAttribute('data-loading');
+                    if (typeof continuePostSplash === 'function') continuePostSplash();
+                }
             };
 
             window.__completeOnboarding = function () {
