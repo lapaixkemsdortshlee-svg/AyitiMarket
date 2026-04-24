@@ -643,9 +643,16 @@ function App() {
               <button
                 onClick={()=>{
                   if(sc.isLast){
-                    localStorage.setItem('aym_onboarded','1');
-                    localStorage.removeItem('aym_ob');
-                    window.location.replace('index.html');
+                    // When embedded in index.html, tell the parent to complete
+                    // the onboarding flow. When loaded standalone (backup),
+                    // fall back to the original full-page redirect.
+                    if (window.parent && window.parent !== window) {
+                      window.parent.postMessage({type:'aym:onboarding-complete'}, '*');
+                    } else {
+                      localStorage.setItem('aym_onboarded','1');
+                      localStorage.removeItem('aym_ob');
+                      window.location.replace('index.html');
+                    }
                   } else {
                     goTo(cur+1);
                   }

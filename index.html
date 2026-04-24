@@ -953,9 +953,59 @@
 
 
     <!-- ══════════════════════════════════════════════════════
-     SCREEN 0.5 — ONBOARDING (Lazy-mounted React, first visit only)
+     SCREEN 0.5 — ONBOARDING (Lazy-mounted iframe, first visit only)
 ══════════════════════════════════════════════════════ -->
     <div class="screen" id="s-onboarding" style="display:none;position:fixed;inset:0;z-index:55;background:#111;overflow:hidden"></div>
+    <script>
+        // Lazy-mount onboarding for first-visit users only.
+        // Loads onboarding.html in an iframe inside #s-onboarding so we keep
+        // the React/Babel cost off returning users entirely.
+        (function () {
+            window.mountOnboarding = function () {
+                const c = document.getElementById('s-onboarding');
+                if (!c || c.dataset.mounted === '1') return;
+                c.dataset.mounted = '1';
+                c.dataset.loading = '1';
+                c.classList.add('on');
+                const ifr = document.createElement('iframe');
+                ifr.src = 'onboarding.html?embedded=1';
+                ifr.title = 'AyitiMarket Onboarding';
+                ifr.setAttribute('allow', 'autoplay');
+                ifr.style.cssText = 'width:100%;height:100%;border:0;display:block;background:transparent';
+                ifr.addEventListener('load', () => { c.removeAttribute('data-loading'); });
+                c.appendChild(ifr);
+            };
+
+            window.__completeOnboarding = function () {
+                try { localStorage.setItem('aym_onboarded', '1'); } catch (_) { }
+                try { localStorage.removeItem('aym_ob'); } catch (_) { }
+                const c = document.getElementById('s-onboarding');
+                if (c) {
+                    c.style.transition = 'opacity .35s ease';
+                    c.style.opacity = '0';
+                    setTimeout(() => {
+                        c.classList.remove('on');
+                        c.style.display = 'none';
+                        c.innerHTML = '';
+                        c.removeAttribute('data-mounted');
+                        c.style.opacity = '';
+                        c.style.transition = '';
+                    }, 350);
+                }
+                // Continue with the normal post-splash auth routing
+                setTimeout(() => {
+                    if (typeof continuePostSplash === 'function') continuePostSplash();
+                }, 380);
+            };
+
+            // Bridge: child iframe (onboarding.html) signals completion via postMessage
+            window.addEventListener('message', (e) => {
+                if (e && e.data && e.data.type === 'aym:onboarding-complete') {
+                    window.__completeOnboarding();
+                }
+            });
+        })();
+    </script>
 
 
 
@@ -3152,33 +3202,48 @@
             setTimeout(() => {
                 hideSplash();
 
-                // Si Supabase a déjà résolu la session (Google redirect ou session existante)
-                if (A.isAuth && A.user) {
-                    console.log('[Boot] Auth déjà résolu par Supabase →', A.user.name);
-                    if (!A.booted) { A.booted = true; bootApp(); }
-                    return;
-                }
-
-                // Sinon vérifier le cache local
-                const saved = localStorage.getItem("aym_user");
-                if (saved) {
-                    try {
-                        A.user = JSON.parse(saved);
-                        A.isAuth = true;
-                        console.log('[Boot] User restauré depuis cache →', A.user.name);
-                        bootApp();
-                    } catch(e) {
-                        localStorage.removeItem("aym_user");
-                        goTo("s-login");
+                // Onboarding gate (in-page): show onboarding for first-visit users.
+                // Uses #s-onboarding + iframe(onboarding.html). See mountOnboarding()
+                // and window.__completeOnboarding() helpers earlier in this file.
+                if (!localStorage.getItem('aym_onboarded')) {
+                    console.log('[Boot] Premye vizit → Onboarding');
+                    if (typeof window.mountOnboarding === 'function') {
+                        window.mountOnboarding();
+                        return;
                     }
-                    return;
                 }
 
-                // Aucune session → login
-                console.log('[Boot] Okenn sesyon → Login');
-                goTo("s-login");
+                continuePostSplash();
             }, 1800);
         });
+
+        function continuePostSplash() {
+            // Si Supabase a déjà résolu la session (Google redirect ou session existante)
+            if (A.isAuth && A.user) {
+                console.log('[Boot] Auth déjà résolu par Supabase →', A.user.name);
+                if (!A.booted) { A.booted = true; bootApp(); }
+                return;
+            }
+
+            // Sinon vérifier le cache local
+            const saved = localStorage.getItem("aym_user");
+            if (saved) {
+                try {
+                    A.user = JSON.parse(saved);
+                    A.isAuth = true;
+                    console.log('[Boot] User restauré depuis cache →', A.user.name);
+                    bootApp();
+                } catch(e) {
+                    localStorage.removeItem("aym_user");
+                    goTo("s-login");
+                }
+                return;
+            }
+
+            // Aucune session → login
+            console.log('[Boot] Okenn sesyon → Login');
+            goTo("s-login");
+        }
 
         function hideSplash() {
             const splash = document.getElementById("s-splash");
