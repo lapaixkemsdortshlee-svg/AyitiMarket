@@ -531,14 +531,20 @@ function App() {
         </button>
       )}
 
-      {/* Illustration — fills the upper region */}
+      {/* Illustration — fills the upper region. SVG has a fixed viewBox
+          and preserves aspect ratio on its own, so we just give it a
+          flex cell that can shrink (minHeight:0) and clip nothing. */}
       <div style={{
-        flex:'1 1 auto',
+        flex:'1 1 0',
         display:'flex', alignItems:'center', justifyContent:'center',
-        padding:'calc(env(safe-area-inset-top, 0px) + 72px) 20px 12px',
-        minHeight:0,
+        padding:'calc(env(safe-area-inset-top, 0px) + 72px) 20px 8px',
+        minHeight:0, overflow:'hidden',
       }}>
-        <div style={{width:'100%', maxWidth:460, aspectRatio:'340 / 290'}}>
+        <div style={{
+          width:'100%', height:'100%',
+          maxWidth:460,
+          display:'flex', alignItems:'center', justifyContent:'center',
+        }}>
           <Illus timeLeft={timeLeft} key={`illus-${cur}`}/>
         </div>
       </div>
