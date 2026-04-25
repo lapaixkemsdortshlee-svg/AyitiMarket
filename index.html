@@ -6271,9 +6271,19 @@
             // Update in Supabase
             if (db) {
                 db.from('profiles').update({ verified_seller: true, role: 'seller' }).eq('id', uid).neq('role', 'admin')
-                    .then(({ error }) => { if (error) console.warn('[Admin] Approve error:', error.message); });
-                db.from('verification_requests').update({ status: 'approved' }).eq('user_id', uid)
-                    .then(({ error }) => { if (error) console.warn('[Admin] Verif update error:', error.message); });
+                    .then(({ error }) => { if (error) console.error('[Admin] Approve profile error:', error); });
+                db.from('verification_requests').update({ status: 'approved', reviewed_by: A.user?.uid || null }).eq('user_id', uid)
+                    .then(({ error }) => { if (error) console.error('[Admin] Verif update error:', error); });
+                // Push a notification to the seller themself so they see
+                // the approval in their in-app notif list.
+                db.from('notifications').insert({
+                    user_id: uid,
+                    type: 'system',
+                    icon: 'verified',
+                    title: 'Verifikasyon Apwouve ✓',
+                    body: 'Felisitasyon ' + name + '! Kont vandè ou verifye. Ou ka pibliye pwodwi kounye a.',
+                    color: '#00666f',
+                }).then(({ error }) => { if (error) console.error('[Admin] Notify approve error:', error); });
             }
             document.getElementById('kpiPending').textContent = VERIF_REQUESTS.filter(v => v.status === 'pending').length;
             renderVerifList();
@@ -6291,8 +6301,23 @@
             if (idx >= 0) { VERIF_REQUESTS[idx].status = 'rejected'; VERIF_REQUESTS[idx].rejectReason = reason; }
             // Update in Supabase
             if (db) {
-                db.from('verification_requests').update({ status: 'rejected', reject_reason: reason }).eq('user_id', uid)
-                    .then(({ error }) => { if (error) console.warn('[Admin] Reject error:', error.message); });
+                db.from('verification_requests').update({
+                    status: 'rejected',
+                    reject_reason: reason,
+                    reviewed_by: A.user?.uid || null,
+                }).eq('user_id', uid)
+                    .then(({ error }) => { if (error) console.error('[Admin] Reject error:', error); });
+                // Push a notification to the seller telling them WHY their
+                // verification was rejected so they can resubmit with the
+                // correct documents.
+                db.from('notifications').insert({
+                    user_id: uid,
+                    type: 'system',
+                    icon: 'cancel',
+                    title: 'Verifikasyon Rejte',
+                    body: 'Demann verifikasyon ou rejte.\n\nRezon: ' + reason + '\n\nOu ka re-soumèt ak nouvo dokiman yo.',
+                    color: '#98443e',
+                }).then(({ error }) => { if (error) console.error('[Admin] Notify reject error:', error); });
             }
             renderVerifList();
             addNotif({
