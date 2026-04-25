@@ -5710,15 +5710,17 @@
         // ══════════════════════════════════════════════════════════
         //  ADMIN PANEL
         // ══════════════════════════════════════════════════════════
-        function renderAdmin() {
+        async function renderAdmin() {
             if (!A.user || A.user.role !== "admin") { navTo("feed"); return; }
-            // Load real data from Supabase
-            if (typeof loadAdminDataFromSupabase === 'function') {
-                loadAdminDataFromSupabase();
-            }
+            // Render once with whatever's currently in memory so the panel
+            // doesn't flash a blank state while the network round-trip runs,
+            // then await the real fetch and let it re-render on completion.
             renderVerifList();
             renderAdminOrders();
             renderAdminUsers();
+            if (typeof loadAdminDataFromSupabase === 'function') {
+                await loadAdminDataFromSupabase();
+            }
         }
 
         function switchAdminTab(tab) {
@@ -5952,8 +5954,14 @@
         // Override vsGoStep to render summary on step 4
         const _vsGoStepOrig = vsGoStep;
 
-        function submitVerification() {
-            closeSheets();
+        async function submitVerification() {
+            const btn = document.getElementById('vsSubmitBtn');
+            const origHTML = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:15px;animation:spin .8s linear infinite">progress_activity</span> Soumèt...';
+            }
+
             const newReq = {
                 uid: A.user?.uid || 'u_' + Date.now(),
                 name: A.user?.name || 'Utilisateur',
@@ -5969,41 +5977,74 @@
             };
             // Attach chosen selling categories (multi-select from step 'cats')
             newReq.categories = Array.from(window.SELLER_CATS_SELECTED || []);
-            VERIF_REQUESTS.unshift(newReq);
-            // Save to Supabase with photo URLs + persist categories on profile
-            if (db && A.user?.uid) {
-                db.from('verification_requests').insert({
-                    user_id: A.user.uid, name: newReq.name, phone: newReq.phone,
-                    status: 'pending', id_type: newReq.idType,
+
+            try {
+                if (!db) throw new Error('Pa kapab konekte ak baz done');
+                if (!A.user?.uid) throw new Error('Itilizatè pa konekte');
+
+                // INSERT first, await the result. Only celebrate on success.
+                const { error: insertError } = await db.from('verification_requests').insert({
+                    user_id: A.user.uid,
+                    name: newReq.name,
+                    phone: newReq.phone,
+                    status: 'pending',
+                    id_type: newReq.idType,
                     front_photo_url: idPhotos.front?.publicUrl || null,
                     back_photo_url: idPhotos.back?.publicUrl || null,
                     selfie_photo_url: idPhotos.selfie?.publicUrl || null,
-                }).then(({ error }) => {
-                    if (error) console.warn('[Verif] Submit error:', error.message);
                 });
-                // Persist the seller's selling categories to their profile
+                if (insertError) {
+                    console.error('[Verif] INSERT failed:', insertError);
+                    throw new Error(insertError.message || 'Echèk soumèt demann');
+                }
+
+                // Persist seller categories on the profile (non-blocking).
                 if (newReq.categories.length) {
                     db.from('profiles').update({ categories: newReq.categories })
                         .eq('id', A.user.uid)
-                        .then(({ error }) => { if (error) console.warn('[Profile cats]', error.message); });
+                        .then(({ error: e }) => { if (e) console.error('[Profile cats]', e); });
                     A.user.categories = newReq.categories;
-                    try { localStorage.setItem('aym_user', JSON.stringify(A.user)); } catch(_){}
+                    try { localStorage.setItem('aym_user', JSON.stringify(A.user)); } catch (_) { }
+                }
+
+                // Local cache so seller's own profile reflects the pending state.
+                VERIF_REQUESTS.unshift(newReq);
+
+                addNotif({
+                    id: 'n_' + Date.now(),
+                    type: 'system',
+                    icon: 'hourglass_top',
+                    title: 'Demann soumèt!',
+                    body: 'Verifikasyon idantite ou an atant. Maksimòm 24h.',
+                    time: 'Kounye a',
+                    read: false,
+                    color: '#00666f',
+                });
+
+                closeSheets();
+                showSuccess(
+                    'hourglass_icon',
+                    'Demann Soumèt ak Siksè!',
+                    "Dosye idantite ou nan men Admin AyitiMarket.\n\nAdmin ap verifye enfòmasyon ou yo nan yon delè maksimòm 24H.\nOu pral resevwa yon notifikasyon.",
+                    'Foto yo estoke an sekirite · Aksè: Admin sèlman · Chifre AES-256',
+                    'Dakò'
+                );
+                idPhotos = { front: null, back: null, selfie: null };
+                window.SELLER_CATS_SELECTED = new Set();
+            } catch (err) {
+                console.error('[Verif] Submission error:', err);
+                const msg = err?.message || 'Pa kapab soumèt — reseye';
+                if (typeof toast === 'function') {
+                    toast('Erè: ' + msg);
+                } else {
+                    alert('Erè: ' + msg);
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHTML;
                 }
             }
-            // Notif in-app
-            addNotif({
-                id: 'n_' + Date.now(),
-                type: 'system',
-                icon: 'hourglass_top',
-                title: 'Demann soumèt!',
-                body: 'Verifikasyon idantite ou an atant. Maksimòm 24h.',
-                time: 'Kounye a',
-                read: false,
-                color: '#00666f',
-            });
-            showSuccess("hourglass_icon", "Demann Soumèt!", "Dosye idantite ou nan men Admin AyitiMarket.\n\nVerifikasyon nan 24h. Ou pral resevwa yon notifikasyon push.",
-                "Foto yo estoke an sekirite · Aksè: Admin sèlman · Chifre AES-256", "Dakò");
-            idPhotos = { front: null, back: null, selfie: null };
         }
 
         // Intercept step 4 to render summary + extra step 'cats' (multi-select categories)
@@ -10102,10 +10143,17 @@
     async function loadAdminDataFromSupabase() {
         if (!db || A.user?.role !== 'admin') return;
         try {
-            // Verification requests
-            const { data: verifs } = await db.from('verification_requests')
+            // Verification requests — surface RLS / connection errors so the
+            // admin panel doesn't silently look empty when the SELECT was
+            // actually rejected (e.g. is_admin() returning false).
+            const { data: verifs, error: verifErr } = await db.from('verification_requests')
                 .select('*').order('created_at', { ascending: false });
-            if (verifs) {
+            if (verifErr) {
+                console.error('[Admin] verification_requests fetch failed:', verifErr);
+            } else if (Array.isArray(verifs)) {
+                if (verifs.length === 0) {
+                    console.info('[Admin] verification_requests: 0 rows (no pending demands or RLS hides them)');
+                }
                 VERIF_REQUESTS.length = 0;
                 verifs.forEach(v => VERIF_REQUESTS.push({
                     uid: v.user_id || v.id, name: v.name, phone: v.phone,
@@ -10157,7 +10205,7 @@
             if (kao) kao.textContent = ADMIN_ORDERS.length;
             const kau = document.getElementById('kpiAdminUsers');
             if (kau) kau.textContent = ADMIN_USERS.length;
-        } catch (e) { console.warn('[Admin]', e.message); }
+        } catch (e) { console.error('[Admin] loadAdminDataFromSupabase fatal:', e); }
     }
 
     // ── Fetch chat messages from Supabase ──
