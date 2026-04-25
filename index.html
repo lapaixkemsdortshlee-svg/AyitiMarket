@@ -1001,20 +1001,33 @@
                     ifr.title = 'AyitiMarket Onboarding';
                     ifr.setAttribute('allow', 'autoplay');
                     ifr.style.cssText = 'width:100%;height:100%;border:0;display:block;background:transparent';
-                    // Resolve once the iframe has loaded so callers can wait
-                    // for the first paint before hiding the splash on top.
-                    const loaded = new Promise(resolve => {
+                    // Resolve when React inside the iframe posts
+                    // 'aym:onboarding-ready' (sent from a useEffect on the
+                    // App component's first render). Falling back on the
+                    // iframe 'load' event would resolve before Babel
+                    // compiled the JSX, leaving a black frame.
+                    const ready = new Promise(resolve => {
+                        function onMsg(e) {
+                            if (e && e.data && e.data.type === 'aym:onboarding-ready') {
+                                window.removeEventListener('message', onMsg);
+                                c.removeAttribute('data-loading');
+                                resolve();
+                            }
+                        }
+                        window.addEventListener('message', onMsg);
+                        // Safety net: also resolve on iframe load + a small
+                        // buffer, in case the postMessage is somehow missed.
                         ifr.addEventListener('load', () => {
-                            c.removeAttribute('data-loading');
-                            // Small buffer so Babel finishes compiling the
-                            // <script type="text/babel"> and React commits
-                            // the first render before we fade the splash.
-                            setTimeout(resolve, 60);
+                            setTimeout(() => {
+                                window.removeEventListener('message', onMsg);
+                                c.removeAttribute('data-loading');
+                                resolve();
+                            }, 120);
                         }, { once: true });
                     });
                     ifr.srcdoc = html;
                     c.appendChild(ifr);
-                    return loaded;
+                    return ready;
                 } catch (err) {
                     console.warn('[Onboarding] Fetch failed, skipping to login:', err);
                     // Don't trap the user on a blank screen if onboarding
@@ -3261,14 +3274,25 @@
                     && typeof window.mountOnboarding === 'function') {
                     console.log('[Boot] Premye vizit → Onboarding');
                     document.getElementById('s-login')?.classList.remove('on');
-                    // Cap the wait at 900ms so slow connections don't hang
+                    // Cap the wait at 1500ms so slow connections don't hang
                     // on a frozen splash; mountOnboarding has its own
                     // fail-open fallback if the fetch ultimately errors.
                     await Promise.race([
                         window.mountOnboarding(),
-                        new Promise(r => setTimeout(r, 900)),
+                        new Promise(r => setTimeout(r, 1500)),
                     ]);
-                    hideSplash();
+                    // Instant swap (no fade) when transitioning to onboarding:
+                    // a fading splash would briefly reveal whatever is
+                    // underneath in document flow before the onboarding
+                    // iframe paints, which produced a login flash on real
+                    // devices. Keep the smooth fade for the regular
+                    // splash → login path via hideSplash() below.
+                    const _splash = document.getElementById('s-splash');
+                    if (_splash) {
+                        _splash.classList.remove('on');
+                        _splash.style.opacity = '0';
+                        _splash.style.display = 'none';
+                    }
                     return;
                 }
 
