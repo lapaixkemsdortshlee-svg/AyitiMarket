@@ -2184,7 +2184,7 @@
                     p janm parèt sou pwofil ou.</p>
             </div>
 
-            <button id="vsStep3Btn" onclick="vsGoStep('cats')" disabled
+            <button id="vsStep3Btn" onclick="vsAdvanceFromSelfie()" disabled
                 class="w-full py-4 rounded-xl font-headline font-extrabold text-sm active:scale-95 transition-all"
                 style="background:#e5e2dd;color:#6d7979">
                 Kontinye <span class="material-symbols-outlined align-middle"
@@ -2288,8 +2288,8 @@
             </div>
             <!-- Image display -->
             <div class="p-3">
-                <div id="idModalImg" class="w-full rounded-xl flex items-center justify-center"
-                    style="height:220px;background:#f0ede8">
+                <div id="idModalImg" class="w-full rounded-xl flex items-center justify-center overflow-hidden"
+                    style="height:60vh;max-height:520px;background:#f0ede8">
                     <span class="material-symbols-outlined text-on-surface-variant" style="font-size:48px">badge</span>
                 </div>
                 <p class="font-label text-[10px] text-on-surface-variant text-center mt-2" id="idModalMeta">CIN · Fas ·
@@ -5869,6 +5869,38 @@
             }
         }
 
+        // Step 3 button calls this — upload the selfie now (if it
+        // wasn't part of the original step-2 batch) before advancing
+        // to the categories step. Without this, idPhotos.selfie.publicUrl
+        // stays null and submitVerification writes selfie_photo_url=null,
+        // so admins never see the selfie image at all.
+        async function vsAdvanceFromSelfie() {
+            if (idPhotos.selfie && !idPhotos.selfie.publicUrl && db && A.user?.uid) {
+                const btn = document.getElementById('vsStep3Btn');
+                const orig = btn ? btn.innerHTML : '';
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:15px;animation:spin .8s linear infinite">progress_activity</span> Upload selfie…';
+                }
+                try {
+                    const ts = Date.now();
+                    const path = `verifications/${A.user.uid}/${ts}_selfie.jpg`;
+                    const { error } = await db.storage.from('verification-docs')
+                        .upload(path, idPhotos.selfie.file, { upsert: true });
+                    if (error) throw new Error(error.message);
+                    const { data } = db.storage.from('verification-docs').getPublicUrl(path);
+                    idPhotos.selfie.publicUrl = data?.publicUrl || null;
+                } catch (e) {
+                    console.error('[Selfie upload]', e);
+                    toast('Erè selfie: ' + e.message);
+                    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+                    return;
+                }
+                if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+            }
+            vsGoStep('cats');
+        }
+
         async function uploadIDPhotos() {
             if (!idPhotos.front || !idPhotos.back) { toast("2 foto obligatwa"); return; }
 
@@ -6185,7 +6217,7 @@
 
             if (photo) {
                 const imgUrl = photo.publicUrl || photo.dataUrl;
-                img.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover rounded-xl" onerror="this.onerror=null;this.src='';this.parentElement.innerHTML='<div class=\\'flex flex-col items-center gap-2\\'><span class=\\'material-symbols-outlined text-on-surface-variant\\' style=\\'font-size:48px\\'>broken_image</span><p class=\\'font-label text-sm text-on-surface-variant\\'>Image indisponib</p></div>'"/>`;
+                img.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-contain rounded-xl" style="cursor:zoom-in" onclick="window.open('${imgUrl}','_blank','noopener')" onerror="this.onerror=null;this.src='';this.parentElement.innerHTML='<div class=\\'flex flex-col items-center gap-2\\'><span class=\\'material-symbols-outlined text-on-surface-variant\\' style=\\'font-size:48px\\'>broken_image</span><p class=\\'font-label text-sm text-on-surface-variant\\'>Image indisponib</p></div>'"/>`;
                 img.style.padding = '0';
                 meta.textContent = `${typeLabel} · ${sideLabel} · ${photo.sizeKB ? photo.sizeKB + 'KB · ' : ''}Supabase Storage`;
             } else {
