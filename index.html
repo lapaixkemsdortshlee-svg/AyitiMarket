@@ -6918,7 +6918,14 @@
       <p class="font-headline font-bold text-sm text-on-surface ${n.read ? 'opacity-70' : ''}">${n.title}</p>
       <p class="font-body text-xs text-on-surface-variant mt-0.5 leading-relaxed">${n.body || ''}</p>
     </div>
-    <span class="font-label text-[10px] text-on-surface-variant flex-shrink-0 mt-0.5">${n.time}</span>
+    <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+      <span class="font-label text-[10px] text-on-surface-variant mt-0.5">${n.time}</span>
+      <button onclick="deleteNotif('${n.id}', event)" aria-label="Efase notifikasyon"
+              class="w-7 h-7 rounded-full flex items-center justify-center active:scale-90 transition-all"
+              style="background:rgba(152,68,62,.06);color:#98443e">
+        <span class="material-symbols-outlined" style="font-size:15px">delete_outline</span>
+      </button>
+    </div>
   </div>`).join('');
             updateNotifBadge();
         }
@@ -6947,6 +6954,26 @@
                 if (n.action) { closeSheets(); n.action(); return; }
             }
             renderNotifList(document.querySelector('.notif-tab.bg-surface-container-lowest')?.id?.replace('nt-', '') || 'all');
+            updateNotifBadge();
+        }
+
+        // Manual delete from the user's notification history. The card's
+        // outer onClick is readNotif; the trash button calls this with
+        // event.stopPropagation so we don't also flip read=true on its way
+        // out. Click is intentional + reversible only by the system that
+        // generated the notif, so no confirm dialog — keeps it close to
+        // platform notification trays (Gmail / Telegram swipe-to-delete).
+        function deleteNotif(id, ev) {
+            if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+            const idx = NOTIFS.findIndex(x => x.id === id);
+            if (idx >= 0) NOTIFS.splice(idx, 1);
+            if (db && A.user?.uid) {
+                db.from('notifications').delete()
+                    .eq('id', id).eq('user_id', A.user.uid)
+                    .then(({ error }) => { if (error) console.error('[DeleteNotif]', error); });
+            }
+            const tab = document.querySelector('.notif-tab.bg-surface-container-lowest')?.id?.replace('nt-', '') || 'all';
+            renderNotifList(tab);
             updateNotifBadge();
         }
 
