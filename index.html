@@ -5744,9 +5744,9 @@
       <span class="font-label text-[10px] font-bold px-2 py-1 rounded-full ${v.status === 'pending' ? 'pill-pending' : v.status === 'approved' ? 'pill-approved' : 'pill-rejected'}">${v.status === 'pending' ? 'An Atant' : v.status === 'approved' ? 'Apwouve' : 'Rejte'}</span>
     </div>
     <div class="flex gap-2 mb-3 flex-wrap">
-      ${v.photos?.front ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openLightbox('${v.photos.front.publicUrl || v.photos.front.dataUrl}')"><img src="${v.photos.front.publicUrl || v.photos.front.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
-      ${v.photos?.back ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openLightbox('${v.photos.back.publicUrl || v.photos.back.dataUrl}')"><img src="${v.photos.back.publicUrl || v.photos.back.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
-      ${v.photos?.selfie ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openLightbox('${v.photos.selfie.publicUrl || v.photos.selfie.dataUrl}')"><img src="${v.photos.selfie.publicUrl || v.photos.selfie.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${v.photos?.front ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${(v.photos.front.publicUrl || v.photos.front.dataUrl).replace(/'/g, "\\'")}')"><img src="${v.photos.front.publicUrl || v.photos.front.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${v.photos?.back ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${(v.photos.back.publicUrl || v.photos.back.dataUrl).replace(/'/g, "\\'")}')"><img src="${v.photos.back.publicUrl || v.photos.back.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${v.photos?.selfie ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${(v.photos.selfie.publicUrl || v.photos.selfie.dataUrl).replace(/'/g, "\\'")}')"><img src="${v.photos.selfie.publicUrl || v.photos.selfie.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
       ${!v.photos?.front && !v.photos?.back && !v.photos?.selfie ? `<div class="flex-1 rounded-lg p-3 flex items-center gap-2" style="background:#f6f3ee"><span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">badge</span><div><p class="font-label text-xs font-bold text-on-surface">${v.idType || 'ID'}</p><p class="font-label text-[10px] text-on-surface-variant">Pa gen foto disponib</p></div></div>` : ''}
     </div>
     ${v.idType ? `<p class="font-label text-[10px] text-on-surface-variant mb-2">Tip: <strong>${v.idType === 'cin' ? 'CIN' : v.idType === 'passport' ? 'Paspò' : v.idType}</strong></p>` : ''}
@@ -6217,7 +6217,7 @@
 
             if (photo) {
                 const imgUrl = photo.publicUrl || photo.dataUrl;
-                img.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-contain rounded-xl" style="cursor:zoom-in" onclick="window.open('${imgUrl}','_blank','noopener')" onerror="this.onerror=null;this.src='';this.parentElement.innerHTML='<div class=\\'flex flex-col items-center gap-2\\'><span class=\\'material-symbols-outlined text-on-surface-variant\\' style=\\'font-size:48px\\'>broken_image</span><p class=\\'font-label text-sm text-on-surface-variant\\'>Image indisponib</p></div>'"/>`;
+                img.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-contain rounded-xl" style="cursor:zoom-in" onclick="openProductLightbox('${imgUrl.replace(/'/g, "\\'")}')" onerror="this.onerror=null;this.src='';this.parentElement.innerHTML='<div class=\\'flex flex-col items-center gap-2\\'><span class=\\'material-symbols-outlined text-on-surface-variant\\' style=\\'font-size:48px\\'>broken_image</span><p class=\\'font-label text-sm text-on-surface-variant\\'>Image indisponib</p></div>'"/>`;
                 img.style.padding = '0';
                 meta.textContent = `${typeLabel} · ${sideLabel} · ${photo.sizeKB ? photo.sizeKB + 'KB · ' : ''}Supabase Storage`;
             } else {
