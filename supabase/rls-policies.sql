@@ -157,6 +157,12 @@ CREATE POLICY "notifications_insert" ON public.notifications
 CREATE POLICY "notifications_update_own" ON public.notifications
     FOR UPDATE USING (auth.uid() = user_id);
 
+-- Users can manually delete their own notifications from their history
+-- (trash icon in the notification sheet). System inserts still go in
+-- via the insert policy above; nothing deletes them automatically.
+CREATE POLICY "notifications_delete_own" ON public.notifications
+    FOR DELETE USING (auth.uid() = user_id);
+
 -- ══════════════════════════════════════════════════════════
 --  FLASH DEALS
 -- ══════════════════════════════════════════════════════════
