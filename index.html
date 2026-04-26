@@ -971,8 +971,16 @@
             // __pendingOnboarding is true, hideSplash() and goTo('s-login')
             // are no-ops, so Supabase's INITIAL_SESSION callback can't race
             // ahead and flash the login screen between splash and onboarding.
+            //
+            // Two reasons to NOT pend the gate:
+            //   - aym_onboarded is already set (user finished onboarding here)
+            //   - aym_user is in localStorage (returning user — they've used
+            //     the app before, just maybe never set the onboarding flag
+            //     because they signed up before this flow existed).
             try {
-                window.__pendingOnboarding = !localStorage.getItem('aym_onboarded');
+                const seen = !!localStorage.getItem('aym_onboarded');
+                const known = !!localStorage.getItem('aym_user');
+                window.__pendingOnboarding = !seen && !known;
             } catch (_) {
                 window.__pendingOnboarding = true;
             }
@@ -9717,6 +9725,13 @@
         };
         A.isAuth = true;
         localStorage.setItem('aym_user', JSON.stringify(A.user));
+        // Anyone with a valid Supabase session has already used the app
+        // (signed up at some point), so the onboarding intro is no longer
+        // applicable — even on a fresh device where the localStorage flag
+        // would otherwise be missing. Persist + release the gate so the
+        // splash setTimeout doesn't mount onboarding on top of the feed.
+        try { localStorage.setItem('aym_onboarded', '1'); } catch (_) { }
+        window.__pendingOnboarding = false;
         console.log('[Auth] ✅', A.user.name, '(' + A.user.role + ')', needsRoleSelection ? '← BEZWEN WÒL' : '← wòl deja chwazi');
 
         if (needsRoleSelection) {
