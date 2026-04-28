@@ -9676,6 +9676,18 @@
         const email = session.user.email || '';
         const createdAt = session.user.created_at;
 
+        // Pre-read whatever we already trust about this user from a previous
+        // session on this device. We use this as the *fallback* identity if
+        // the live profile fetch fails or returns a partial row — never as
+        // a forced overwrite. Without this, a transient RLS / network
+        // failure on the SELECT would silently flip a vendor or admin back
+        // to 'buyer' until the next reload (Bug A).
+        let cachedSelf = null;
+        try {
+            const raw = JSON.parse(localStorage.getItem('aym_user') || 'null');
+            if (raw && raw.uid === uid) cachedSelf = raw;
+        } catch (_) { }
+
         let profile = null;
         let needsRoleSelection = false;
 
@@ -9685,11 +9697,14 @@
                 new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
             ]);
             if (!error) profile = data;
+            else console.warn('[Profile] SELECT erè:', error.message);
         } catch(e) { console.warn('[Profile] Fetch erè:', e.message); }
 
         // Kreye profil si li pa egziste
         if (!profile) {
-            needsRoleSelection = true;
+            // Don't *force* role selection just because the read failed —
+            // only when we genuinely have no role anywhere (no cache either).
+            if (!cachedSelf?.role) needsRoleSelection = true;
             const fn = meta.full_name?.split(' ')[0] || meta.name?.split(' ')[0] || meta.first_name || email.split('@')[0] || 'Itilizatè';
             const ln = meta.full_name?.split(' ').slice(1).join(' ') || meta.last_name || '';
             try {
@@ -9704,24 +9719,34 @@
             } catch(e) { console.warn('[Profile] Kreye erè:', e.message); }
         }
 
-        // Detekte si wòl pa chwazi (null oswa pa defini)
-        if (!profile?.role || profile.role === '' || localStorage.getItem('aym_needs_role') === uid) {
+        // Detekte si wòl pa chwazi.
+        // Single source of truth: an authoritative profile.role is missing.
+        // We no longer also gate on the legacy aym_needs_role flag — that
+        // flag was never cleared on logout, so a returning user who had
+        // already picked a role kept seeing the role screen on every login
+        // (Bug B).
+        if (!profile?.role && !cachedSelf?.role) {
             needsRoleSelection = true;
         }
 
-        const name = profile?.display_name || profile?.first_name || meta.full_name || meta.name || email.split('@')[0] || 'Itilizatè';
+        const name = profile?.display_name || profile?.first_name || cachedSelf?.name || meta.full_name || meta.name || email.split('@')[0] || 'Itilizatè';
         const initials = name.split(' ').filter(Boolean).map(w => w[0]?.toUpperCase()).join('').slice(0,2) || 'U';
 
         A.user = {
             uid, name, initials, email,
-            phone: profile?.phone || '',
-            role: profile?.role || 'buyer',
-            verifiedSeller: profile?.verified_seller || false,
-            photoURL: profile?.avatar_url || meta.avatar_url || meta.picture || null,
-            salesCount: profile?.sales_count || 0,
-            orderCount: profile?.order_count || 0,
-            ratingAvg: profile?.rating_avg || 0,
-            reviewCount: profile?.review_count || 0,
+            phone: profile?.phone ?? cachedSelf?.phone ?? '',
+            // Layered fallback: live row > cache from same uid > 'buyer'.
+            // Crucially, we never *overwrite* a known role with 'buyer'
+            // because the live SELECT happened to return null/error.
+            role: profile?.role || cachedSelf?.role || 'buyer',
+            verifiedSeller: (profile && 'verified_seller' in profile)
+                ? !!profile.verified_seller
+                : !!cachedSelf?.verifiedSeller,
+            photoURL: profile?.avatar_url || meta.avatar_url || meta.picture || cachedSelf?.photoURL || null,
+            salesCount: profile?.sales_count ?? cachedSelf?.salesCount ?? 0,
+            orderCount: profile?.order_count ?? cachedSelf?.orderCount ?? 0,
+            ratingAvg: profile?.rating_avg ?? cachedSelf?.ratingAvg ?? 0,
+            reviewCount: profile?.review_count ?? cachedSelf?.reviewCount ?? 0,
         };
         A.isAuth = true;
         localStorage.setItem('aym_user', JSON.stringify(A.user));
@@ -9738,6 +9763,9 @@
             localStorage.setItem('aym_needs_role', uid);
             return 'role';
         }
+        // Defensive cleanup in case the legacy flag was left over from a
+        // previous logout on this device.
+        try { localStorage.removeItem('aym_needs_role'); } catch (_) { }
         return 'boot';
     }
 
@@ -9812,6 +9840,11 @@
             if (event === 'SIGNED_OUT') {
                 A.user = null; A.isAuth = false; A.booted = false;
                 localStorage.removeItem('aym_user');
+                // Clear the legacy "still needs to pick a role" flag too.
+                // Otherwise it survives the logout, and on the next login
+                // the role-selection screen reappears for a user who had
+                // already chosen one (Bug B).
+                localStorage.removeItem('aym_needs_role');
                 document.getElementById('topbar')?.classList.add('hidden');
                 document.getElementById('bottomNav')?.classList.add('hidden');
                 document.getElementById('fab')?.classList.add('hidden');
