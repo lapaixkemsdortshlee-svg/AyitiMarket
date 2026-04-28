@@ -1543,6 +1543,12 @@
                         <p class="font-label text-xs font-bold" id="priceMsg"></p>
                     </div>
                 </div>
+                <!-- ═══ STOCK ═══ -->
+                <div>
+                    <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">
+                        Kantite estòk *</p>
+                    <input id="fStock" type="number" class="si" placeholder="ex: 10" min="1" value="1" />
+                </div>
                 <!-- ═══ DISCOUNT TOGGLE ═══ -->
                 <div>
                     <div class="flex items-center justify-between mb-2">
@@ -1705,11 +1711,6 @@
                 <button id="chatCallBtn" onclick="callSeller()"
                     class="w-9 h-9 flex items-center justify-center rounded-full bg-surface-container-low active:scale-90 transition-transform">
                     <span class="material-symbols-outlined text-primary" style="font-size:18px">call</span>
-                </button>
-                <button id="chatWhatsAppBtn" onclick="openWhatsApp()"
-                    class="w-9 h-9 flex items-center justify-center rounded-full active:scale-90 transition-transform"
-                    style="background:rgba(37,211,102,.1)">
-                    <span class="material-symbols-outlined fi" style="font-size:18px;color:#25D366">chat</span>
                 </button>
             </div>
         </div>
@@ -3671,12 +3672,30 @@
             document.getElementById("backbtn").classList.add("flex");
             document.getElementById("toptitle").textContent = p.t;
 
-            const detailImg = p.img ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}" onerror="this.onerror=null;this.style.display='none'"/>` : null;
+            // Bug G: support multiple product photos. Prefer the images
+            // array stored on the product (uploaded by the seller); fall
+            // back to the legacy p.img field if the array is empty so
+            // older rows still render. The carousel snap-scrolls
+            // horizontally and each slide opens the existing in-app
+            // lightbox at full size — no full-page navigation.
+            const imgs = (Array.isArray(p.images) && p.images.length > 0)
+                ? p.images.filter(Boolean)
+                : (p.img ? [p.img] : []);
             const dpid = typeof p.id === 'string' ? `'${p.id}'` : p.id;
+            const carouselHTML = imgs.length === 0
+                ? prodPlaceholder(p, 340)
+                : imgs.map(src => {
+                    const safeSrc = String(src).replace(/'/g, "\\'");
+                    return `<div class="flex-shrink-0 w-full h-full snap-center cursor-pointer flex items-center justify-center" onclick="openProductLightbox('${safeSrc}')"><img src="${src}" class="w-full h-full object-cover" alt="${p.t}" onerror="this.onerror=null;this.style.display='none'"/></div>`;
+                }).join('');
+            const dotsHTML = imgs.length > 1
+                ? `<div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">${imgs.map((_, idx) => `<span class="block rounded-full" style="width:6px;height:6px;background:${idx === 0 ? 'rgba(252,249,244,.95)' : 'rgba(252,249,244,.5)'}"></span>`).join('')}</div>`
+                : '';
 
             document.getElementById("detailContent").innerHTML = `
     <div class="relative">
-      <div class="w-full flex items-center justify-center ${p.img ? 'cursor-pointer' : ''}" style="height:340px;overflow:hidden;background:#f0ede8" ${p.img ? `onclick="openProductLightbox('${p.img.replace(/'/g, "\\'")}')"` : ''}>${detailImg || prodPlaceholder(p, 340)}</div>
+      <div class="w-full flex overflow-x-auto snap-x snap-mandatory noscroll" style="height:340px;background:#f0ede8">${carouselHTML}</div>
+      ${dotsHTML}
       <button onclick="goBack()" class="absolute top-10 left-4 w-9 h-9 flex items-center justify-center rounded-full active:scale-90" style="background:rgba(252,249,244,.88);backdrop-filter:blur(6px)">
         <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">arrow_back</span>
       </button>
@@ -3713,11 +3732,6 @@
         <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-2">Deskripsyon</p>
         <p class="font-body text-sm text-on-surface-variant leading-relaxed">${p.desc}</p>
       </div>
-      <a href="#" onclick="toast('WhatsApp ouvè!')">
-        <button class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-label font-bold text-sm" style="background:rgba(37,211,102,.1);color:#075e54">
-          Kontakte via WhatsApp
-        </button>
-      </a>
     </div>
 
     <!-- ══ PWODWI SIMILÈ ══ -->
@@ -3734,7 +3748,20 @@
 
             document.getElementById("detailBar").classList.remove("hidden");
             const isAdmin = A.user?.role === 'admin';
-            document.getElementById("detailBar").innerHTML = isAdmin
+            // Bug C: when the current user IS the seller of this product,
+            // it makes no sense to show buyer-only actions (chat yourself,
+            // add to your own cart, order from yourself). Replace those
+            // with a banner that takes them to their seller dashboard
+            // entry point (publish/edit sheet) instead.
+            const isOwn = !!(A.user?.uid && p.sellerId && A.user.uid === p.sellerId);
+            document.getElementById("detailBar").innerHTML = isOwn
+            ? `<button onclick="navTo('profile')" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high">
+                <span class="material-symbols-outlined" style="font-size:18px">storefront</span>Pwòp pwodwi mwen
+              </button>
+              <button onclick="openSheet('publishSheet')" class="flex-[2] ml-2 flex items-center justify-center gap-2 py-3.5 rounded-xl cta font-headline font-bold text-base active:scale-[.98] amb">
+                <span class="material-symbols-outlined" style="font-size:18px">edit</span>Jere pwodwi
+              </button>`
+            : isAdmin
             ? `<button onclick="openChatFor(${dpid})" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high">
                 <span class="material-symbols-outlined" style="font-size:18px">chat</span>Kontakte vandè
               </button>
@@ -3948,9 +3975,21 @@
             const imgHtml = p.img
                 ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}" onerror="this.onerror=null;this.style.display='none'"/>`
                 : prodPlaceholder(p, imgHeight);
-            const badgeHtml = p.b
-                ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full" style="font-size:9px;background:${p.b === 'Verifye' ? 'rgba(0,102,111,.88)' : p.b === 'Reko IA' ? 'rgba(151,66,43,.88)' : 'rgba(90,215,230,.88)'};color:#fff">${p.b}</span>`
+            // Bug D: light up a Flash Deal badge on cards whose product is
+            // currently inside an active flash_deals row. FLASH_DEALS is
+            // refreshed by loadFlashDealsFromSupabase, so the lookup is
+            // a single Array.find in memory — no per-card network call.
+            const flash = (typeof FLASH_DEALS !== 'undefined')
+                ? FLASH_DEALS.find(f => f.product_id && f.product_id === p.id)
+                : null;
+            const flashBadge = flash
+                ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1" style="font-size:9px;background:rgba(151,66,43,.92);color:#fff"><span class="material-symbols-outlined" style="font-size:11px">local_fire_department</span>-${flash.pct}%</span>`
                 : '';
+            const badgeHtml = flashBadge
+                ? flashBadge
+                : (p.b
+                    ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full" style="font-size:9px;background:${p.b === 'Verifye' ? 'rgba(0,102,111,.88)' : p.b === 'Reko IA' ? 'rgba(151,66,43,.88)' : 'rgba(90,215,230,.88)'};color:#fff">${p.b}</span>`
+                    : '');
             const outOfStock = typeof p.s === 'number' && p.s <= 0;
             const oosOverlay = outOfStock
                 ? `<div class="absolute inset-0 flex items-center justify-center" style="background:rgba(0,0,0,.45)"><span class="font-headline font-extrabold text-white px-3 py-1 rounded-full" style="font-size:11px;background:rgba(151,66,43,.9)">Epuize</span></div>`
@@ -4261,7 +4300,12 @@
             if (uploadedPhotos.length === 0) { toast("Ajoute omwen 1 foto"); document.getElementById("fileInput").click(); return; }
             const cat = document.getElementById("fCat").value;
             const desc = document.getElementById("fDesc").value.trim();
-            const price = parseInt(document.getElementById("fPrice").value) || 0;
+            const price = parseInt(document.getElementById("fPrice").value, 10) || 0;
+            // Read seller-supplied stock (Bug E). Without this the INSERT
+            // never sent a stock value and Postgres' DEFAULT 1 was always
+            // applied — every product looked like there was only one
+            // unit available regardless of what the seller typed.
+            const stock = Math.max(1, parseInt(document.getElementById("fStock")?.value, 10) || 1);
             const loc = document.getElementById("fLoc")?.value?.trim() || '';
             if (price <= 0) { toast("Mete yon pri valid"); return; }
 
@@ -4318,6 +4362,7 @@
                     category: cat,
                     location: loc || null,
                     images: imageUrls,
+                    stock: stock,
                     status: 'active',
                 }).select('*').single();
 
@@ -4875,14 +4920,6 @@
             if (!A.chatSellerPhone) { toast('Nimewo telefòn vandè pa disponib'); return; }
             const phone = A.chatSellerPhone.replace(/\s/g, '');
             window.open('tel:' + phone, '_self');
-        }
-
-        function openWhatsApp() {
-            if (!A.chatSellerPhone) { toast('Nimewo telefòn vandè pa disponib'); return; }
-            const phone = A.chatSellerPhone.replace(/[\s+]/g, '');
-            const name = A.chatSellerName || 'Vandè';
-            const msg = encodeURIComponent('Bonjou ' + name + '! Mwen enterese nan pwodwi ou sou AyitiMarket.');
-            window.open('https://wa.me/' + phone + '?text=' + msg, '_blank');
         }
 
         function renderChatMsgs(pid) {
@@ -9401,9 +9438,6 @@
           <span class="material-symbols-outlined fi" style="font-size:18px">chat</span>
           Mesaj
         </button>
-        <button onclick="toast('WhatsApp ouvè pou ${seller.name}')" class="w-12 flex items-center justify-center rounded-xl active:scale-90 transition-transform" style="background:rgba(37,211,102,.1)">
-          <span class="material-symbols-outlined fi" style="font-size:20px;color:#075e54">chat</span>
-        </button>
       </div>
       <div class="flex items-center gap-2 mt-3 px-3 py-2.5 rounded-lg" style="background:rgba(0,102,111,.05)">
         <span class="material-symbols-outlined fi text-primary flex-shrink-0" style="font-size:14px">schedule</span>
@@ -10252,6 +10286,9 @@
                         e: fd.icon || 'palette', ec: fd.color || '#059669',
                         c: fd.category, l: fd.location, pct: fd.discount_pct || 0, stock: fd.stock || 0,
                         ends_at: fd.ends_at,
+                        // Keep product_id so feedCard can decorate the matching
+                        // product with a Flash Deal badge (Bug D).
+                        product_id: fd.product_id || null,
                     });
                 });
                 // Use the earliest ends_at as the countdown target
