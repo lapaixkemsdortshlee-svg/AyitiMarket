@@ -3755,11 +3755,8 @@
             // entry point (publish/edit sheet) instead.
             const isOwn = !!(A.user?.uid && p.sellerId && A.user.uid === p.sellerId);
             document.getElementById("detailBar").innerHTML = isOwn
-            ? `<button onclick="navTo('profile')" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high">
-                <span class="material-symbols-outlined" style="font-size:18px">storefront</span>Pwòp pwodwi mwen
-              </button>
-              <button onclick="openSheet('publishSheet')" class="flex-[2] ml-2 flex items-center justify-center gap-2 py-3.5 rounded-xl cta font-headline font-bold text-base active:scale-[.98] amb">
-                <span class="material-symbols-outlined" style="font-size:18px">edit</span>Jere pwodwi
+            ? `<button onclick="openBoutiqueScreen()" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl cta font-headline font-bold text-base active:scale-[.98] amb">
+                <span class="material-symbols-outlined" style="font-size:18px">storefront</span>Jere pwodwi
               </button>`
             : isAdmin
             ? `<button onclick="openChatFor(${dpid})" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high">

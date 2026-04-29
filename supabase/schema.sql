@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     description TEXT,
     price INTEGER NOT NULL CHECK (price > 0),
     old_price INTEGER,
-    category TEXT NOT NULL CHECK (category IN ('mode', 'cosmetique', 'accessoire', 'artisanat', 'maison', 'bebe')),
+    category TEXT NOT NULL CHECK (category IN ('mode', 'beaute', 'cosmetique', 'electronique', 'gaming', 'accessoire', 'artisanat', 'maison', 'bebe')),
     location TEXT,
     stock INTEGER DEFAULT 1 CHECK (stock >= 0),
     views INTEGER DEFAULT 0,
