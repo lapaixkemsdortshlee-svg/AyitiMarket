@@ -2954,7 +2954,7 @@
                 </div>
                 <div class="flex-1">
                     <p class="font-headline font-bold text-sm text-on-surface">Monnaie</p>
-                    <p class="font-label text-xs text-on-surface-variant">Taux: 1 USD = 130 HTG</p>
+                    <p class="font-label text-xs text-on-surface-variant" id="currRateTxt">Taux: 1 USD = 130 HTG</p>
                 </div>
                 <div class="flex items-center gap-1 rounded-full p-1" style="background:#e5e2dd">
                     <button id="curr-htg" onclick="setCurrency('HTG')"
@@ -3174,6 +3174,17 @@
                 </p>
                 <input id="editMoncash" class="si" placeholder="ex: 509XXXXXXXX" inputmode="tel"/>
                 <p class="font-label text-[10px] text-on-surface-variant mt-1">Apre livrezon konfime, admin ap voye lajan ou sou nimewo sa a.</p>
+            </div>
+            <div id="editShopBioRow">
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">
+                    Sou boutik la <span class="text-on-surface-variant">(vandè sèlman · 250 karaktè max)</span>
+                </p>
+                <textarea id="editShopBio" class="si resize-none" rows="3" maxlength="250" placeholder="Yon ti deskripsyon sou boutik ou — vizib pou tout itilizatè."></textarea>
+                <p class="font-label text-[10px] text-on-surface-variant mt-1" id="editShopBioCount">0 / 250</p>
+            </div>
+            <div id="editShopNameLockRow" class="hidden flex items-start gap-2 p-2.5 rounded-lg" style="background:rgba(151,66,43,.08)">
+                <span class="material-symbols-outlined fi flex-shrink-0" style="font-size:14px;color:#97422b">lock_clock</span>
+                <p class="font-label text-[10px] text-on-surface-variant" id="editShopNameLockMsg"></p>
             </div>
         </div>
         <button onclick="saveProfile()" class="w-full py-3.5 rounded-xl cta font-headline font-bold text-sm active:scale-95 transition-transform mb-3">
@@ -3710,7 +3721,7 @@
         <p class="font-body text-xs text-on-surface-variant mt-0.5">${p.c} · ${p.l}</p>
       </div>
       <div class="flex items-end gap-3">
-        <span class="font-headline font-extrabold text-3xl text-primary">${fp(p.p)} HTG</span>
+        <span class="font-headline font-extrabold text-3xl text-primary">${fpc(p.p)}</span>
         <span class="font-label text-xs text-on-surface-variant pb-1">${p.s <= 2 ? `${p.s} rete` : `An estòk (${p.s})`}</span>
       </div>
       ${p.sizes.length ? `<div><p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-2">Tay</p><div class="flex flex-wrap gap-2">${p.sizes.map((sz, i) => `<button class="szb w-12 h-10 rounded-lg font-label font-bold text-sm ${i === 0 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'}" onclick="selSz(this)">${sz}</button>`).join('')}</div></div>` : ''}
@@ -5666,7 +5677,7 @@
         // ══════════════════════════════════════════════════════════
         //  PROFILE EDIT (Nom, Prenom, Photo, Google)
         // ══════════════════════════════════════════════════════════
-        function openEditProfile() {
+        async function openEditProfile() {
             openSheet('editProfileSheet');
             const u = A.user;
             if (!u) return;
@@ -5674,38 +5685,125 @@
             document.getElementById('editFirstName').value = parts[0] || '';
             document.getElementById('editLastName').value = parts.slice(1).join(' ') || '';
             document.getElementById('editMoncash').value = u.moncashNumber || '';
-            // Hide the payout row for non-sellers
-            const row = document.getElementById('editMoncashRow');
-            if (row) {
-                const isSeller = u.role === 'seller' || u.role === 'admin';
-                row.style.display = isSeller ? '' : 'none';
+            // Seller-only fields visibility (MonCash + shop bio)
+            const isSeller = u.role === 'seller' || u.role === 'admin';
+            const mcRow = document.getElementById('editMoncashRow');
+            const bioRow = document.getElementById('editShopBioRow');
+            if (mcRow) mcRow.style.display = isSeller ? '' : 'none';
+            if (bioRow) bioRow.style.display = isSeller ? '' : 'none';
+
+            // Bug K — Pull current bio + initialise the live counter.
+            const bioEl = document.getElementById('editShopBio');
+            const cntEl = document.getElementById('editShopBioCount');
+            const lockRow = document.getElementById('editShopNameLockRow');
+            const lockMsg = document.getElementById('editShopNameLockMsg');
+            const fnEl = document.getElementById('editFirstName');
+            const lnEl = document.getElementById('editLastName');
+            if (lockRow) lockRow.classList.add('hidden');
+            if (isSeller && db && u.uid) {
+                try {
+                    const { data, error } = await db.from('profiles')
+                        .select('bio, shop_name_changed_at')
+                        .eq('id', u.uid).maybeSingle();
+                    if (!error && data) {
+                        if (bioEl) bioEl.value = data.bio || '';
+                        if (cntEl) cntEl.textContent = (data.bio || '').length + ' / 250';
+                        // Bug J — if the seller renamed the shop in the
+                        // last 30 days, lock first/last name inputs and
+                        // show how many days remain.
+                        if (data.shop_name_changed_at) {
+                            const last = new Date(data.shop_name_changed_at).getTime();
+                            const elapsed = Date.now() - last;
+                            const THIRTY = 30 * 24 * 60 * 60 * 1000;
+                            if (elapsed < THIRTY) {
+                                const daysLeft = Math.ceil((THIRTY - elapsed) / (24 * 60 * 60 * 1000));
+                                if (fnEl) fnEl.disabled = true;
+                                if (lnEl) lnEl.disabled = true;
+                                if (lockRow) lockRow.classList.remove('hidden');
+                                if (lockMsg) lockMsg.textContent = 'Nom boutik chanje deja. Pwochen chanjman: ' + daysLeft + ' jou.';
+                            } else {
+                                if (fnEl) fnEl.disabled = false;
+                                if (lnEl) lnEl.disabled = false;
+                            }
+                        } else {
+                            if (fnEl) fnEl.disabled = false;
+                            if (lnEl) lnEl.disabled = false;
+                        }
+                    }
+                } catch (e) { console.warn('[Profile] open:', e.message); }
+            } else {
+                if (bioEl) bioEl.value = '';
+                if (cntEl) cntEl.textContent = '0 / 250';
+            }
+            // Live char counter
+            if (bioEl && cntEl && !bioEl.dataset.bound) {
+                bioEl.addEventListener('input', () => {
+                    cntEl.textContent = bioEl.value.length + ' / 250';
+                });
+                bioEl.dataset.bound = '1';
             }
         }
 
-        function saveProfile() {
+        async function saveProfile() {
             const fn = document.getElementById('editFirstName').value.trim();
             const ln = document.getElementById('editLastName').value.trim();
             const mc = (document.getElementById('editMoncash')?.value || '').replace(/\s+/g, '');
+            const bio = (document.getElementById('editShopBio')?.value || '').trim().slice(0, 250);
             if (!fn) { toast('Premye non obligatwa'); return; }
             // MonCash number sanity check (optional field): Haitian format 509XXXXXXXX (11 digits)
             if (mc && !/^5?09?\d{8,10}$/.test(mc)) {
                 toast('Nimewo MonCash pa valid (fòma 509XXXXXXXX)');
                 return;
             }
-            A.user.name = fn + (ln ? ' ' + ln : '');
+            const newName = fn + (ln ? ' ' + ln : '');
+            const isSeller = A.user.role === 'seller' || A.user.role === 'admin';
+            const nameChanged = isSeller && newName !== (A.user.name || '');
+
+            // Bug J — server-authoritative 30-day cooldown on shop name
+            // changes. The UI also disables the inputs when the lock is
+            // active, but we re-check here in case the field was force-
+            // enabled (devtools) or shop_name_changed_at advanced while
+            // the sheet was open.
+            if (nameChanged && db && A.user.uid && A.user.role !== 'admin') {
+                try {
+                    const { data } = await db.from('profiles')
+                        .select('shop_name_changed_at').eq('id', A.user.uid).maybeSingle();
+                    if (data && data.shop_name_changed_at) {
+                        const last = new Date(data.shop_name_changed_at).getTime();
+                        const elapsed = Date.now() - last;
+                        const THIRTY = 30 * 24 * 60 * 60 * 1000;
+                        if (elapsed < THIRTY) {
+                            const daysLeft = Math.ceil((THIRTY - elapsed) / (24 * 60 * 60 * 1000));
+                            toast('Ou kapab chanje non boutik la chak 30 jou. Rete ' + daysLeft + ' jou.');
+                            return;
+                        }
+                    }
+                } catch (e) { console.warn('[Profile saveCheck]', e.message); }
+            }
+
+            A.user.name = newName;
             A.user.initials = fn.charAt(0) + (ln ? ln.charAt(0) : '');
             A.user.moncashNumber = mc;
             localStorage.setItem('aym_user', JSON.stringify(A.user));
             // Persist to Supabase profile
             if (db && A.user.uid) {
-                db.from('profiles').update({
+                const updates = {
                     first_name: fn,
                     last_name: ln || null,
-                    display_name: A.user.name,
+                    display_name: newName,
                     moncash_number: mc || null,
-                }).eq('id', A.user.uid).then(({ error }) => {
-                    if (error) console.warn('[Profile save]', error.message);
-                });
+                };
+                // Only stamp shop_name_changed_at when the name actually
+                // changed AND the user is a seller — admins are exempt
+                // from the cooldown so they can rename for moderation.
+                if (nameChanged && A.user.role !== 'admin') {
+                    updates.shop_name_changed_at = new Date().toISOString();
+                }
+                if (isSeller) {
+                    updates.bio = bio || null;
+                }
+                const { error } = await db.from('profiles').update(updates).eq('id', A.user.uid);
+                if (error) console.warn('[Profile save]', error.message);
             }
             closeSheets();
             renderProfile();
@@ -7300,10 +7398,80 @@
         // ══════════════════════════════════════════════════════════
         //  FONCTIONNALITE 2 — CURRENCY TOGGLE
         // ══════════════════════════════════════════════════════════
+        // Currency state is *local* to this device only — stored in
+        // localStorage, never written to the Supabase profile. A vendor
+        // viewing prices in USD therefore can't change what other buyers
+        // see (Bug I).
         const CURRENCY = {
-            rate: 130,
+            // Seed from the cached rate first so prices render correctly on
+            // first paint, even before the network fetch resolves; default
+            // to 130 only when nothing is cached yet.
+            rate: parseFloat(localStorage.getItem('aym_currency_rate') || '0') || 130,
             current: localStorage.getItem('aym_currency') || 'HTG'
         };
+
+        // Pull a fresh USD→HTG rate from a public ExchangeRate-API endpoint.
+        // We cache for 4h to keep app boots cheap and tolerate the API
+        // occasionally being slow. Any failure falls back to whatever
+        // CURRENCY.rate already holds (cached or default 130) — the app
+        // never crashes because the rate fetch errored.
+        async function fetchExchangeRate() {
+            const KEY = 'aym_currency_rate';
+            const TS  = 'aym_currency_rate_at';
+            const FOUR_H = 4 * 60 * 60 * 1000;
+            try {
+                const cachedAt = parseInt(localStorage.getItem(TS) || '0', 10);
+                const cachedVal = parseFloat(localStorage.getItem(KEY) || '0');
+                if (cachedVal > 0 && Date.now() - cachedAt < FOUR_H) {
+                    CURRENCY.rate = cachedVal;
+                    console.log('[Currency] Rate=' + cachedVal + ' (cached)');
+                    return cachedVal;
+                }
+                const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                const htg = data && data.rates && data.rates.HTG;
+                if (typeof htg !== 'number' || htg <= 0) throw new Error('HTG rate missing');
+                CURRENCY.rate = htg;
+                try {
+                    localStorage.setItem(KEY, String(htg));
+                    localStorage.setItem(TS, String(Date.now()));
+                } catch (_) { }
+                console.log('[Currency] Rate=' + htg + ' (fresh)');
+                return htg;
+            } catch (e) {
+                console.warn('[Currency] Rate fetch failed:', e.message, '— keeping', CURRENCY.rate);
+                return CURRENCY.rate;
+            }
+        }
+
+        // Format a HTG amount in the user's active currency. USD strips
+        // the "HTG" suffix entirely (Bug H) and shows "$X.XX". HTG keeps
+        // the existing thousands-separated digits + " HTG".
+        function fpc(htgAmount) {
+            const n = Number(htgAmount) || 0;
+            if (CURRENCY.current === 'USD') {
+                const r = CURRENCY.rate || 130;
+                return '$' + (n / r).toFixed(2);
+            }
+            return fp(n) + ' HTG';
+        }
+
+        // Kick off the rate refresh in the background. Fire-and-forget —
+        // anything already rendered is using the cached/default rate, and
+        // a successful fetch updates CURRENCY.rate for future renders +
+        // for the next currency toggle.
+        if (typeof fetchExchangeRate === 'function') {
+            fetchExchangeRate().then(rate => {
+                // If the user already had USD selected, refresh visible
+                // prices once the live rate lands.
+                if (CURRENCY.current === 'USD') {
+                    const lblRate = document.getElementById('currRateTxt');
+                    if (lblRate) lblRate.textContent = 'Taux: 1 USD = ' + rate.toFixed(2) + ' HTG';
+                    if (typeof renderFeed === 'function') renderFeed();
+                }
+            });
+        }
 
         function toggleCurrency() {
             const next = CURRENCY.current === 'HTG' ? 'USD' : 'HTG';
@@ -7329,17 +7497,18 @@
             if (ex) ex.textContent = cur === 'USD' ? `$${(3500 / CURRENCY.rate).toFixed(2)}` : '3 500 HTG';
             // Re-render feed
             renderFeed();
-            // Re-render détail si ouvert
+            // Re-render détail si ouvert — use fpc() so the HTG suffix
+            // disappears when USD is active (Bug H).
             if (A.curProd) {
                 const sp = document.querySelector('#detailContent .text-3xl');
-                if (sp) sp.textContent = fp(A.curProd.p);
+                if (sp) sp.textContent = fpc(A.curProd.p);
                 const sg = document.getElementById('similarGrid');
                 if (sg && sg.children.length > 0) renderSimilarProducts(A.curProd);
             }
             // Feedback bouton header
             const btn = document.getElementById('currBtn');
             if (btn) { btn.style.transform = 'scale(1.2)'; setTimeout(() => { btn.style.transform = ''; }, 200); }
-            toast(`Monnaie: ${cur} (1 USD = 130 HTG)`);
+            toast('Monnaie: ' + cur + ' (1 USD = ' + CURRENCY.rate.toFixed(2) + ' HTG)');
         }
 
         // Override fp() pour supporter la conversion

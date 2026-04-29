@@ -20,6 +20,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     order_count INTEGER DEFAULT 0,
     location TEXT,
     bio TEXT,
+    -- Stamp the moment the seller last changed their display_name.
+    -- Bug J: a seller can only rename their shop once every 30 days;
+    -- the UI checks this column and re-stamps it on a successful rename.
+    shop_name_changed_at TIMESTAMPTZ,
     specialties TEXT[] DEFAULT '{}',
     response_time TEXT,
     badges TEXT[] DEFAULT '{}',
