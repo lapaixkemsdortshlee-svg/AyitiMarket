@@ -6985,8 +6985,23 @@
             }
             navigator.geolocation.getCurrentPosition(pos => {
                 _userGeo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                renderPickupList();
-                toast('Pozisyon detekte — triyè pa distans');
+                // Auto-select the closest pickup so its name surfaces in
+                // settings + everywhere else without forcing the user to
+                // tap a second time. Filter out rows that have no
+                // coordinates (data gap), and only swap if we don't
+                // already have a stickier explicit choice on the user.
+                const ranked = PICKUPS
+                    .filter(pk => pk.lat != null && pk.lng != null)
+                    .map(pk => ({ pk, km: haversineKm(_userGeo, pk) }))
+                    .sort((a, b) => a.km - b.km);
+                const closest = ranked[0];
+                if (closest && typeof setPickupZone === 'function') {
+                    setPickupZone(closest.pk.id);
+                    toast('Pwen Kolekte: ' + closest.pk.n + ' (' + closest.km.toFixed(1) + ' km)');
+                } else {
+                    renderPickupList();
+                    toast('Pozisyon detekte — triyè pa distans');
+                }
                 if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
                 // Persist geo so pickup sort works immediately next session.
                 if (db && A.user?.uid) {
