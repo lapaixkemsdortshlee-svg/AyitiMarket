@@ -5552,10 +5552,20 @@
                 btn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:14px;animation:spin .8s linear infinite">progress_activity</span> Ap efase...';
             }
             try {
-                const { error } = await db.from('products').delete().eq('id', pid).eq('seller_id', A.user.uid);
+                // Soft-delete: archive the product instead of DELETE.
+                // A real DELETE would violate the orders.product_id foreign
+                // key whenever the seller has even one historical order on
+                // the row, and we *want* the order history to survive — the
+                // sheet copy literally promises "Istorik komand … ap rete".
+                // Feed/discovery queries already filter status='active', so
+                // archived products disappear from the public surface
+                // immediately while staying intact for orders/admin.
+                const { error } = await db.from('products')
+                    .update({ status: 'archived' })
+                    .eq('id', pid).eq('seller_id', A.user.uid);
                 if (error) throw error;
                 // Also disable any flash deals tied to this product so they
-                // don't leak into the feed after the row is gone.
+                // don't leak into the feed after the row is archived.
                 await db.from('flash_deals').update({ active: false }).eq('product_id', pid);
                 const idx = PRODUCTS.findIndex(x => x.id === pid);
                 if (idx >= 0) PRODUCTS.splice(idx, 1);
