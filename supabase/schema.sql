@@ -28,6 +28,13 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     response_time TEXT,
     badges TEXT[] DEFAULT '{}',
     status TEXT DEFAULT 'active' CHECK (status IN ('active', 'pending', 'banned')),
+    -- Bug Block-User: companion fields for status='banned'.
+    --   banned_until = NULL  → permanent ban (definitive)
+    --   banned_until in fute → temporary ban; auto-promotes back to
+    --                           'active' on next login after expiry.
+    -- ban_reason is shown to the user via the in-app notification.
+    banned_until TIMESTAMPTZ,
+    ban_reason TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -3265,6 +3265,37 @@
         </button>
     </div>
 
+    <!-- ══ BLOCK USER SHEET (admin) ══ -->
+    <div class="sheet" id="blockUserSheet">
+        <div class="handle"></div>
+        <div class="flex items-start gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center" style="background:rgba(151,66,43,.12)">
+                <span class="material-symbols-outlined fi" style="font-size:22px;color:#97422b">block</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h3 class="font-headline font-extrabold text-lg text-on-surface tracking-tight">Bloke itilizatè?</h3>
+                <p class="font-body text-sm text-on-surface-variant" id="buUserLabel">—</p>
+            </div>
+        </div>
+        <div class="space-y-3 mb-4">
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Rezon (vizib pa itilizatè a)</p>
+                <textarea id="buReason" class="si resize-none" rows="3" maxlength="300" placeholder="ex: Aktivite frodè · Spam · Vyolasyon kondisyon"></textarea>
+            </div>
+        </div>
+        <div class="space-y-2">
+            <button onclick="confirmBan('temp')" id="buTempBtn" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-headline font-bold text-sm active:scale-[.98] transition-transform" style="background:rgba(217,119,6,.1);color:#b45309">
+                <span class="material-symbols-outlined fi" style="font-size:16px">timer</span>
+                Bloke 7 jou (tempora)
+            </button>
+            <button onclick="confirmBan('definitive')" id="buDefBtn" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-headline font-bold text-sm active:scale-[.98] transition-transform" style="background:#dc2626;color:#fff">
+                <span class="material-symbols-outlined" style="font-size:16px">gavel</span>
+                Bloke definitif (banni + email)
+            </button>
+            <button onclick="closeSheets()" class="w-full py-3 rounded-xl font-label font-bold text-sm active:opacity-70" style="background:#e5e2dd;color:#1c1c19">Anile</button>
+        </div>
+    </div>
+
     <!-- ══ DELETE CONFIRM SHEET (seller) ══ -->
     <div class="sheet" id="confirmDeleteSheet">
         <div class="handle"></div>
@@ -6900,29 +6931,154 @@
         window.adminResolveDispute = adminResolveDispute;
 
         function renderAdminUsers() {
-            document.getElementById('adminUserList').innerHTML = ADMIN_USERS.map(u => `
-  <div class="bg-surface-container-lowest rounded-xl p-4 amb flex items-center gap-3">
-    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(0,102,111,.1)"><span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1;color:#00666f">person</span></div>
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-1.5">
-        <p class="font-headline font-bold text-sm text-on-surface">${u.name}</p>
-        ${u.verified ? `<span class="material-symbols-outlined fi text-primary" style="font-size:13px">verified</span>` : ''}
-      </div>
-      <p class="font-label text-xs text-on-surface-variant">${u.role} · ${u.status === 'active' ? 'Aktif' : u.status === 'banned' ? 'Bloke' : 'An atant'}</p>
-    </div>
-    <div class="flex gap-1.5 flex-shrink-0">
-      ${u.status === 'active' ? `<button onclick="adminBanUser('${u.uid}','${u.name}')" class="px-2.5 py-1.5 rounded-lg font-label text-[10px] font-bold text-secondary active:opacity-70" style="background:rgba(152,68,62,.08)">Bloke</button>` : ''}
-      ${u.status === 'banned' ? `<span class="font-label text-[10px] font-bold px-2 py-1 rounded-full" style="background:#e5e2dd;color:#3d4949">Bloke</span>` : ''}
-    </div>
-  </div>`).join('');
+            document.getElementById('adminUserList').innerHTML = ADMIN_USERS.map(u => {
+                // Distinguish three states for the banned column:
+                //   - active            → "Bloke" button opens the sheet
+                //   - banned, no expiry → red "Banni" badge + "Debloke"
+                //   - banned, expiry    → orange "Tempora • <date>" + "Debloke"
+                let badge = '';
+                let actionBtn = '';
+                if (u.status === 'banned') {
+                    if (u.banned_until && new Date(u.banned_until).getTime() > Date.now()) {
+                        const d = new Date(u.banned_until);
+                        const lbl = d.toLocaleDateString('fr', { day: '2-digit', month: 'short' });
+                        badge = '<span class="font-label text-[10px] font-bold px-2 py-1 rounded-full" style="background:#fef3c7;color:#92400e">Tempora · ' + lbl + '</span>';
+                    } else {
+                        badge = '<span class="font-label text-[10px] font-bold px-2 py-1 rounded-full" style="background:#fee2e2;color:#991b1b">Banni</span>';
+                    }
+                    actionBtn = '<button onclick="unblockUser(\'' + u.uid + '\',\'' + (u.name || '').replace(/'/g, "\\'") + '\')" class="px-2.5 py-1.5 rounded-lg font-label text-[10px] font-bold active:scale-95" style="background:rgba(0,102,111,.08);color:#00666f">Debloke</button>';
+                } else {
+                    badge = u.status === 'pending'
+                        ? '<span class="font-label text-[10px] font-bold px-2 py-1 rounded-full" style="background:#e0e7ff;color:#3730a3">An atant</span>'
+                        : '';
+                    actionBtn = u.status === 'active'
+                        ? '<button onclick="openBlockUserSheet(\'' + u.uid + '\',\'' + (u.name || '').replace(/'/g, "\\'") + '\')" class="px-2.5 py-1.5 rounded-lg font-label text-[10px] font-bold text-secondary active:opacity-70" style="background:rgba(152,68,62,.08)">Bloke</button>'
+                        : '';
+                }
+                return '<div class="bg-surface-container-lowest rounded-xl p-4 amb flex items-center gap-3">'
+                    + '<div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(0,102,111,.1)"><span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:\'FILL\' 1;color:#00666f">person</span></div>'
+                    + '<div class="flex-1 min-w-0"><div class="flex items-center gap-1.5"><p class="font-headline font-bold text-sm text-on-surface truncate">' + (u.name || 'Itilizatè') + '</p>'
+                    + (u.verified ? '<span class="material-symbols-outlined fi text-primary" style="font-size:13px">verified</span>' : '') + '</div>'
+                    + '<p class="font-label text-xs text-on-surface-variant">' + (u.role || 'buyer') + (badge ? ' · ' : '') + '</p>'
+                    + (badge ? '<div class="mt-1">' + badge + '</div>' : '')
+                    + '</div>'
+                    + '<div class="flex gap-1.5 flex-shrink-0">' + actionBtn + '</div>'
+                    + '</div>';
+            }).join('');
         }
 
-        function adminBanUser(uid, name) {
-            const u = ADMIN_USERS.find(x => x.uid === uid);
-            if (u) u.status = 'banned';
-            renderAdminUsers();
-            toast(`${name} bloke`);
+        // ── Admin block / unblock ─────────────────────────────────
+        // The banned_until convention used here:
+        //   - status='active' + banned_until=NULL  → normal
+        //   - status='banned' + banned_until=NULL  → permanent ban
+        //   - status='banned' + banned_until>NOW() → temporary ban
+        // Anything past banned_until is auto-promoted to active on next
+        // login (see handleAuthSession).
+
+        function openBlockUserSheet(uid, name) {
+            if (A.user?.role !== 'admin') { toast('Admin sèlman'); return; }
+            A.banningUid = uid;
+            A.banningName = name || 'Itilizatè';
+            const lbl = document.getElementById('buUserLabel');
+            if (lbl) lbl.textContent = A.banningName;
+            const reason = document.getElementById('buReason');
+            if (reason) reason.value = '';
+            openSheet('blockUserSheet');
         }
+
+        async function confirmBan(scope) {
+            const uid = A.banningUid;
+            const name = A.banningName || 'Itilizatè';
+            if (!uid || !db) return;
+            const reason = (document.getElementById('buReason')?.value || '').trim() || null;
+            const isDefinitive = scope === 'definitive';
+            const banned_until = isDefinitive
+                ? null
+                : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+            const targetBtn = document.getElementById(isDefinitive ? 'buDefBtn' : 'buTempBtn');
+            const orig = targetBtn ? targetBtn.innerHTML : '';
+            if (targetBtn) {
+                targetBtn.disabled = true;
+                targetBtn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:14px;animation:spin .8s linear infinite">progress_activity</span> Ap aplike...';
+            }
+            try {
+                const { error } = await db.from('profiles').update({
+                    status: 'banned',
+                    banned_until: banned_until,
+                    ban_reason: reason,
+                }).eq('id', uid);
+                if (error) throw error;
+                // In-app notification to the affected user
+                db.from('notifications').insert({
+                    user_id: uid,
+                    type: 'system',
+                    icon: 'block',
+                    title: isDefinitive ? 'Kont ou banni' : 'Kont ou bloke pou 7 jou',
+                    body: (reason ? 'Rezon: ' + reason + '.' : 'Aksyon admin.')
+                        + (isDefinitive ? ' Sa defini — kontakte sipò AyitiMarket.' : ' W ap kapab konekte ankò apre 7 jou.'),
+                    color: '#dc2626',
+                }).then(({ error: e }) => { if (e) console.error('[Ban notif]', e); });
+                // Definitive ban → also queue an email (Edge Function picks
+                // these rows up; until that's wired, the row sits in the
+                // outbox so nothing is silently dropped).
+                if (isDefinitive) {
+                    db.from('pending_emails').insert({
+                        to_user: uid,
+                        subject: 'Kont AyitiMarket ou bani',
+                        body: 'Bonjou ' + name + ',\n\nKont ou sou AyitiMarket bani.'
+                            + (reason ? '\n\nRezon: ' + reason : '')
+                            + '\n\nPou diskite desizyon sa, kontakte sipò@ayitimarket app la.\n\n— Ekip AyitiMarket',
+                    }).then(({ error: e }) => {
+                        if (e) console.error('[Ban email queue]', e);
+                    });
+                }
+                // Mirror locally for instant re-render
+                const u = ADMIN_USERS.find(x => x.uid === uid);
+                if (u) { u.status = 'banned'; u.banned_until = banned_until; }
+                closeSheets();
+                renderAdminUsers();
+                toast(name + (isDefinitive ? ' bani definitif' : ' bloke 7 jou'));
+            } catch (e) {
+                console.error('[Ban]', e);
+                toast('Erè: ' + (e.message || 'pa kapab bloke'));
+            } finally {
+                if (targetBtn) { targetBtn.disabled = false; targetBtn.innerHTML = orig; }
+                A.banningUid = null;
+                A.banningName = null;
+            }
+        }
+
+        async function unblockUser(uid, name) {
+            if (A.user?.role !== 'admin') { toast('Admin sèlman'); return; }
+            if (!db || !uid) return;
+            try {
+                const { error } = await db.from('profiles').update({
+                    status: 'active',
+                    banned_until: null,
+                    ban_reason: null,
+                }).eq('id', uid);
+                if (error) throw error;
+                db.from('notifications').insert({
+                    user_id: uid,
+                    type: 'system',
+                    icon: 'lock_open',
+                    title: 'Kont ou debloke',
+                    body: 'Admin debloke kont ou. Ou ka kontinye sèvi avèk AyitiMarket.',
+                    color: '#00666f',
+                }).then(({ error: e }) => { if (e) console.error('[Unban notif]', e); });
+                const u = ADMIN_USERS.find(x => x.uid === uid);
+                if (u) { u.status = 'active'; u.banned_until = null; }
+                renderAdminUsers();
+                toast((name || 'Itilizatè') + ' debloke');
+            } catch (e) {
+                console.error('[Unban]', e);
+                toast('Erè: ' + (e.message || 'pa kapab debloke'));
+            }
+        }
+
+        window.openBlockUserSheet = openBlockUserSheet;
+        window.confirmBan = confirmBan;
+        window.unblockUser = unblockUser;
 
         // ── Admin: Conversations viewer (read-only) ──
         var _adminConvos = [];
@@ -10178,6 +10334,46 @@
         const name = profile?.display_name || profile?.first_name || cachedSelf?.name || meta.full_name || meta.name || email.split('@')[0] || 'Itilizatè';
         const initials = name.split(' ').filter(Boolean).map(w => w[0]?.toUpperCase()).join('').slice(0,2) || 'U';
 
+        // Ban gate — handle status='banned' here, before we hand control
+        // to bootApp, so a banned user can't slip past the auth screen.
+        // Three branches:
+        //   1. status='banned', banned_until in the future → still banned;
+        //      sign them out and surface why.
+        //   2. status='banned', banned_until in the past → tempora expired;
+        //      auto-promote back to active so the user isn't punished
+        //      forever because the admin set 7 days a year ago.
+        //   3. status='banned', banned_until NULL → permanent ban; sign out.
+        if (profile && profile.status === 'banned') {
+            const until = profile.banned_until ? new Date(profile.banned_until).getTime() : null;
+            if (until && until <= Date.now()) {
+                // Tempora ban expired — flip back to active before continuing.
+                try {
+                    await db.from('profiles').update({
+                        status: 'active', banned_until: null, ban_reason: null,
+                    }).eq('id', uid);
+                    profile.status = 'active';
+                    profile.banned_until = null;
+                    profile.ban_reason = null;
+                } catch (e) {
+                    console.warn('[Auth] auto-unban failed:', e.message);
+                }
+            } else {
+                const reason = profile.ban_reason ? '\nRezon: ' + profile.ban_reason : '';
+                const expiry = until
+                    ? '\nW ap kapab konekte ankò ' + new Date(until).toLocaleDateString('fr', { day: '2-digit', month: 'long', year: 'numeric' })
+                    : '\nKontakte sipò pou plis enfòmasyon.';
+                if (typeof toast === 'function') {
+                    toast('Kont ou bloke.' + reason);
+                } else {
+                    alert('Kont ou bloke.' + reason + expiry);
+                }
+                try { await db.auth.signOut(); } catch (_) { }
+                A.user = null; A.isAuth = false;
+                try { localStorage.removeItem('aym_user'); } catch (_) { }
+                return false;
+            }
+        }
+
         A.user = {
             uid, name, initials, email,
             phone: profile?.phone ?? cachedSelf?.phone ?? '',
@@ -10789,6 +10985,7 @@
                     uid: u.id, name: u.display_name || (u.first_name + ' ' + (u.last_name || '')).trim(),
                     role: u.role || 'buyer', verified: u.verified_seller || false,
                     status: u.status || 'active', orders: u.order_count || 0, sales: u.sales_count || 0,
+                    banned_until: u.banned_until || null, ban_reason: u.ban_reason || null,
                 }));
             }
             renderVerifList();
