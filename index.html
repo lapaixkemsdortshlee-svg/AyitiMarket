@@ -3201,6 +3201,93 @@
         </button>
     </div>
 
+    <!-- ══ EDIT PRODUCT SHEET (seller) ══ -->
+    <div class="sheet" id="editProductSheet">
+        <div class="handle"></div>
+        <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight mb-4">Modifye Pwodwi</h3>
+        <div class="space-y-3 mb-5">
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Non pwodwi *</p>
+                <input id="epTitle" class="si" autocomplete="off"/>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Pri (HTG) *</p>
+                    <input id="epPrice" type="number" class="si" min="1"/>
+                </div>
+                <div>
+                    <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Stòk *</p>
+                    <input id="epStock" type="number" class="si" min="0"/>
+                </div>
+            </div>
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Lokasyon</p>
+                <input id="epLoc" class="si" placeholder="ex: Pétion-Ville"/>
+            </div>
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Deskripsyon</p>
+                <textarea id="epDesc" class="si resize-none" rows="3" maxlength="500"></textarea>
+            </div>
+        </div>
+        <button onclick="submitEditProduct()" id="epSaveBtn" class="w-full py-3.5 rounded-xl cta font-headline font-bold text-sm active:scale-95 transition-transform">
+            <span class="material-symbols-outlined align-middle mr-1" style="font-size:16px">save</span>Anrejistre
+        </button>
+    </div>
+
+    <!-- ══ DISCOUNT / FLASH DEAL SHEET (seller) ══ -->
+    <div class="sheet" id="discountProductSheet">
+        <div class="handle"></div>
+        <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight mb-1">Pwomosyon Flash</h3>
+        <p class="font-body text-sm text-on-surface-variant mb-4" id="dpProductLabel">Pwodwi</p>
+        <div class="space-y-3 mb-5">
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">% Rediksyon (1–90)</p>
+                <input id="dpPct" type="number" class="si" min="1" max="90" value="20" oninput="updateDiscountPreview()"/>
+            </div>
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Dire</p>
+                <select id="dpDur" class="si">
+                    <option value="1">1 èdtan</option>
+                    <option value="2" selected>2 èdtan</option>
+                    <option value="6">6 èdtan</option>
+                    <option value="12">12 èdtan</option>
+                    <option value="24">24 èdtan</option>
+                    <option value="48">48 èdtan</option>
+                </select>
+            </div>
+            <div class="rounded-xl p-3" style="background:rgba(151,66,43,.06)" id="dpPreviewBox">
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.08em] text-on-surface-variant">Apèsi</p>
+                <p class="font-headline font-bold text-sm text-on-surface" id="dpPreviewTxt">Pri orijinal — → Pri rediksyon —</p>
+            </div>
+        </div>
+        <button onclick="submitDiscountProduct()" id="dpApplyBtn" class="w-full py-3.5 rounded-xl font-headline font-bold text-sm active:scale-95 transition-transform" style="background:#97422b;color:#fff">
+            <span class="material-symbols-outlined align-middle mr-1" style="font-size:16px">local_fire_department</span>Aplike Rediksyon
+        </button>
+    </div>
+
+    <!-- ══ DELETE CONFIRM SHEET (seller) ══ -->
+    <div class="sheet" id="confirmDeleteSheet">
+        <div class="handle"></div>
+        <div class="flex items-start gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center" style="background:rgba(220,38,38,.12)">
+                <span class="material-symbols-outlined fi" style="font-size:22px;color:#dc2626">warning</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h3 class="font-headline font-extrabold text-lg text-on-surface tracking-tight">Efase pwodwi?</h3>
+                <p class="font-body text-sm text-on-surface-variant" id="cdProductLabel">Sa irevèsib.</p>
+            </div>
+        </div>
+        <div class="rounded-xl p-3 mb-4" style="background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2)">
+            <p class="font-label text-xs text-on-surface-variant leading-relaxed">Pwodwi a ap retire nan feed la imedyatman. Istorik komand egzistan yo ap rete nan baz done a, men aksè piblik pap disponib ankò. <strong class="text-secondary">Sa pa ka anile.</strong></p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="closeSheets()" class="flex-1 py-3.5 rounded-xl font-headline font-bold text-sm active:scale-95 transition-transform" style="background:#e5e2dd;color:#1c1c19">Anile</button>
+            <button onclick="submitDeleteProduct()" id="cdDeleteBtn" class="flex-1 py-3.5 rounded-xl font-headline font-bold text-sm active:scale-95 transition-transform" style="background:#dc2626;color:#fff">
+                <span class="material-symbols-outlined align-middle mr-1" style="font-size:14px">delete</span>Wi, efase
+            </button>
+        </div>
+    </div>
+
     <!-- ══ AUTH LOADER ══ -->
     <div class="auth-loader hidden" id="authLoader">
         <div class="spinner"></div>
@@ -5378,81 +5465,175 @@
         }
 
         // ── Edit / Delete / Discount for seller's own products ──
-        async function deleteMyProduct(pid) {
+        // Each helper opens a real bottom-sheet (no native prompt/confirm).
+        // The sheet reads/writes A.editingProductId / A.deletingProductId
+        // / A.discountProductId so the submit handlers know what to UPDATE
+        // or DELETE without globals fighting each other.
+
+        function _findMyProduct(pid) {
+            return (A.myBoutiqueProducts || PRODUCTS).find(x => x.id === pid)
+                || PRODUCTS.find(x => x.id === pid)
+                || null;
+        }
+
+        function editMyProduct(pid) {
             if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
-            if (!confirm('Efase pwodwi sa a definitivman?')) return;
+            const p = _findMyProduct(pid);
+            if (!p) { toast('Pwodwi pa jwenn'); return; }
+            A.editingProductId = pid;
+            // Pre-fill the sheet
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = (v == null ? '' : v); };
+            set('epTitle', p.t);
+            set('epPrice', p.p);
+            set('epStock', p.s);
+            set('epLoc', p.l);
+            set('epDesc', p.desc);
+            openSheet('editProductSheet');
+        }
+
+        async function submitEditProduct() {
+            const pid = A.editingProductId;
+            if (!pid) return;
+            const title = (document.getElementById('epTitle')?.value || '').trim();
+            const price = parseInt(document.getElementById('epPrice')?.value, 10) || 0;
+            const stock = Math.max(0, parseInt(document.getElementById('epStock')?.value, 10) || 0);
+            const loc = (document.getElementById('epLoc')?.value || '').trim() || null;
+            const desc = (document.getElementById('epDesc')?.value || '').trim() || null;
+            if (!title) { toast('Non pwodwi obligatwa'); return; }
+            if (price <= 0) { toast('Pri pa valid'); return; }
+            const btn = document.getElementById('epSaveBtn');
+            const orig = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:15px;animation:spin .8s linear infinite">progress_activity</span> Anrejistre...';
+            }
+            try {
+                const { error } = await db.from('products').update({
+                    title: title,
+                    price: price,
+                    stock: stock,
+                    location: loc,
+                    description: desc,
+                }).eq('id', pid).eq('seller_id', A.user.uid);
+                if (error) throw error;
+                // Update in-memory mirror so the boutique row reflects the
+                // change without a full Supabase re-fetch on close.
+                const local = PRODUCTS.find(x => x.id === pid);
+                if (local) { local.t = title; local.p = price; local.s = stock; local.l = loc || local.l; local.desc = desc || ''; }
+                closeSheets();
+                toast('Pwodwi modifye ✓');
+                if (typeof renderBoutiqueContent === 'function') renderBoutiqueContent();
+            } catch (e) {
+                console.error('[EditProduct]', e);
+                toast('Erè: ' + (e.message || 'pa kapab anrejistre'));
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+                A.editingProductId = null;
+            }
+        }
+
+        function deleteMyProduct(pid) {
+            if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
+            const p = _findMyProduct(pid);
+            if (!p) { toast('Pwodwi pa jwenn'); return; }
+            A.deletingProductId = pid;
+            const lbl = document.getElementById('cdProductLabel');
+            if (lbl) lbl.textContent = '"' + p.t + '" — sa irevèsib.';
+            openSheet('confirmDeleteSheet');
+        }
+
+        async function submitDeleteProduct() {
+            const pid = A.deletingProductId;
+            if (!pid) return;
+            const btn = document.getElementById('cdDeleteBtn');
+            const orig = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:14px;animation:spin .8s linear infinite">progress_activity</span> Ap efase...';
+            }
             try {
                 const { error } = await db.from('products').delete().eq('id', pid).eq('seller_id', A.user.uid);
                 if (error) throw error;
-                // Also disable any flash deals
+                // Also disable any flash deals tied to this product so they
+                // don't leak into the feed after the row is gone.
                 await db.from('flash_deals').update({ active: false }).eq('product_id', pid);
                 const idx = PRODUCTS.findIndex(x => x.id === pid);
                 if (idx >= 0) PRODUCTS.splice(idx, 1);
-                toast('Pwodwi efase');
-                renderBoutiqueContent();
-            } catch(e) {
-                console.error('[Delete]', e.message);
-                toast('Erè efase: ' + e.message);
+                closeSheets();
+                toast('Pwodwi efase ✓');
+                if (typeof renderBoutiqueContent === 'function') renderBoutiqueContent();
+            } catch (e) {
+                console.error('[DeleteProduct]', e);
+                toast('Erè efase: ' + (e.message || 'pa kapab efase'));
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+                A.deletingProductId = null;
             }
         }
 
-        async function editMyProduct(pid) {
+        function addDiscountToProduct(pid) {
             if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
-            const p = (A.myBoutiqueProducts || PRODUCTS).find(x => x.id === pid);
+            const p = _findMyProduct(pid);
             if (!p) { toast('Pwodwi pa jwenn'); return; }
-            const newTitle = prompt('Non pwodwi:', p.t);
-            if (newTitle === null) return;
-            const newPriceStr = prompt('Pri (HTG):', p.p);
-            if (newPriceStr === null) return;
-            const newPrice = parseInt(newPriceStr);
-            if (!newTitle.trim() || !newPrice || newPrice <= 0) { toast('Enfòmasyon pa valid'); return; }
-            const newDesc = prompt('Deskripsyon:', p.desc || '');
-            try {
-                const { error } = await db.from('products').update({
-                    title: newTitle.trim(),
-                    price: newPrice,
-                    description: newDesc !== null ? newDesc : p.desc,
-                }).eq('id', pid).eq('seller_id', A.user.uid);
-                if (error) throw error;
-                toast('Pwodwi modifye');
-                renderBoutiqueContent();
-            } catch(e) {
-                console.error('[Edit]', e.message);
-                toast('Erè modifikasyon: ' + e.message);
-            }
+            A.discountProductId = pid;
+            const lbl = document.getElementById('dpProductLabel');
+            if (lbl) lbl.textContent = p.t;
+            const pctEl = document.getElementById('dpPct');
+            if (pctEl) pctEl.value = '20';
+            const durEl = document.getElementById('dpDur');
+            if (durEl) durEl.value = '2';
+            updateDiscountPreview();
+            openSheet('discountProductSheet');
         }
 
-        async function addDiscountToProduct(pid) {
-            if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
-            const p = (A.myBoutiqueProducts || PRODUCTS).find(x => x.id === pid);
+        function updateDiscountPreview() {
+            const pid = A.discountProductId;
+            if (!pid) return;
+            const p = _findMyProduct(pid);
+            if (!p) return;
+            const pct = parseInt(document.getElementById('dpPct')?.value, 10) || 0;
+            const orig = p.oldP || p.p;
+            const txt = document.getElementById('dpPreviewTxt');
+            if (!txt) return;
+            if (pct < 1 || pct > 90) {
+                txt.textContent = 'Mete yon % ant 1 ak 90';
+                return;
+            }
+            const newP = Math.round(orig * (1 - pct / 100));
+            txt.innerHTML = '<span style="text-decoration:line-through;color:#7e7e76">' + fp(orig) + ' HTG</span> → <strong style="color:#97422b">' + fp(newP) + ' HTG</strong> (-' + pct + '%)';
+        }
+        window.updateDiscountPreview = updateDiscountPreview;
+
+        async function submitDiscountProduct() {
+            const pid = A.discountProductId;
+            if (!pid) return;
+            const p = _findMyProduct(pid);
             if (!p) { toast('Pwodwi pa jwenn'); return; }
-            const pctStr = prompt('% Rediksyon (1-90):', '20');
-            if (pctStr === null) return;
-            const pct = parseInt(pctStr);
-            if (!pct || pct < 1 || pct > 90) { toast('% pa valid'); return; }
-            const durStr = prompt('Dire (èdtan, ex: 2, 6, 24):', '2');
-            if (durStr === null) return;
-            const dur = parseInt(durStr) || 2;
-            const originalPrice = p.oldP || p.p;
-            const newPrice = Math.round(originalPrice * (1 - pct / 100));
+            const pct = parseInt(document.getElementById('dpPct')?.value, 10) || 0;
+            const dur = parseInt(document.getElementById('dpDur')?.value, 10) || 2;
+            if (pct < 1 || pct > 90) { toast('% pa valid'); return; }
+            const orig = p.oldP || p.p;
+            const newPrice = Math.round(orig * (1 - pct / 100));
+            const btn = document.getElementById('dpApplyBtn');
+            const origHTML = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:15px;animation:spin .8s linear infinite">progress_activity</span> Aplike...';
+            }
             try {
-                // Update product price + old_price
                 const { error: upErr } = await db.from('products').update({
                     price: newPrice,
-                    old_price: originalPrice,
+                    old_price: orig,
                 }).eq('id', pid).eq('seller_id', A.user.uid);
                 if (upErr) throw upErr;
-
-                // Deactivate existing flash deals for this product
+                // Replace any existing flash deals for this product
                 await db.from('flash_deals').update({ active: false }).eq('product_id', pid);
-
-                // Insert new flash deal
                 const endsAt = new Date(Date.now() + dur * 3600 * 1000).toISOString();
                 const { error: fdErr } = await db.from('flash_deals').insert({
                     product_id: pid,
                     title: p.t,
                     price: newPrice,
-                    old_price: originalPrice,
+                    old_price: orig,
                     category: p.c,
                     location: p.l,
                     discount_pct: pct,
@@ -5460,14 +5641,31 @@
                     active: true,
                     ends_at: endsAt,
                 });
-                if (fdErr) console.warn('[FlashDeal]', fdErr.message);
-                toast(`Flash Deal -${pct}% aktive!`);
-                renderBoutiqueContent();
-            } catch(e) {
-                console.error('[Discount]', e.message);
-                toast('Erè: ' + e.message);
+                if (fdErr) console.warn('[FlashDeal] insert:', fdErr.message);
+                // Mirror locally so the feed shows it before the next reload
+                const local = PRODUCTS.find(x => x.id === pid);
+                if (local) { local.p = newPrice; local.oldP = orig; }
+                closeSheets();
+                toast('Rediksyon ' + pct + '% aktive ✓');
+                if (typeof renderBoutiqueContent === 'function') renderBoutiqueContent();
+                if (typeof loadFlashDealsFromSupabase === 'function') loadFlashDealsFromSupabase();
+            } catch (e) {
+                console.error('[DiscountProduct]', e);
+                toast('Erè: ' + (e.message || 'pa kapab aplike'));
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
+                A.discountProductId = null;
             }
         }
+
+        // Keep these names available globally — the boutique cards call
+        // them via inline onclick.
+        window.editMyProduct = editMyProduct;
+        window.deleteMyProduct = deleteMyProduct;
+        window.addDiscountToProduct = addDiscountToProduct;
+        window.submitEditProduct = submitEditProduct;
+        window.submitDeleteProduct = submitDeleteProduct;
+        window.submitDiscountProduct = submitDiscountProduct;
 
         // ══════════════════════════════════════════════════════════
         //  FOLLOWERS (Kliyan Abonnen)
