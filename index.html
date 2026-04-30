@@ -4306,6 +4306,18 @@
             const t = document.getElementById("fTitle").value.trim();
             if (!t) { toast("Ranpli non pwodwi a"); return; }
             if (uploadedPhotos.length === 0) { toast("Ajoute omwen 1 foto"); document.getElementById("fileInput").click(); return; }
+            // Bug M — pickup is OBLIGATORY for sellers. Look at
+            // user.defaultPickup specifically (not A.selPickup, which is
+            // pre-seeded to 'dg' for the buyer checkout flow). Sellers
+            // must have *explicitly* picked their default before we'll
+            // accept a publish, so a product can't end up with no real
+            // collection point on file. Buyers don't hit this path; they
+            // pick at checkout time.
+            if (!(A.user && A.user.defaultPickup)) {
+                toast('Chwazi yon Pwen Kolekte anvan ou pibliye');
+                if (typeof openPickupPicker === 'function') openPickupPicker();
+                return;
+            }
             const cat = document.getElementById("fCat").value;
             const desc = document.getElementById("fDesc").value.trim();
             const price = parseInt(document.getElementById("fPrice").value, 10) || 0;
@@ -5124,8 +5136,19 @@
                 items.push({ i: "group", l: "Kliyan Abonnen", s: (A.followers || 0) + " abonnen", a: "openFollowersScreen()" });
             }
             items.push({ i: "favorite", l: "Favori Mwen", s: A.favs.size + " pwodwi", a: "toast('Favori yo')" });
-            const curPickup = PICKUPS.find(pk => pk.id === (A.user?.defaultPickup || A.selPickup)) || PICKUPS[0];
-            items.push({ i: "location_on", l: "Pwen Kolekte", s: curPickup.n, a: "openPickupPicker()" });
+            // Bug M — show whichever pickup the user has explicitly set;
+            // for sellers with none yet, surface the requirement instead
+            // of pretending the buyer-default 'dg' is theirs.
+            const explicitPickupId = A.user?.defaultPickup;
+            if (explicitPickupId) {
+                const cur = PICKUPS.find(pk => pk.id === explicitPickupId) || PICKUPS[0];
+                items.push({ i: "location_on", l: "Pwen Kolekte", s: cur.n, a: "openPickupPicker()" });
+            } else if (u.role === 'seller') {
+                items.push({ i: "location_on", l: "Pwen Kolekte", s: "Obligatwa — chwazi yon!", a: "openPickupPicker()" });
+            } else {
+                const cur = PICKUPS.find(pk => pk.id === A.selPickup) || PICKUPS[0];
+                items.push({ i: "location_on", l: "Pwen Kolekte", s: cur.n, a: "openPickupPicker()" });
+            }
             if (u.role === 'buyer') {
                 items.push({ i: "store", l: "Vin yon Vandè", s: "Soumèt ID ou", a: "openSheet('verifySheet')" });
             }
@@ -10386,7 +10409,7 @@
         if (!db || !A.user?.uid) return;
         try {
             const { data, error } = await db.from('followers')
-                .select('id, follower:profiles!follower_id(id, display_name, phone, created_at)')
+                .select('id, follower:profiles!follower_id(id, display_name, first_name, last_name, avatar_url, created_at)')
                 .eq('seller_id', A.user.uid);
             if (error) throw error;
             const el = document.getElementById('followersListInner');
@@ -10395,11 +10418,26 @@
                 el.innerHTML = '<p class="font-label text-xs text-on-surface-variant text-center py-8">Ou poko gen abonnen.</p>';
                 return;
             }
+            // Bug L — show real avatar (when available) and just the
+            // pseudo/name. Phone numbers are dropped from this list:
+            // they were neither requested nor appropriate for a public
+            // followers panel (privacy).
             el.innerHTML = '<p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-3">Lis Abonnen</p><div class="space-y-2">' + data.map(f => {
-                const n = f.follower?.display_name || 'Itilizatè';
-                return '<div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb"><div class="w-10 h-10 rounded-full cta flex items-center justify-center flex-shrink-0"><span class="font-headline font-bold text-white text-sm">' + n.charAt(0) + '</span></div><div class="flex-1"><p class="font-headline font-bold text-sm text-on-surface">' + n + '</p><p class="font-label text-xs text-on-surface-variant">' + (f.follower?.phone || '') + '</p></div></div>';
+                const fol = f.follower || {};
+                const name = fol.display_name
+                    || [fol.first_name, fol.last_name].filter(Boolean).join(' ').trim()
+                    || 'Itilizatè';
+                const initial = (name.charAt(0) || 'I').toUpperCase();
+                const avatar = fol.avatar_url
+                    ? '<img src="' + fol.avatar_url + '" alt="' + name + '" class="w-10 h-10 rounded-full object-cover flex-shrink-0" onerror="this.onerror=null;this.outerHTML=\'<div class=&quot;w-10 h-10 rounded-full cta flex items-center justify-center flex-shrink-0&quot;><span class=&quot;font-headline font-bold text-white text-sm&quot;>' + initial + '</span></div>\'"/>'
+                    : '<div class="w-10 h-10 rounded-full cta flex items-center justify-center flex-shrink-0"><span class="font-headline font-bold text-white text-sm">' + initial + '</span></div>';
+                const since = fol.created_at ? timeAgo(fol.created_at) : '';
+                return '<div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb">' + avatar
+                    + '<div class="flex-1 min-w-0"><p class="font-headline font-bold text-sm text-on-surface truncate">' + name + '</p>'
+                    + (since ? '<p class="font-label text-xs text-on-surface-variant">Abonnen depi ' + since + '</p>' : '')
+                    + '</div></div>';
             }).join('') + '</div>';
-        } catch (e) { console.warn('[Followers]', e.message); }
+        } catch (e) { console.error('[Followers]', e); }
     }
 
     // ── Fetch notifications from Supabase ──
