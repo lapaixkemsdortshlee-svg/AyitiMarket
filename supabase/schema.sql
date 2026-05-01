@@ -173,6 +173,24 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications(user_id);
 
+-- ── 8b. PENDING EMAILS (outbox) ──
+-- Admin-only outbox for emails the app needs to send out-of-band
+-- (e.g. ban notifications). The send-pending-emails Edge Function
+-- drains this table by status='pending', sends via Resend, then
+-- flips status to 'sent' or 'error' depending on the result.
+CREATE TABLE IF NOT EXISTS public.pending_emails (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    to_user UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    subject TEXT NOT NULL,
+    body TEXT NOT NULL,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'error')),
+    error TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    sent_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_emails_status ON public.pending_emails(status);
+
 -- ── 9. FLASH DEALS ──
 CREATE TABLE IF NOT EXISTS public.flash_deals (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
