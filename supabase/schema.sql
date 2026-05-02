@@ -20,10 +20,21 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     order_count INTEGER DEFAULT 0,
     location TEXT,
     bio TEXT,
+    -- Stamp the moment the seller last changed their display_name.
+    -- Bug J: a seller can only rename their shop once every 30 days;
+    -- the UI checks this column and re-stamps it on a successful rename.
+    shop_name_changed_at TIMESTAMPTZ,
     specialties TEXT[] DEFAULT '{}',
     response_time TEXT,
     badges TEXT[] DEFAULT '{}',
     status TEXT DEFAULT 'active' CHECK (status IN ('active', 'pending', 'banned')),
+    -- Bug Block-User: companion fields for status='banned'.
+    --   banned_until = NULL  → permanent ban (definitive)
+    --   banned_until in fute → temporary ban; auto-promotes back to
+    --                           'active' on next login after expiry.
+    -- ban_reason is shown to the user via the in-app notification.
+    banned_until TIMESTAMPTZ,
+    ban_reason TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -64,7 +75,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     description TEXT,
     price INTEGER NOT NULL CHECK (price > 0),
     old_price INTEGER,
-    category TEXT NOT NULL CHECK (category IN ('mode', 'cosmetique', 'accessoire', 'artisanat', 'maison', 'bebe')),
+    category TEXT NOT NULL CHECK (category IN ('mode', 'beaute', 'cosmetique', 'electronique', 'gaming', 'accessoire', 'artisanat', 'maison', 'bebe')),
     location TEXT,
     stock INTEGER DEFAULT 1 CHECK (stock >= 0),
     views INTEGER DEFAULT 0,

@@ -12,6 +12,11 @@
     <meta name="description" content="AyitiMarket — Achte &amp; Vann an Ayiti. Marketplace mobile Haïtien." />
     <link rel="manifest" href="manifest.json" />
     <title>AyitiMarket — MVP Final · Ayiti Digital</title>
+    <!-- Warm the HTTP cache for the onboarding iframe's React + Babel
+         bundle so the embed paints faster once the splash finishes. -->
+    <link rel="preload" as="script" crossorigin="anonymous" href="https://unpkg.com/react@18.3.1/umd/react.development.js" />
+    <link rel="preload" as="script" crossorigin="anonymous" href="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" />
+    <link rel="preload" as="script" crossorigin="anonymous" href="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" />
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vercel Speed Insights -->
     <script>
@@ -861,6 +866,42 @@
         body.dark #fab {
             border-color: #1c1c19 !important;
         }
+
+        /* ══════════════════════════════════════════════════════
+           ONBOARDING — scoped to #s-onboarding
+        ══════════════════════════════════════════════════════ */
+        #s-onboarding,
+        #s-onboarding *,
+        #s-onboarding *::before,
+        #s-onboarding *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        #s-onboarding.on { display: block !important; }
+        #s-onboarding {
+            font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+            background: #111;
+            overflow: hidden;
+        }
+        @keyframes ob-floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes ob-floatYSlow { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        @keyframes ob-pulsate { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .6; transform: scale(1.07); } }
+        @keyframes ob-pinDrop { 0% { transform: translateY(-16px); opacity: .3; } 70% { transform: translateY(2px); opacity: 1; } 100% { transform: translateY(0); opacity: 1; } }
+        @keyframes ob-bounceIn { 0% { transform: scale(.5); opacity: .4; } 60% { transform: scale(1.08); } 80% { transform: scale(.97); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes ob-waveBar { 0%,100% { height: 3px; } 50% { height: 14px; } }
+        #s-onboarding .float { animation: ob-floatY 3.6s ease-in-out infinite; }
+        #s-onboarding .float-slow { animation: ob-floatYSlow 5s ease-in-out infinite; }
+        #s-onboarding .pulse { animation: ob-pulsate 2.2s ease-in-out infinite; }
+        #s-onboarding .bounce { animation: ob-bounceIn .65s cubic-bezier(.22,1,.36,1) both; }
+        #s-onboarding .pin { animation: ob-pinDrop .55s cubic-bezier(.22,1,.36,1) both; }
+        /* Onboarding loading state (before React mounts) */
+        #s-onboarding[data-loading="1"]::before {
+            content: '';
+            position: absolute; top: 50%; left: 50%;
+            width: 36px; height: 36px;
+            margin: -18px 0 0 -18px;
+            border: 3px solid rgba(255,255,255,.15);
+            border-top-color: rgba(255,255,255,.85);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
     </style>
 </head>
 
@@ -912,6 +953,146 @@
             if (logo) { logo.style.opacity = '1'; logo.style.transform = 'scale(1)'; }
             if (footer) { footer.style.opacity = '1'; }
         }, 150);
+    </script>
+
+
+
+    <!-- ══════════════════════════════════════════════════════
+     SCREEN 0.5 — ONBOARDING (Lazy-mounted iframe, first visit only)
+══════════════════════════════════════════════════════ -->
+    <div class="screen" id="s-onboarding" style="display:none;position:fixed;inset:0;z-index:55;background:#111;overflow:hidden"></div>
+    <script>
+        // Lazy-mount onboarding for first-visit users only.
+        // Loads onboarding.html in an iframe inside #s-onboarding so we keep
+        // the React/Babel cost off returning users entirely.
+        (function () {
+            // Set the gate flag at parse-time (this script tag runs before
+            // Supabase is even loaded, never mind initialised). While
+            // __pendingOnboarding is true, hideSplash() and goTo('s-login')
+            // are no-ops, so Supabase's INITIAL_SESSION callback can't race
+            // ahead and flash the login screen between splash and onboarding.
+            //
+            // Two reasons to NOT pend the gate:
+            //   - aym_onboarded is already set (user finished onboarding here)
+            //   - aym_user is in localStorage (returning user — they've used
+            //     the app before, just maybe never set the onboarding flag
+            //     because they signed up before this flow existed).
+            try {
+                const seen = !!localStorage.getItem('aym_onboarded');
+                const known = !!localStorage.getItem('aym_user');
+                window.__pendingOnboarding = !seen && !known;
+            } catch (_) {
+                window.__pendingOnboarding = true;
+            }
+
+            // Cached fetch promise so preload + mountOnboarding share one request.
+            let obHtmlPromise = null;
+            function ensureObFetched() {
+                if (obHtmlPromise) return obHtmlPromise;
+                obHtmlPromise = fetch('onboarding.html', { credentials: 'same-origin' })
+                    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); });
+                return obHtmlPromise;
+            }
+
+            // Kick off preload immediately for first-visit users so the iframe
+            // content is ready to paint the moment the splash finishes (hides
+            // the fetch + React/Babel boot delay behind the splash animation).
+            try {
+                if (!localStorage.getItem('aym_onboarded')) {
+                    ensureObFetched().catch(() => { obHtmlPromise = null; });
+                }
+            } catch (_) { }
+
+            window.mountOnboarding = async function () {
+                const c = document.getElementById('s-onboarding');
+                if (!c || c.dataset.mounted === '1') return;
+                c.dataset.mounted = '1';
+                c.dataset.loading = '1';
+                c.classList.add('on');
+                try {
+                    // Fetch (or reuse preloaded) onboarding.html and embed via
+                    // iframe srcdoc. Going through srcdoc sidesteps
+                    // X-Frame-Options on the page response (the attribute value
+                    // isn't an HTTP response) while still running the content
+                    // same-origin with us.
+                    const html = await ensureObFetched();
+                    const ifr = document.createElement('iframe');
+                    ifr.title = 'AyitiMarket Onboarding';
+                    ifr.setAttribute('allow', 'autoplay');
+                    ifr.style.cssText = 'width:100%;height:100%;border:0;display:block;background:transparent';
+                    // Resolve when React inside the iframe posts
+                    // 'aym:onboarding-ready' (sent from a useEffect on the
+                    // App component's first render). Falling back on the
+                    // iframe 'load' event would resolve before Babel
+                    // compiled the JSX, leaving a black frame.
+                    const ready = new Promise(resolve => {
+                        function onMsg(e) {
+                            if (e && e.data && e.data.type === 'aym:onboarding-ready') {
+                                window.removeEventListener('message', onMsg);
+                                c.removeAttribute('data-loading');
+                                resolve();
+                            }
+                        }
+                        window.addEventListener('message', onMsg);
+                        // Safety net: also resolve on iframe load + a small
+                        // buffer, in case the postMessage is somehow missed.
+                        ifr.addEventListener('load', () => {
+                            setTimeout(() => {
+                                window.removeEventListener('message', onMsg);
+                                c.removeAttribute('data-loading');
+                                resolve();
+                            }, 120);
+                        }, { once: true });
+                    });
+                    ifr.srcdoc = html;
+                    c.appendChild(ifr);
+                    return ready;
+                } catch (err) {
+                    console.warn('[Onboarding] Fetch failed, skipping to login:', err);
+                    // Don't trap the user on a blank screen if onboarding
+                    // can't load. Mark them as onboarded and proceed.
+                    try { localStorage.setItem('aym_onboarded', '1'); } catch (_) { }
+                    window.__pendingOnboarding = false;
+                    c.classList.remove('on');
+                    c.style.display = 'none';
+                    c.removeAttribute('data-mounted');
+                    c.removeAttribute('data-loading');
+                    if (typeof continuePostSplash === 'function') continuePostSplash();
+                }
+            };
+
+            window.__completeOnboarding = function () {
+                try { localStorage.setItem('aym_onboarded', '1'); } catch (_) { }
+                try { localStorage.removeItem('aym_ob'); } catch (_) { }
+                // Release the gate so hideSplash() and goTo('s-login')
+                // resume working normally for the auth flow that follows.
+                window.__pendingOnboarding = false;
+                const c = document.getElementById('s-onboarding');
+                if (c) {
+                    c.style.transition = 'opacity .35s ease';
+                    c.style.opacity = '0';
+                    setTimeout(() => {
+                        c.classList.remove('on');
+                        c.style.display = 'none';
+                        c.innerHTML = '';
+                        c.removeAttribute('data-mounted');
+                        c.style.opacity = '';
+                        c.style.transition = '';
+                    }, 350);
+                }
+                // Continue with the normal post-splash auth routing
+                setTimeout(() => {
+                    if (typeof continuePostSplash === 'function') continuePostSplash();
+                }, 380);
+            };
+
+            // Bridge: child iframe (onboarding.html) signals completion via postMessage
+            window.addEventListener('message', (e) => {
+                if (e && e.data && e.data.type === 'aym:onboarding-complete') {
+                    window.__completeOnboarding();
+                }
+            });
+        })();
     </script>
 
 
@@ -1362,6 +1543,12 @@
                         <p class="font-label text-xs font-bold" id="priceMsg"></p>
                     </div>
                 </div>
+                <!-- ═══ STOCK ═══ -->
+                <div>
+                    <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">
+                        Kantite estòk *</p>
+                    <input id="fStock" type="number" class="si" placeholder="ex: 10" min="1" value="1" />
+                </div>
                 <!-- ═══ DISCOUNT TOGGLE ═══ -->
                 <div>
                     <div class="flex items-center justify-between mb-2">
@@ -1524,11 +1711,6 @@
                 <button id="chatCallBtn" onclick="callSeller()"
                     class="w-9 h-9 flex items-center justify-center rounded-full bg-surface-container-low active:scale-90 transition-transform">
                     <span class="material-symbols-outlined text-primary" style="font-size:18px">call</span>
-                </button>
-                <button id="chatWhatsAppBtn" onclick="openWhatsApp()"
-                    class="w-9 h-9 flex items-center justify-center rounded-full active:scale-90 transition-transform"
-                    style="background:rgba(37,211,102,.1)">
-                    <span class="material-symbols-outlined fi" style="font-size:18px;color:#25D366">chat</span>
                 </button>
             </div>
         </div>
@@ -2011,7 +2193,7 @@
                     p janm parèt sou pwofil ou.</p>
             </div>
 
-            <button id="vsStep3Btn" onclick="vsGoStep('cats')" disabled
+            <button id="vsStep3Btn" onclick="vsAdvanceFromSelfie()" disabled
                 class="w-full py-4 rounded-xl font-headline font-extrabold text-sm active:scale-95 transition-all"
                 style="background:#e5e2dd;color:#6d7979">
                 Kontinye <span class="material-symbols-outlined align-middle"
@@ -2020,7 +2202,7 @@
         </div>
 
         <!-- Étape 3.5 : Kategori pou vann (multi-select) -->
-        <div id="vs-stepCats" class="hidden">
+        <div id="vs-stepcats" class="hidden">
             <div class="flex items-center gap-3 mb-4">
                 <button onclick="vsGoStep(3)"
                     class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center active:bg-surface-container-high flex-shrink-0">
@@ -2115,8 +2297,8 @@
             </div>
             <!-- Image display -->
             <div class="p-3">
-                <div id="idModalImg" class="w-full rounded-xl flex items-center justify-center"
-                    style="height:220px;background:#f0ede8">
+                <div id="idModalImg" class="w-full rounded-xl flex items-center justify-center overflow-hidden"
+                    style="height:60vh;max-height:520px;background:#f0ede8">
                     <span class="material-symbols-outlined text-on-surface-variant" style="font-size:48px">badge</span>
                 </div>
                 <p class="font-label text-[10px] text-on-surface-variant text-center mt-2" id="idModalMeta">CIN · Fas ·
@@ -2772,7 +2954,7 @@
                 </div>
                 <div class="flex-1">
                     <p class="font-headline font-bold text-sm text-on-surface">Monnaie</p>
-                    <p class="font-label text-xs text-on-surface-variant">Taux: 1 USD = 130 HTG</p>
+                    <p class="font-label text-xs text-on-surface-variant" id="currRateTxt">Taux: 1 USD = 130 HTG</p>
                 </div>
                 <div class="flex items-center gap-1 rounded-full p-1" style="background:#e5e2dd">
                     <button id="curr-htg" onclick="setCurrency('HTG')"
@@ -2993,6 +3175,17 @@
                 <input id="editMoncash" class="si" placeholder="ex: 509XXXXXXXX" inputmode="tel"/>
                 <p class="font-label text-[10px] text-on-surface-variant mt-1">Apre livrezon konfime, admin ap voye lajan ou sou nimewo sa a.</p>
             </div>
+            <div id="editShopBioRow">
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">
+                    Sou boutik la <span class="text-on-surface-variant">(vandè sèlman · 250 karaktè max)</span>
+                </p>
+                <textarea id="editShopBio" class="si resize-none" rows="3" maxlength="250" placeholder="Yon ti deskripsyon sou boutik ou — vizib pou tout itilizatè."></textarea>
+                <p class="font-label text-[10px] text-on-surface-variant mt-1" id="editShopBioCount">0 / 250</p>
+            </div>
+            <div id="editShopNameLockRow" class="hidden flex items-start gap-2 p-2.5 rounded-lg" style="background:rgba(151,66,43,.08)">
+                <span class="material-symbols-outlined fi flex-shrink-0" style="font-size:14px;color:#97422b">lock_clock</span>
+                <p class="font-label text-[10px] text-on-surface-variant" id="editShopNameLockMsg"></p>
+            </div>
         </div>
         <button onclick="saveProfile()" class="w-full py-3.5 rounded-xl cta font-headline font-bold text-sm active:scale-95 transition-transform mb-3">
             <span class="material-symbols-outlined align-middle mr-1" style="font-size:16px">save</span>Anrejistre
@@ -3006,6 +3199,124 @@
             <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.9 33.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.2-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.8 12 24 12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.2 26.7 36 24 36c-5.2 0-9.7-3.4-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C36.9 39.2 44 34 44 24c0-1.3-.2-2.7-.4-3.9z"/></svg>
             Konekte ak Google
         </button>
+    </div>
+
+    <!-- ══ EDIT PRODUCT SHEET (seller) ══ -->
+    <div class="sheet" id="editProductSheet">
+        <div class="handle"></div>
+        <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight mb-4">Modifye Pwodwi</h3>
+        <div class="space-y-3 mb-5">
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Non pwodwi *</p>
+                <input id="epTitle" class="si" autocomplete="off"/>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Pri (HTG) *</p>
+                    <input id="epPrice" type="number" class="si" min="1"/>
+                </div>
+                <div>
+                    <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Stòk *</p>
+                    <input id="epStock" type="number" class="si" min="0"/>
+                </div>
+            </div>
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Lokasyon</p>
+                <input id="epLoc" class="si" placeholder="ex: Pétion-Ville"/>
+            </div>
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Deskripsyon</p>
+                <textarea id="epDesc" class="si resize-none" rows="3" maxlength="500"></textarea>
+            </div>
+        </div>
+        <button onclick="submitEditProduct()" id="epSaveBtn" class="w-full py-3.5 rounded-xl cta font-headline font-bold text-sm active:scale-95 transition-transform">
+            <span class="material-symbols-outlined align-middle mr-1" style="font-size:16px">save</span>Anrejistre
+        </button>
+    </div>
+
+    <!-- ══ DISCOUNT / FLASH DEAL SHEET (seller) ══ -->
+    <div class="sheet" id="discountProductSheet">
+        <div class="handle"></div>
+        <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight mb-1">Pwomosyon Flash</h3>
+        <p class="font-body text-sm text-on-surface-variant mb-4" id="dpProductLabel">Pwodwi</p>
+        <div class="space-y-3 mb-5">
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">% Rediksyon (1–90)</p>
+                <input id="dpPct" type="number" class="si" min="1" max="90" value="20" oninput="updateDiscountPreview()"/>
+            </div>
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Dire</p>
+                <select id="dpDur" class="si">
+                    <option value="1">1 èdtan</option>
+                    <option value="2" selected>2 èdtan</option>
+                    <option value="6">6 èdtan</option>
+                    <option value="12">12 èdtan</option>
+                    <option value="24">24 èdtan</option>
+                    <option value="48">48 èdtan</option>
+                </select>
+            </div>
+            <div class="rounded-xl p-3" style="background:rgba(151,66,43,.06)" id="dpPreviewBox">
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.08em] text-on-surface-variant">Apèsi</p>
+                <p class="font-headline font-bold text-sm text-on-surface" id="dpPreviewTxt">Pri orijinal — → Pri rediksyon —</p>
+            </div>
+        </div>
+        <button onclick="submitDiscountProduct()" id="dpApplyBtn" class="w-full py-3.5 rounded-xl font-headline font-bold text-sm active:scale-95 transition-transform" style="background:#97422b;color:#fff">
+            <span class="material-symbols-outlined align-middle mr-1" style="font-size:16px">local_fire_department</span>Aplike Rediksyon
+        </button>
+    </div>
+
+    <!-- ══ BLOCK USER SHEET (admin) ══ -->
+    <div class="sheet" id="blockUserSheet">
+        <div class="handle"></div>
+        <div class="flex items-start gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center" style="background:rgba(151,66,43,.12)">
+                <span class="material-symbols-outlined fi" style="font-size:22px;color:#97422b">block</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h3 class="font-headline font-extrabold text-lg text-on-surface tracking-tight">Bloke itilizatè?</h3>
+                <p class="font-body text-sm text-on-surface-variant" id="buUserLabel">—</p>
+            </div>
+        </div>
+        <div class="space-y-3 mb-4">
+            <div>
+                <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1.5">Rezon (vizib pa itilizatè a)</p>
+                <textarea id="buReason" class="si resize-none" rows="3" maxlength="300" placeholder="ex: Aktivite frodè · Spam · Vyolasyon kondisyon"></textarea>
+            </div>
+        </div>
+        <div class="space-y-2">
+            <button onclick="confirmBan('temp')" id="buTempBtn" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-headline font-bold text-sm active:scale-[.98] transition-transform" style="background:rgba(217,119,6,.1);color:#b45309">
+                <span class="material-symbols-outlined fi" style="font-size:16px">timer</span>
+                Bloke 7 jou (tempora)
+            </button>
+            <button onclick="confirmBan('definitive')" id="buDefBtn" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-headline font-bold text-sm active:scale-[.98] transition-transform" style="background:#dc2626;color:#fff">
+                <span class="material-symbols-outlined" style="font-size:16px">gavel</span>
+                Bloke definitif (banni + email)
+            </button>
+            <button onclick="closeSheets()" class="w-full py-3 rounded-xl font-label font-bold text-sm active:opacity-70" style="background:#e5e2dd;color:#1c1c19">Anile</button>
+        </div>
+    </div>
+
+    <!-- ══ DELETE CONFIRM SHEET (seller) ══ -->
+    <div class="sheet" id="confirmDeleteSheet">
+        <div class="handle"></div>
+        <div class="flex items-start gap-3 mb-3">
+            <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center" style="background:rgba(220,38,38,.12)">
+                <span class="material-symbols-outlined fi" style="font-size:22px;color:#dc2626">warning</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h3 class="font-headline font-extrabold text-lg text-on-surface tracking-tight">Efase pwodwi?</h3>
+                <p class="font-body text-sm text-on-surface-variant" id="cdProductLabel">Sa irevèsib.</p>
+            </div>
+        </div>
+        <div class="rounded-xl p-3 mb-4" style="background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.2)">
+            <p class="font-label text-xs text-on-surface-variant leading-relaxed">Pwodwi a ap retire nan feed la imedyatman. Istorik komand egzistan yo ap rete nan baz done a, men aksè piblik pap disponib ankò. <strong class="text-secondary">Sa pa ka anile.</strong></p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="closeSheets()" class="flex-1 py-3.5 rounded-xl font-headline font-bold text-sm active:scale-95 transition-transform" style="background:#e5e2dd;color:#1c1c19">Anile</button>
+            <button onclick="submitDeleteProduct()" id="cdDeleteBtn" class="flex-1 py-3.5 rounded-xl font-headline font-bold text-sm active:scale-95 transition-transform" style="background:#dc2626;color:#fff">
+                <span class="material-symbols-outlined align-middle mr-1" style="font-size:14px">delete</span>Wi, efase
+            </button>
+        </div>
     </div>
 
     <!-- ══ AUTH LOADER ══ -->
@@ -3105,39 +3416,81 @@
         window._authResolved = false; // Supabase va mettre sa à true
 
         window.addEventListener("load", () => {
-            // Splash minimum 1.8s, puis décision
-            setTimeout(() => {
-                hideSplash();
-
-                // Si Supabase a déjà résolu la session (Google redirect ou session existante)
-                if (A.isAuth && A.user) {
-                    console.log('[Boot] Auth déjà résolu par Supabase →', A.user.name);
-                    if (!A.booted) { A.booted = true; bootApp(); }
-                    return;
-                }
-
-                // Sinon vérifier le cache local
-                const saved = localStorage.getItem("aym_user");
-                if (saved) {
-                    try {
-                        A.user = JSON.parse(saved);
-                        A.isAuth = true;
-                        console.log('[Boot] User restauré depuis cache →', A.user.name);
-                        bootApp();
-                    } catch(e) {
-                        localStorage.removeItem("aym_user");
-                        goTo("s-login");
+            // Splash minimum 2.4s, puis décision
+            setTimeout(async () => {
+                // Onboarding gate (in-page): show onboarding for first-visit
+                // users. Mount it UNDER the splash, wait for its first paint,
+                // then fade the splash away — this cross-fade hides both the
+                // post-splash black flash and the Supabase login flash that
+                // would otherwise appear between splash and onboarding.
+                if (!localStorage.getItem('aym_onboarded')
+                    && typeof window.mountOnboarding === 'function') {
+                    console.log('[Boot] Premye vizit → Onboarding');
+                    document.getElementById('s-login')?.classList.remove('on');
+                    // Cap the wait at 1500ms so slow connections don't hang
+                    // on a frozen splash; mountOnboarding has its own
+                    // fail-open fallback if the fetch ultimately errors.
+                    await Promise.race([
+                        window.mountOnboarding(),
+                        new Promise(r => setTimeout(r, 1500)),
+                    ]);
+                    // Instant swap (no fade) when transitioning to onboarding:
+                    // a fading splash would briefly reveal whatever is
+                    // underneath in document flow before the onboarding
+                    // iframe paints, which produced a login flash on real
+                    // devices. Keep the smooth fade for the regular
+                    // splash → login path via hideSplash() below.
+                    const _splash = document.getElementById('s-splash');
+                    if (_splash) {
+                        _splash.classList.remove('on');
+                        _splash.style.opacity = '0';
+                        _splash.style.display = 'none';
                     }
                     return;
                 }
 
-                // Aucune session → login
-                console.log('[Boot] Okenn sesyon → Login');
-                goTo("s-login");
-            }, 1800);
+                // Returning (already-onboarded) user: release the gate so
+                // hideSplash and goTo can do their normal work, then fall
+                // through to the standard auth routing.
+                window.__pendingOnboarding = false;
+                hideSplash();
+                continuePostSplash();
+            }, 2400);
         });
 
+        function continuePostSplash() {
+            // Si Supabase a déjà résolu la session (Google redirect ou session existante)
+            if (A.isAuth && A.user) {
+                console.log('[Boot] Auth déjà résolu par Supabase →', A.user.name);
+                if (!A.booted) { A.booted = true; bootApp(); }
+                return;
+            }
+
+            // Sinon vérifier le cache local
+            const saved = localStorage.getItem("aym_user");
+            if (saved) {
+                try {
+                    A.user = JSON.parse(saved);
+                    A.isAuth = true;
+                    console.log('[Boot] User restauré depuis cache →', A.user.name);
+                    bootApp();
+                } catch(e) {
+                    localStorage.removeItem("aym_user");
+                    goTo("s-login");
+                }
+                return;
+            }
+
+            // Aucune session → login
+            console.log('[Boot] Okenn sesyon → Login');
+            goTo("s-login");
+        }
+
         function hideSplash() {
+            // Onboarding gate: while we're holding for the in-page onboarding
+            // flow, no other call site (e.g. Supabase auth callbacks) is
+            // allowed to fade the splash out from under us.
+            if (window.__pendingOnboarding) return;
             const splash = document.getElementById("s-splash");
             if (!splash) return;
             splash.style.opacity = '0';
@@ -3348,6 +3701,11 @@
         //  NAVIGATION
         // ══════════════════════════════════════════════════════════
         function goTo(screenId) {
+            // Same gate as hideSplash: don't let Supabase auth callbacks
+            // route to the login screen while the onboarding flow is
+            // still pending — that would put login behind the onboarding
+            // iframe and reveal it the moment splash is removed.
+            if (window.__pendingOnboarding && screenId === 's-login') return;
             document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
             document.getElementById(screenId).classList.add("on");
         }
@@ -3443,12 +3801,30 @@
             document.getElementById("backbtn").classList.add("flex");
             document.getElementById("toptitle").textContent = p.t;
 
-            const detailImg = p.img ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}" onerror="this.onerror=null;this.style.display='none'"/>` : null;
+            // Bug G: support multiple product photos. Prefer the images
+            // array stored on the product (uploaded by the seller); fall
+            // back to the legacy p.img field if the array is empty so
+            // older rows still render. The carousel snap-scrolls
+            // horizontally and each slide opens the existing in-app
+            // lightbox at full size — no full-page navigation.
+            const imgs = (Array.isArray(p.images) && p.images.length > 0)
+                ? p.images.filter(Boolean)
+                : (p.img ? [p.img] : []);
             const dpid = typeof p.id === 'string' ? `'${p.id}'` : p.id;
+            const carouselHTML = imgs.length === 0
+                ? prodPlaceholder(p, 340)
+                : imgs.map(src => {
+                    const safeSrc = String(src).replace(/'/g, "\\'");
+                    return `<div class="flex-shrink-0 w-full h-full snap-center cursor-pointer flex items-center justify-center" onclick="openProductLightbox('${safeSrc}')"><img src="${src}" class="w-full h-full object-cover" alt="${p.t}" onerror="this.onerror=null;this.style.display='none'"/></div>`;
+                }).join('');
+            const dotsHTML = imgs.length > 1
+                ? `<div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">${imgs.map((_, idx) => `<span class="block rounded-full" style="width:6px;height:6px;background:${idx === 0 ? 'rgba(252,249,244,.95)' : 'rgba(252,249,244,.5)'}"></span>`).join('')}</div>`
+                : '';
 
             document.getElementById("detailContent").innerHTML = `
     <div class="relative">
-      <div class="w-full flex items-center justify-center ${p.img ? 'cursor-pointer' : ''}" style="height:340px;overflow:hidden;background:#f0ede8" ${p.img ? `onclick="openProductLightbox('${p.img.replace(/'/g, "\\'")}')"` : ''}>${detailImg || prodPlaceholder(p, 340)}</div>
+      <div class="w-full flex overflow-x-auto snap-x snap-mandatory noscroll" style="height:340px;background:#f0ede8">${carouselHTML}</div>
+      ${dotsHTML}
       <button onclick="goBack()" class="absolute top-10 left-4 w-9 h-9 flex items-center justify-center rounded-full active:scale-90" style="background:rgba(252,249,244,.88);backdrop-filter:blur(6px)">
         <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">arrow_back</span>
       </button>
@@ -3463,7 +3839,7 @@
         <p class="font-body text-xs text-on-surface-variant mt-0.5">${p.c} · ${p.l}</p>
       </div>
       <div class="flex items-end gap-3">
-        <span class="font-headline font-extrabold text-3xl text-primary">${fp(p.p)} HTG</span>
+        <span class="font-headline font-extrabold text-3xl text-primary">${fpc(p.p)}</span>
         <span class="font-label text-xs text-on-surface-variant pb-1">${p.s <= 2 ? `${p.s} rete` : `An estòk (${p.s})`}</span>
       </div>
       ${p.sizes.length ? `<div><p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-2">Tay</p><div class="flex flex-wrap gap-2">${p.sizes.map((sz, i) => `<button class="szb w-12 h-10 rounded-lg font-label font-bold text-sm ${i === 0 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'}" onclick="selSz(this)">${sz}</button>`).join('')}</div></div>` : ''}
@@ -3485,11 +3861,6 @@
         <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-2">Deskripsyon</p>
         <p class="font-body text-sm text-on-surface-variant leading-relaxed">${p.desc}</p>
       </div>
-      <a href="#" onclick="toast('WhatsApp ouvè!')">
-        <button class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-label font-bold text-sm" style="background:rgba(37,211,102,.1);color:#075e54">
-          Kontakte via WhatsApp
-        </button>
-      </a>
     </div>
 
     <!-- ══ PWODWI SIMILÈ ══ -->
@@ -3506,7 +3877,17 @@
 
             document.getElementById("detailBar").classList.remove("hidden");
             const isAdmin = A.user?.role === 'admin';
-            document.getElementById("detailBar").innerHTML = isAdmin
+            // Bug C: when the current user IS the seller of this product,
+            // it makes no sense to show buyer-only actions (chat yourself,
+            // add to your own cart, order from yourself). Replace those
+            // with a banner that takes them to their seller dashboard
+            // entry point (publish/edit sheet) instead.
+            const isOwn = !!(A.user?.uid && p.sellerId && A.user.uid === p.sellerId);
+            document.getElementById("detailBar").innerHTML = isOwn
+            ? `<button onclick="openBoutiqueScreen()" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl cta font-headline font-bold text-base active:scale-[.98] amb">
+                <span class="material-symbols-outlined" style="font-size:18px">storefront</span>Jere pwodwi
+              </button>`
+            : isAdmin
             ? `<button onclick="openChatFor(${dpid})" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-surface-container font-headline font-bold text-sm active:bg-surface-container-high">
                 <span class="material-symbols-outlined" style="font-size:18px">chat</span>Kontakte vandè
               </button>
@@ -3720,9 +4101,21 @@
             const imgHtml = p.img
                 ? `<img src="${p.img}" class="w-full h-full object-cover" alt="${p.t}" onerror="this.onerror=null;this.style.display='none'"/>`
                 : prodPlaceholder(p, imgHeight);
-            const badgeHtml = p.b
-                ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full" style="font-size:9px;background:${p.b === 'Verifye' ? 'rgba(0,102,111,.88)' : p.b === 'Reko IA' ? 'rgba(151,66,43,.88)' : 'rgba(90,215,230,.88)'};color:#fff">${p.b}</span>`
+            // Bug D: light up a Flash Deal badge on cards whose product is
+            // currently inside an active flash_deals row. FLASH_DEALS is
+            // refreshed by loadFlashDealsFromSupabase, so the lookup is
+            // a single Array.find in memory — no per-card network call.
+            const flash = (typeof FLASH_DEALS !== 'undefined')
+                ? FLASH_DEALS.find(f => f.product_id && f.product_id === p.id)
+                : null;
+            const flashBadge = flash
+                ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1" style="font-size:9px;background:rgba(151,66,43,.92);color:#fff"><span class="material-symbols-outlined" style="font-size:11px">local_fire_department</span>-${flash.pct}%</span>`
                 : '';
+            const badgeHtml = flashBadge
+                ? flashBadge
+                : (p.b
+                    ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full" style="font-size:9px;background:${p.b === 'Verifye' ? 'rgba(0,102,111,.88)' : p.b === 'Reko IA' ? 'rgba(151,66,43,.88)' : 'rgba(90,215,230,.88)'};color:#fff">${p.b}</span>`
+                    : '');
             const outOfStock = typeof p.s === 'number' && p.s <= 0;
             const oosOverlay = outOfStock
                 ? `<div class="absolute inset-0 flex items-center justify-center" style="background:rgba(0,0,0,.45)"><span class="font-headline font-extrabold text-white px-3 py-1 rounded-full" style="font-size:11px;background:rgba(151,66,43,.9)">Epuize</span></div>`
@@ -4031,9 +4424,26 @@
             const t = document.getElementById("fTitle").value.trim();
             if (!t) { toast("Ranpli non pwodwi a"); return; }
             if (uploadedPhotos.length === 0) { toast("Ajoute omwen 1 foto"); document.getElementById("fileInput").click(); return; }
+            // Bug M — pickup is OBLIGATORY for sellers. Look at
+            // user.defaultPickup specifically (not A.selPickup, which is
+            // pre-seeded to 'dg' for the buyer checkout flow). Sellers
+            // must have *explicitly* picked their default before we'll
+            // accept a publish, so a product can't end up with no real
+            // collection point on file. Buyers don't hit this path; they
+            // pick at checkout time.
+            if (!(A.user && A.user.defaultPickup)) {
+                toast('Chwazi yon Pwen Kolekte anvan ou pibliye');
+                if (typeof openPickupPicker === 'function') openPickupPicker();
+                return;
+            }
             const cat = document.getElementById("fCat").value;
             const desc = document.getElementById("fDesc").value.trim();
-            const price = parseInt(document.getElementById("fPrice").value) || 0;
+            const price = parseInt(document.getElementById("fPrice").value, 10) || 0;
+            // Read seller-supplied stock (Bug E). Without this the INSERT
+            // never sent a stock value and Postgres' DEFAULT 1 was always
+            // applied — every product looked like there was only one
+            // unit available regardless of what the seller typed.
+            const stock = Math.max(1, parseInt(document.getElementById("fStock")?.value, 10) || 1);
             const loc = document.getElementById("fLoc")?.value?.trim() || '';
             if (price <= 0) { toast("Mete yon pri valid"); return; }
 
@@ -4090,6 +4500,7 @@
                     category: cat,
                     location: loc || null,
                     images: imageUrls,
+                    stock: stock,
                     status: 'active',
                 }).select('*').single();
 
@@ -4649,14 +5060,6 @@
             window.open('tel:' + phone, '_self');
         }
 
-        function openWhatsApp() {
-            if (!A.chatSellerPhone) { toast('Nimewo telefòn vandè pa disponib'); return; }
-            const phone = A.chatSellerPhone.replace(/[\s+]/g, '');
-            const name = A.chatSellerName || 'Vandè';
-            const msg = encodeURIComponent('Bonjou ' + name + '! Mwen enterese nan pwodwi ou sou AyitiMarket.');
-            window.open('https://wa.me/' + phone + '?text=' + msg, '_blank');
-        }
-
         function renderChatMsgs(pid) {
             const msgs = A.msgs[pid] || [];
             const p = PRODUCTS.find(x => x.id === pid);
@@ -4851,8 +5254,19 @@
                 items.push({ i: "group", l: "Kliyan Abonnen", s: (A.followers || 0) + " abonnen", a: "openFollowersScreen()" });
             }
             items.push({ i: "favorite", l: "Favori Mwen", s: A.favs.size + " pwodwi", a: "toast('Favori yo')" });
-            const curPickup = PICKUPS.find(pk => pk.id === (A.user?.defaultPickup || A.selPickup)) || PICKUPS[0];
-            items.push({ i: "location_on", l: "Pwen Kolekte", s: curPickup.n, a: "openPickupPicker()" });
+            // Bug M — show whichever pickup the user has explicitly set;
+            // for sellers with none yet, surface the requirement instead
+            // of pretending the buyer-default 'dg' is theirs.
+            const explicitPickupId = A.user?.defaultPickup;
+            if (explicitPickupId) {
+                const cur = PICKUPS.find(pk => pk.id === explicitPickupId) || PICKUPS[0];
+                items.push({ i: "location_on", l: "Pwen Kolekte", s: cur.n, a: "openPickupPicker()" });
+            } else if (u.role === 'seller') {
+                items.push({ i: "location_on", l: "Pwen Kolekte", s: "Obligatwa — chwazi yon!", a: "openPickupPicker()" });
+            } else {
+                const cur = PICKUPS.find(pk => pk.id === A.selPickup) || PICKUPS[0];
+                items.push({ i: "location_on", l: "Pwen Kolekte", s: cur.n, a: "openPickupPicker()" });
+            }
             if (u.role === 'buyer') {
                 items.push({ i: "store", l: "Vin yon Vandè", s: "Soumèt ID ou", a: "openSheet('verifySheet')" });
             }
@@ -5082,81 +5496,185 @@
         }
 
         // ── Edit / Delete / Discount for seller's own products ──
-        async function deleteMyProduct(pid) {
+        // Each helper opens a real bottom-sheet (no native prompt/confirm).
+        // The sheet reads/writes A.editingProductId / A.deletingProductId
+        // / A.discountProductId so the submit handlers know what to UPDATE
+        // or DELETE without globals fighting each other.
+
+        function _findMyProduct(pid) {
+            return (A.myBoutiqueProducts || PRODUCTS).find(x => x.id === pid)
+                || PRODUCTS.find(x => x.id === pid)
+                || null;
+        }
+
+        function editMyProduct(pid) {
             if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
-            if (!confirm('Efase pwodwi sa a definitivman?')) return;
+            const p = _findMyProduct(pid);
+            if (!p) { toast('Pwodwi pa jwenn'); return; }
+            A.editingProductId = pid;
+            // Pre-fill the sheet
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = (v == null ? '' : v); };
+            set('epTitle', p.t);
+            set('epPrice', p.p);
+            set('epStock', p.s);
+            set('epLoc', p.l);
+            set('epDesc', p.desc);
+            openSheet('editProductSheet');
+        }
+
+        async function submitEditProduct() {
+            const pid = A.editingProductId;
+            if (!pid) return;
+            const title = (document.getElementById('epTitle')?.value || '').trim();
+            const price = parseInt(document.getElementById('epPrice')?.value, 10) || 0;
+            const stock = Math.max(0, parseInt(document.getElementById('epStock')?.value, 10) || 0);
+            const loc = (document.getElementById('epLoc')?.value || '').trim() || null;
+            const desc = (document.getElementById('epDesc')?.value || '').trim() || null;
+            if (!title) { toast('Non pwodwi obligatwa'); return; }
+            if (price <= 0) { toast('Pri pa valid'); return; }
+            const btn = document.getElementById('epSaveBtn');
+            const orig = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:15px;animation:spin .8s linear infinite">progress_activity</span> Anrejistre...';
+            }
             try {
-                const { error } = await db.from('products').delete().eq('id', pid).eq('seller_id', A.user.uid);
+                const { error } = await db.from('products').update({
+                    title: title,
+                    price: price,
+                    stock: stock,
+                    location: loc,
+                    description: desc,
+                }).eq('id', pid).eq('seller_id', A.user.uid);
                 if (error) throw error;
-                // Also disable any flash deals
+                // Update in-memory mirror so the boutique row reflects the
+                // change without a full Supabase re-fetch on close.
+                const local = PRODUCTS.find(x => x.id === pid);
+                if (local) { local.t = title; local.p = price; local.s = stock; local.l = loc || local.l; local.desc = desc || ''; }
+                closeSheets();
+                toast('Pwodwi modifye ✓');
+                if (typeof renderBoutiqueContent === 'function') renderBoutiqueContent();
+            } catch (e) {
+                console.error('[EditProduct]', e);
+                toast('Erè: ' + (e.message || 'pa kapab anrejistre'));
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+                A.editingProductId = null;
+            }
+        }
+
+        function deleteMyProduct(pid) {
+            if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
+            const p = _findMyProduct(pid);
+            if (!p) { toast('Pwodwi pa jwenn'); return; }
+            A.deletingProductId = pid;
+            const lbl = document.getElementById('cdProductLabel');
+            if (lbl) lbl.textContent = '"' + p.t + '" — sa irevèsib.';
+            openSheet('confirmDeleteSheet');
+        }
+
+        async function submitDeleteProduct() {
+            const pid = A.deletingProductId;
+            if (!pid) return;
+            const btn = document.getElementById('cdDeleteBtn');
+            const orig = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:14px;animation:spin .8s linear infinite">progress_activity</span> Ap efase...';
+            }
+            try {
+                // Soft-delete: archive the product instead of DELETE.
+                // A real DELETE would violate the orders.product_id foreign
+                // key whenever the seller has even one historical order on
+                // the row, and we *want* the order history to survive — the
+                // sheet copy literally promises "Istorik komand … ap rete".
+                // Feed/discovery queries already filter status='active', so
+                // archived products disappear from the public surface
+                // immediately while staying intact for orders/admin.
+                const { error } = await db.from('products')
+                    .update({ status: 'archived' })
+                    .eq('id', pid).eq('seller_id', A.user.uid);
+                if (error) throw error;
+                // Also disable any flash deals tied to this product so they
+                // don't leak into the feed after the row is archived.
                 await db.from('flash_deals').update({ active: false }).eq('product_id', pid);
                 const idx = PRODUCTS.findIndex(x => x.id === pid);
                 if (idx >= 0) PRODUCTS.splice(idx, 1);
-                toast('Pwodwi efase');
-                renderBoutiqueContent();
-            } catch(e) {
-                console.error('[Delete]', e.message);
-                toast('Erè efase: ' + e.message);
+                closeSheets();
+                toast('Pwodwi efase ✓');
+                if (typeof renderBoutiqueContent === 'function') renderBoutiqueContent();
+            } catch (e) {
+                console.error('[DeleteProduct]', e);
+                toast('Erè efase: ' + (e.message || 'pa kapab efase'));
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+                A.deletingProductId = null;
             }
         }
 
-        async function editMyProduct(pid) {
+        function addDiscountToProduct(pid) {
             if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
-            const p = (A.myBoutiqueProducts || PRODUCTS).find(x => x.id === pid);
+            const p = _findMyProduct(pid);
             if (!p) { toast('Pwodwi pa jwenn'); return; }
-            const newTitle = prompt('Non pwodwi:', p.t);
-            if (newTitle === null) return;
-            const newPriceStr = prompt('Pri (HTG):', p.p);
-            if (newPriceStr === null) return;
-            const newPrice = parseInt(newPriceStr);
-            if (!newTitle.trim() || !newPrice || newPrice <= 0) { toast('Enfòmasyon pa valid'); return; }
-            const newDesc = prompt('Deskripsyon:', p.desc || '');
-            try {
-                const { error } = await db.from('products').update({
-                    title: newTitle.trim(),
-                    price: newPrice,
-                    description: newDesc !== null ? newDesc : p.desc,
-                }).eq('id', pid).eq('seller_id', A.user.uid);
-                if (error) throw error;
-                toast('Pwodwi modifye');
-                renderBoutiqueContent();
-            } catch(e) {
-                console.error('[Edit]', e.message);
-                toast('Erè modifikasyon: ' + e.message);
-            }
+            A.discountProductId = pid;
+            const lbl = document.getElementById('dpProductLabel');
+            if (lbl) lbl.textContent = p.t;
+            const pctEl = document.getElementById('dpPct');
+            if (pctEl) pctEl.value = '20';
+            const durEl = document.getElementById('dpDur');
+            if (durEl) durEl.value = '2';
+            updateDiscountPreview();
+            openSheet('discountProductSheet');
         }
 
-        async function addDiscountToProduct(pid) {
-            if (!db || !A.user?.uid) { toast('Pa konekte'); return; }
-            const p = (A.myBoutiqueProducts || PRODUCTS).find(x => x.id === pid);
+        function updateDiscountPreview() {
+            const pid = A.discountProductId;
+            if (!pid) return;
+            const p = _findMyProduct(pid);
+            if (!p) return;
+            const pct = parseInt(document.getElementById('dpPct')?.value, 10) || 0;
+            const orig = p.oldP || p.p;
+            const txt = document.getElementById('dpPreviewTxt');
+            if (!txt) return;
+            if (pct < 1 || pct > 90) {
+                txt.textContent = 'Mete yon % ant 1 ak 90';
+                return;
+            }
+            const newP = Math.round(orig * (1 - pct / 100));
+            txt.innerHTML = '<span style="text-decoration:line-through;color:#7e7e76">' + fp(orig) + ' HTG</span> → <strong style="color:#97422b">' + fp(newP) + ' HTG</strong> (-' + pct + '%)';
+        }
+        window.updateDiscountPreview = updateDiscountPreview;
+
+        async function submitDiscountProduct() {
+            const pid = A.discountProductId;
+            if (!pid) return;
+            const p = _findMyProduct(pid);
             if (!p) { toast('Pwodwi pa jwenn'); return; }
-            const pctStr = prompt('% Rediksyon (1-90):', '20');
-            if (pctStr === null) return;
-            const pct = parseInt(pctStr);
-            if (!pct || pct < 1 || pct > 90) { toast('% pa valid'); return; }
-            const durStr = prompt('Dire (èdtan, ex: 2, 6, 24):', '2');
-            if (durStr === null) return;
-            const dur = parseInt(durStr) || 2;
-            const originalPrice = p.oldP || p.p;
-            const newPrice = Math.round(originalPrice * (1 - pct / 100));
+            const pct = parseInt(document.getElementById('dpPct')?.value, 10) || 0;
+            const dur = parseInt(document.getElementById('dpDur')?.value, 10) || 2;
+            if (pct < 1 || pct > 90) { toast('% pa valid'); return; }
+            const orig = p.oldP || p.p;
+            const newPrice = Math.round(orig * (1 - pct / 100));
+            const btn = document.getElementById('dpApplyBtn');
+            const origHTML = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:15px;animation:spin .8s linear infinite">progress_activity</span> Aplike...';
+            }
             try {
-                // Update product price + old_price
                 const { error: upErr } = await db.from('products').update({
                     price: newPrice,
-                    old_price: originalPrice,
+                    old_price: orig,
                 }).eq('id', pid).eq('seller_id', A.user.uid);
                 if (upErr) throw upErr;
-
-                // Deactivate existing flash deals for this product
+                // Replace any existing flash deals for this product
                 await db.from('flash_deals').update({ active: false }).eq('product_id', pid);
-
-                // Insert new flash deal
                 const endsAt = new Date(Date.now() + dur * 3600 * 1000).toISOString();
                 const { error: fdErr } = await db.from('flash_deals').insert({
                     product_id: pid,
                     title: p.t,
                     price: newPrice,
-                    old_price: originalPrice,
+                    old_price: orig,
                     category: p.c,
                     location: p.l,
                     discount_pct: pct,
@@ -5164,14 +5682,31 @@
                     active: true,
                     ends_at: endsAt,
                 });
-                if (fdErr) console.warn('[FlashDeal]', fdErr.message);
-                toast(`Flash Deal -${pct}% aktive!`);
-                renderBoutiqueContent();
-            } catch(e) {
-                console.error('[Discount]', e.message);
-                toast('Erè: ' + e.message);
+                if (fdErr) console.warn('[FlashDeal] insert:', fdErr.message);
+                // Mirror locally so the feed shows it before the next reload
+                const local = PRODUCTS.find(x => x.id === pid);
+                if (local) { local.p = newPrice; local.oldP = orig; }
+                closeSheets();
+                toast('Rediksyon ' + pct + '% aktive ✓');
+                if (typeof renderBoutiqueContent === 'function') renderBoutiqueContent();
+                if (typeof loadFlashDealsFromSupabase === 'function') loadFlashDealsFromSupabase();
+            } catch (e) {
+                console.error('[DiscountProduct]', e);
+                toast('Erè: ' + (e.message || 'pa kapab aplike'));
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
+                A.discountProductId = null;
             }
         }
+
+        // Keep these names available globally — the boutique cards call
+        // them via inline onclick.
+        window.editMyProduct = editMyProduct;
+        window.deleteMyProduct = deleteMyProduct;
+        window.addDiscountToProduct = addDiscountToProduct;
+        window.submitEditProduct = submitEditProduct;
+        window.submitDeleteProduct = submitDeleteProduct;
+        window.submitDiscountProduct = submitDiscountProduct;
 
         // ══════════════════════════════════════════════════════════
         //  FOLLOWERS (Kliyan Abonnen)
@@ -5404,7 +5939,7 @@
         // ══════════════════════════════════════════════════════════
         //  PROFILE EDIT (Nom, Prenom, Photo, Google)
         // ══════════════════════════════════════════════════════════
-        function openEditProfile() {
+        async function openEditProfile() {
             openSheet('editProfileSheet');
             const u = A.user;
             if (!u) return;
@@ -5412,38 +5947,125 @@
             document.getElementById('editFirstName').value = parts[0] || '';
             document.getElementById('editLastName').value = parts.slice(1).join(' ') || '';
             document.getElementById('editMoncash').value = u.moncashNumber || '';
-            // Hide the payout row for non-sellers
-            const row = document.getElementById('editMoncashRow');
-            if (row) {
-                const isSeller = u.role === 'seller' || u.role === 'admin';
-                row.style.display = isSeller ? '' : 'none';
+            // Seller-only fields visibility (MonCash + shop bio)
+            const isSeller = u.role === 'seller' || u.role === 'admin';
+            const mcRow = document.getElementById('editMoncashRow');
+            const bioRow = document.getElementById('editShopBioRow');
+            if (mcRow) mcRow.style.display = isSeller ? '' : 'none';
+            if (bioRow) bioRow.style.display = isSeller ? '' : 'none';
+
+            // Bug K — Pull current bio + initialise the live counter.
+            const bioEl = document.getElementById('editShopBio');
+            const cntEl = document.getElementById('editShopBioCount');
+            const lockRow = document.getElementById('editShopNameLockRow');
+            const lockMsg = document.getElementById('editShopNameLockMsg');
+            const fnEl = document.getElementById('editFirstName');
+            const lnEl = document.getElementById('editLastName');
+            if (lockRow) lockRow.classList.add('hidden');
+            if (isSeller && db && u.uid) {
+                try {
+                    const { data, error } = await db.from('profiles')
+                        .select('bio, shop_name_changed_at')
+                        .eq('id', u.uid).maybeSingle();
+                    if (!error && data) {
+                        if (bioEl) bioEl.value = data.bio || '';
+                        if (cntEl) cntEl.textContent = (data.bio || '').length + ' / 250';
+                        // Bug J — if the seller renamed the shop in the
+                        // last 30 days, lock first/last name inputs and
+                        // show how many days remain.
+                        if (data.shop_name_changed_at) {
+                            const last = new Date(data.shop_name_changed_at).getTime();
+                            const elapsed = Date.now() - last;
+                            const THIRTY = 30 * 24 * 60 * 60 * 1000;
+                            if (elapsed < THIRTY) {
+                                const daysLeft = Math.ceil((THIRTY - elapsed) / (24 * 60 * 60 * 1000));
+                                if (fnEl) fnEl.disabled = true;
+                                if (lnEl) lnEl.disabled = true;
+                                if (lockRow) lockRow.classList.remove('hidden');
+                                if (lockMsg) lockMsg.textContent = 'Nom boutik chanje deja. Pwochen chanjman: ' + daysLeft + ' jou.';
+                            } else {
+                                if (fnEl) fnEl.disabled = false;
+                                if (lnEl) lnEl.disabled = false;
+                            }
+                        } else {
+                            if (fnEl) fnEl.disabled = false;
+                            if (lnEl) lnEl.disabled = false;
+                        }
+                    }
+                } catch (e) { console.warn('[Profile] open:', e.message); }
+            } else {
+                if (bioEl) bioEl.value = '';
+                if (cntEl) cntEl.textContent = '0 / 250';
+            }
+            // Live char counter
+            if (bioEl && cntEl && !bioEl.dataset.bound) {
+                bioEl.addEventListener('input', () => {
+                    cntEl.textContent = bioEl.value.length + ' / 250';
+                });
+                bioEl.dataset.bound = '1';
             }
         }
 
-        function saveProfile() {
+        async function saveProfile() {
             const fn = document.getElementById('editFirstName').value.trim();
             const ln = document.getElementById('editLastName').value.trim();
             const mc = (document.getElementById('editMoncash')?.value || '').replace(/\s+/g, '');
+            const bio = (document.getElementById('editShopBio')?.value || '').trim().slice(0, 250);
             if (!fn) { toast('Premye non obligatwa'); return; }
             // MonCash number sanity check (optional field): Haitian format 509XXXXXXXX (11 digits)
             if (mc && !/^5?09?\d{8,10}$/.test(mc)) {
                 toast('Nimewo MonCash pa valid (fòma 509XXXXXXXX)');
                 return;
             }
-            A.user.name = fn + (ln ? ' ' + ln : '');
+            const newName = fn + (ln ? ' ' + ln : '');
+            const isSeller = A.user.role === 'seller' || A.user.role === 'admin';
+            const nameChanged = isSeller && newName !== (A.user.name || '');
+
+            // Bug J — server-authoritative 30-day cooldown on shop name
+            // changes. The UI also disables the inputs when the lock is
+            // active, but we re-check here in case the field was force-
+            // enabled (devtools) or shop_name_changed_at advanced while
+            // the sheet was open.
+            if (nameChanged && db && A.user.uid && A.user.role !== 'admin') {
+                try {
+                    const { data } = await db.from('profiles')
+                        .select('shop_name_changed_at').eq('id', A.user.uid).maybeSingle();
+                    if (data && data.shop_name_changed_at) {
+                        const last = new Date(data.shop_name_changed_at).getTime();
+                        const elapsed = Date.now() - last;
+                        const THIRTY = 30 * 24 * 60 * 60 * 1000;
+                        if (elapsed < THIRTY) {
+                            const daysLeft = Math.ceil((THIRTY - elapsed) / (24 * 60 * 60 * 1000));
+                            toast('Ou kapab chanje non boutik la chak 30 jou. Rete ' + daysLeft + ' jou.');
+                            return;
+                        }
+                    }
+                } catch (e) { console.warn('[Profile saveCheck]', e.message); }
+            }
+
+            A.user.name = newName;
             A.user.initials = fn.charAt(0) + (ln ? ln.charAt(0) : '');
             A.user.moncashNumber = mc;
             localStorage.setItem('aym_user', JSON.stringify(A.user));
             // Persist to Supabase profile
             if (db && A.user.uid) {
-                db.from('profiles').update({
+                const updates = {
                     first_name: fn,
                     last_name: ln || null,
-                    display_name: A.user.name,
+                    display_name: newName,
                     moncash_number: mc || null,
-                }).eq('id', A.user.uid).then(({ error }) => {
-                    if (error) console.warn('[Profile save]', error.message);
-                });
+                };
+                // Only stamp shop_name_changed_at when the name actually
+                // changed AND the user is a seller — admins are exempt
+                // from the cooldown so they can rename for moderation.
+                if (nameChanged && A.user.role !== 'admin') {
+                    updates.shop_name_changed_at = new Date().toISOString();
+                }
+                if (isSeller) {
+                    updates.bio = bio || null;
+                }
+                const { error } = await db.from('profiles').update(updates).eq('id', A.user.uid);
+                if (error) console.warn('[Profile save]', error.message);
             }
             closeSheets();
             renderProfile();
@@ -5490,15 +6112,17 @@
         // ══════════════════════════════════════════════════════════
         //  ADMIN PANEL
         // ══════════════════════════════════════════════════════════
-        function renderAdmin() {
+        async function renderAdmin() {
             if (!A.user || A.user.role !== "admin") { navTo("feed"); return; }
-            // Load real data from Supabase
-            if (typeof loadAdminDataFromSupabase === 'function') {
-                loadAdminDataFromSupabase();
-            }
+            // Render once with whatever's currently in memory so the panel
+            // doesn't flash a blank state while the network round-trip runs,
+            // then await the real fetch and let it re-render on completion.
             renderVerifList();
             renderAdminOrders();
             renderAdminUsers();
+            if (typeof loadAdminDataFromSupabase === 'function') {
+                await loadAdminDataFromSupabase();
+            }
         }
 
         function switchAdminTab(tab) {
@@ -5522,9 +6146,9 @@
       <span class="font-label text-[10px] font-bold px-2 py-1 rounded-full ${v.status === 'pending' ? 'pill-pending' : v.status === 'approved' ? 'pill-approved' : 'pill-rejected'}">${v.status === 'pending' ? 'An Atant' : v.status === 'approved' ? 'Apwouve' : 'Rejte'}</span>
     </div>
     <div class="flex gap-2 mb-3 flex-wrap">
-      ${v.photos?.front ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openLightbox('${v.photos.front.publicUrl || v.photos.front.dataUrl}')"><img src="${v.photos.front.publicUrl || v.photos.front.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
-      ${v.photos?.back ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openLightbox('${v.photos.back.publicUrl || v.photos.back.dataUrl}')"><img src="${v.photos.back.publicUrl || v.photos.back.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
-      ${v.photos?.selfie ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openLightbox('${v.photos.selfie.publicUrl || v.photos.selfie.dataUrl}')"><img src="${v.photos.selfie.publicUrl || v.photos.selfie.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${v.photos?.front ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${(v.photos.front.publicUrl || v.photos.front.dataUrl).replace(/'/g, "\\'")}')"><img src="${v.photos.front.publicUrl || v.photos.front.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${v.photos?.back ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${(v.photos.back.publicUrl || v.photos.back.dataUrl).replace(/'/g, "\\'")}')"><img src="${v.photos.back.publicUrl || v.photos.back.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${v.photos?.selfie ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${(v.photos.selfie.publicUrl || v.photos.selfie.dataUrl).replace(/'/g, "\\'")}')"><img src="${v.photos.selfie.publicUrl || v.photos.selfie.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
       ${!v.photos?.front && !v.photos?.back && !v.photos?.selfie ? `<div class="flex-1 rounded-lg p-3 flex items-center gap-2" style="background:#f6f3ee"><span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">badge</span><div><p class="font-label text-xs font-bold text-on-surface">${v.idType || 'ID'}</p><p class="font-label text-[10px] text-on-surface-variant">Pa gen foto disponib</p></div></div>` : ''}
     </div>
     ${v.idType ? `<p class="font-label text-[10px] text-on-surface-variant mb-2">Tip: <strong>${v.idType === 'cin' ? 'CIN' : v.idType === 'passport' ? 'Paspò' : v.idType}</strong></p>` : ''}
@@ -5647,6 +6271,38 @@
             }
         }
 
+        // Step 3 button calls this — upload the selfie now (if it
+        // wasn't part of the original step-2 batch) before advancing
+        // to the categories step. Without this, idPhotos.selfie.publicUrl
+        // stays null and submitVerification writes selfie_photo_url=null,
+        // so admins never see the selfie image at all.
+        async function vsAdvanceFromSelfie() {
+            if (idPhotos.selfie && !idPhotos.selfie.publicUrl && db && A.user?.uid) {
+                const btn = document.getElementById('vsStep3Btn');
+                const orig = btn ? btn.innerHTML : '';
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:15px;animation:spin .8s linear infinite">progress_activity</span> Upload selfie…';
+                }
+                try {
+                    const ts = Date.now();
+                    const path = `verifications/${A.user.uid}/${ts}_selfie.jpg`;
+                    const { error } = await db.storage.from('verification-docs')
+                        .upload(path, idPhotos.selfie.file, { upsert: true });
+                    if (error) throw new Error(error.message);
+                    const { data } = db.storage.from('verification-docs').getPublicUrl(path);
+                    idPhotos.selfie.publicUrl = data?.publicUrl || null;
+                } catch (e) {
+                    console.error('[Selfie upload]', e);
+                    toast('Erè selfie: ' + e.message);
+                    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+                    return;
+                }
+                if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+            }
+            vsGoStep('cats');
+        }
+
         async function uploadIDPhotos() {
             if (!idPhotos.front || !idPhotos.back) { toast("2 foto obligatwa"); return; }
 
@@ -5732,8 +6388,14 @@
         // Override vsGoStep to render summary on step 4
         const _vsGoStepOrig = vsGoStep;
 
-        function submitVerification() {
-            closeSheets();
+        async function submitVerification() {
+            const btn = document.getElementById('vsSubmitBtn');
+            const origHTML = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:15px;animation:spin .8s linear infinite">progress_activity</span> Soumèt...';
+            }
+
             const newReq = {
                 uid: A.user?.uid || 'u_' + Date.now(),
                 name: A.user?.name || 'Utilisateur',
@@ -5749,41 +6411,74 @@
             };
             // Attach chosen selling categories (multi-select from step 'cats')
             newReq.categories = Array.from(window.SELLER_CATS_SELECTED || []);
-            VERIF_REQUESTS.unshift(newReq);
-            // Save to Supabase with photo URLs + persist categories on profile
-            if (db && A.user?.uid) {
-                db.from('verification_requests').insert({
-                    user_id: A.user.uid, name: newReq.name, phone: newReq.phone,
-                    status: 'pending', id_type: newReq.idType,
+
+            try {
+                if (!db) throw new Error('Pa kapab konekte ak baz done');
+                if (!A.user?.uid) throw new Error('Itilizatè pa konekte');
+
+                // INSERT first, await the result. Only celebrate on success.
+                const { error: insertError } = await db.from('verification_requests').insert({
+                    user_id: A.user.uid,
+                    name: newReq.name,
+                    phone: newReq.phone,
+                    status: 'pending',
+                    id_type: newReq.idType,
                     front_photo_url: idPhotos.front?.publicUrl || null,
                     back_photo_url: idPhotos.back?.publicUrl || null,
                     selfie_photo_url: idPhotos.selfie?.publicUrl || null,
-                }).then(({ error }) => {
-                    if (error) console.warn('[Verif] Submit error:', error.message);
                 });
-                // Persist the seller's selling categories to their profile
+                if (insertError) {
+                    console.error('[Verif] INSERT failed:', insertError);
+                    throw new Error(insertError.message || 'Echèk soumèt demann');
+                }
+
+                // Persist seller categories on the profile (non-blocking).
                 if (newReq.categories.length) {
                     db.from('profiles').update({ categories: newReq.categories })
                         .eq('id', A.user.uid)
-                        .then(({ error }) => { if (error) console.warn('[Profile cats]', error.message); });
+                        .then(({ error: e }) => { if (e) console.error('[Profile cats]', e); });
                     A.user.categories = newReq.categories;
-                    try { localStorage.setItem('aym_user', JSON.stringify(A.user)); } catch(_){}
+                    try { localStorage.setItem('aym_user', JSON.stringify(A.user)); } catch (_) { }
+                }
+
+                // Local cache so seller's own profile reflects the pending state.
+                VERIF_REQUESTS.unshift(newReq);
+
+                addNotif({
+                    id: 'n_' + Date.now(),
+                    type: 'system',
+                    icon: 'hourglass_top',
+                    title: 'Demann soumèt!',
+                    body: 'Verifikasyon idantite ou an atant. Maksimòm 24h.',
+                    time: 'Kounye a',
+                    read: false,
+                    color: '#00666f',
+                });
+
+                closeSheets();
+                showSuccess(
+                    'hourglass_icon',
+                    'Demann Soumèt ak Siksè!',
+                    "Dosye idantite ou nan men Admin AyitiMarket.\n\nAdmin ap verifye enfòmasyon ou yo nan yon delè maksimòm 24H.\nOu pral resevwa yon notifikasyon.",
+                    'Foto yo estoke an sekirite · Aksè: Admin sèlman · Chifre AES-256',
+                    'Dakò'
+                );
+                idPhotos = { front: null, back: null, selfie: null };
+                window.SELLER_CATS_SELECTED = new Set();
+            } catch (err) {
+                console.error('[Verif] Submission error:', err);
+                const msg = err?.message || 'Pa kapab soumèt — reseye';
+                if (typeof toast === 'function') {
+                    toast('Erè: ' + msg);
+                } else {
+                    alert('Erè: ' + msg);
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHTML;
                 }
             }
-            // Notif in-app
-            addNotif({
-                id: 'n_' + Date.now(),
-                type: 'system',
-                icon: 'hourglass_top',
-                title: 'Demann soumèt!',
-                body: 'Verifikasyon idantite ou an atant. Maksimòm 24h.',
-                time: 'Kounye a',
-                read: false,
-                color: '#00666f',
-            });
-            showSuccess("hourglass_icon", "Demann Soumèt!", "Dosye idantite ou nan men Admin AyitiMarket.\n\nVerifikasyon nan 24h. Ou pral resevwa yon notifikasyon push.",
-                "Foto yo estoke an sekirite · Aksè: Admin sèlman · Chifre AES-256", "Dakò");
-            idPhotos = { front: null, back: null, selfie: null };
         }
 
         // Intercept step 4 to render summary + extra step 'cats' (multi-select categories)
@@ -5924,7 +6619,7 @@
 
             if (photo) {
                 const imgUrl = photo.publicUrl || photo.dataUrl;
-                img.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-cover rounded-xl" onerror="this.onerror=null;this.src='';this.parentElement.innerHTML='<div class=\\'flex flex-col items-center gap-2\\'><span class=\\'material-symbols-outlined text-on-surface-variant\\' style=\\'font-size:48px\\'>broken_image</span><p class=\\'font-label text-sm text-on-surface-variant\\'>Image indisponib</p></div>'"/>`;
+                img.innerHTML = `<img src="${imgUrl}" class="w-full h-full object-contain rounded-xl" style="cursor:zoom-in" onclick="openProductLightbox('${imgUrl.replace(/'/g, "\\'")}')" onerror="this.onerror=null;this.src='';this.parentElement.innerHTML='<div class=\\'flex flex-col items-center gap-2\\'><span class=\\'material-symbols-outlined text-on-surface-variant\\' style=\\'font-size:48px\\'>broken_image</span><p class=\\'font-label text-sm text-on-surface-variant\\'>Image indisponib</p></div>'"/>`;
                 img.style.padding = '0';
                 meta.textContent = `${typeLabel} · ${sideLabel} · ${photo.sizeKB ? photo.sizeKB + 'KB · ' : ''}Supabase Storage`;
             } else {
@@ -5978,9 +6673,19 @@
             // Update in Supabase
             if (db) {
                 db.from('profiles').update({ verified_seller: true, role: 'seller' }).eq('id', uid).neq('role', 'admin')
-                    .then(({ error }) => { if (error) console.warn('[Admin] Approve error:', error.message); });
-                db.from('verification_requests').update({ status: 'approved' }).eq('user_id', uid)
-                    .then(({ error }) => { if (error) console.warn('[Admin] Verif update error:', error.message); });
+                    .then(({ error }) => { if (error) console.error('[Admin] Approve profile error:', error); });
+                db.from('verification_requests').update({ status: 'approved', reviewed_by: A.user?.uid || null }).eq('user_id', uid)
+                    .then(({ error }) => { if (error) console.error('[Admin] Verif update error:', error); });
+                // Push a notification to the seller themself so they see
+                // the approval in their in-app notif list.
+                db.from('notifications').insert({
+                    user_id: uid,
+                    type: 'system',
+                    icon: 'verified',
+                    title: 'Verifikasyon Apwouve ✓',
+                    body: 'Felisitasyon ' + name + '! Kont vandè ou verifye. Ou ka pibliye pwodwi kounye a.',
+                    color: '#00666f',
+                }).then(({ error }) => { if (error) console.error('[Admin] Notify approve error:', error); });
             }
             document.getElementById('kpiPending').textContent = VERIF_REQUESTS.filter(v => v.status === 'pending').length;
             renderVerifList();
@@ -5998,8 +6703,23 @@
             if (idx >= 0) { VERIF_REQUESTS[idx].status = 'rejected'; VERIF_REQUESTS[idx].rejectReason = reason; }
             // Update in Supabase
             if (db) {
-                db.from('verification_requests').update({ status: 'rejected', reject_reason: reason }).eq('user_id', uid)
-                    .then(({ error }) => { if (error) console.warn('[Admin] Reject error:', error.message); });
+                db.from('verification_requests').update({
+                    status: 'rejected',
+                    reject_reason: reason,
+                    reviewed_by: A.user?.uid || null,
+                }).eq('user_id', uid)
+                    .then(({ error }) => { if (error) console.error('[Admin] Reject error:', error); });
+                // Push a notification to the seller telling them WHY their
+                // verification was rejected so they can resubmit with the
+                // correct documents.
+                db.from('notifications').insert({
+                    user_id: uid,
+                    type: 'system',
+                    icon: 'cancel',
+                    title: 'Verifikasyon Rejte',
+                    body: 'Demann verifikasyon ou rejte.\n\nRezon: ' + reason + '\n\nOu ka re-soumèt ak nouvo dokiman yo.',
+                    color: '#98443e',
+                }).then(({ error }) => { if (error) console.error('[Admin] Notify reject error:', error); });
             }
             renderVerifList();
             addNotif({
@@ -6211,29 +6931,154 @@
         window.adminResolveDispute = adminResolveDispute;
 
         function renderAdminUsers() {
-            document.getElementById('adminUserList').innerHTML = ADMIN_USERS.map(u => `
-  <div class="bg-surface-container-lowest rounded-xl p-4 amb flex items-center gap-3">
-    <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(0,102,111,.1)"><span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1;color:#00666f">person</span></div>
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-1.5">
-        <p class="font-headline font-bold text-sm text-on-surface">${u.name}</p>
-        ${u.verified ? `<span class="material-symbols-outlined fi text-primary" style="font-size:13px">verified</span>` : ''}
-      </div>
-      <p class="font-label text-xs text-on-surface-variant">${u.role} · ${u.status === 'active' ? 'Aktif' : u.status === 'banned' ? 'Bloke' : 'An atant'}</p>
-    </div>
-    <div class="flex gap-1.5 flex-shrink-0">
-      ${u.status === 'active' ? `<button onclick="adminBanUser('${u.uid}','${u.name}')" class="px-2.5 py-1.5 rounded-lg font-label text-[10px] font-bold text-secondary active:opacity-70" style="background:rgba(152,68,62,.08)">Bloke</button>` : ''}
-      ${u.status === 'banned' ? `<span class="font-label text-[10px] font-bold px-2 py-1 rounded-full" style="background:#e5e2dd;color:#3d4949">Bloke</span>` : ''}
-    </div>
-  </div>`).join('');
+            document.getElementById('adminUserList').innerHTML = ADMIN_USERS.map(u => {
+                // Distinguish three states for the banned column:
+                //   - active            → "Bloke" button opens the sheet
+                //   - banned, no expiry → red "Banni" badge + "Debloke"
+                //   - banned, expiry    → orange "Tempora • <date>" + "Debloke"
+                let badge = '';
+                let actionBtn = '';
+                if (u.status === 'banned') {
+                    if (u.banned_until && new Date(u.banned_until).getTime() > Date.now()) {
+                        const d = new Date(u.banned_until);
+                        const lbl = d.toLocaleDateString('fr', { day: '2-digit', month: 'short' });
+                        badge = '<span class="font-label text-[10px] font-bold px-2 py-1 rounded-full" style="background:#fef3c7;color:#92400e">Tempora · ' + lbl + '</span>';
+                    } else {
+                        badge = '<span class="font-label text-[10px] font-bold px-2 py-1 rounded-full" style="background:#fee2e2;color:#991b1b">Banni</span>';
+                    }
+                    actionBtn = '<button onclick="unblockUser(\'' + u.uid + '\',\'' + (u.name || '').replace(/'/g, "\\'") + '\')" class="px-2.5 py-1.5 rounded-lg font-label text-[10px] font-bold active:scale-95" style="background:rgba(0,102,111,.08);color:#00666f">Debloke</button>';
+                } else {
+                    badge = u.status === 'pending'
+                        ? '<span class="font-label text-[10px] font-bold px-2 py-1 rounded-full" style="background:#e0e7ff;color:#3730a3">An atant</span>'
+                        : '';
+                    actionBtn = u.status === 'active'
+                        ? '<button onclick="openBlockUserSheet(\'' + u.uid + '\',\'' + (u.name || '').replace(/'/g, "\\'") + '\')" class="px-2.5 py-1.5 rounded-lg font-label text-[10px] font-bold text-secondary active:opacity-70" style="background:rgba(152,68,62,.08)">Bloke</button>'
+                        : '';
+                }
+                return '<div class="bg-surface-container-lowest rounded-xl p-4 amb flex items-center gap-3">'
+                    + '<div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(0,102,111,.1)"><span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:\'FILL\' 1;color:#00666f">person</span></div>'
+                    + '<div class="flex-1 min-w-0"><div class="flex items-center gap-1.5"><p class="font-headline font-bold text-sm text-on-surface truncate">' + (u.name || 'Itilizatè') + '</p>'
+                    + (u.verified ? '<span class="material-symbols-outlined fi text-primary" style="font-size:13px">verified</span>' : '') + '</div>'
+                    + '<p class="font-label text-xs text-on-surface-variant">' + (u.role || 'buyer') + (badge ? ' · ' : '') + '</p>'
+                    + (badge ? '<div class="mt-1">' + badge + '</div>' : '')
+                    + '</div>'
+                    + '<div class="flex gap-1.5 flex-shrink-0">' + actionBtn + '</div>'
+                    + '</div>';
+            }).join('');
         }
 
-        function adminBanUser(uid, name) {
-            const u = ADMIN_USERS.find(x => x.uid === uid);
-            if (u) u.status = 'banned';
-            renderAdminUsers();
-            toast(`${name} bloke`);
+        // ── Admin block / unblock ─────────────────────────────────
+        // The banned_until convention used here:
+        //   - status='active' + banned_until=NULL  → normal
+        //   - status='banned' + banned_until=NULL  → permanent ban
+        //   - status='banned' + banned_until>NOW() → temporary ban
+        // Anything past banned_until is auto-promoted to active on next
+        // login (see handleAuthSession).
+
+        function openBlockUserSheet(uid, name) {
+            if (A.user?.role !== 'admin') { toast('Admin sèlman'); return; }
+            A.banningUid = uid;
+            A.banningName = name || 'Itilizatè';
+            const lbl = document.getElementById('buUserLabel');
+            if (lbl) lbl.textContent = A.banningName;
+            const reason = document.getElementById('buReason');
+            if (reason) reason.value = '';
+            openSheet('blockUserSheet');
         }
+
+        async function confirmBan(scope) {
+            const uid = A.banningUid;
+            const name = A.banningName || 'Itilizatè';
+            if (!uid || !db) return;
+            const reason = (document.getElementById('buReason')?.value || '').trim() || null;
+            const isDefinitive = scope === 'definitive';
+            const banned_until = isDefinitive
+                ? null
+                : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+            const targetBtn = document.getElementById(isDefinitive ? 'buDefBtn' : 'buTempBtn');
+            const orig = targetBtn ? targetBtn.innerHTML : '';
+            if (targetBtn) {
+                targetBtn.disabled = true;
+                targetBtn.innerHTML = '<span class="material-symbols-outlined align-middle" style="font-size:14px;animation:spin .8s linear infinite">progress_activity</span> Ap aplike...';
+            }
+            try {
+                const { error } = await db.from('profiles').update({
+                    status: 'banned',
+                    banned_until: banned_until,
+                    ban_reason: reason,
+                }).eq('id', uid);
+                if (error) throw error;
+                // In-app notification to the affected user
+                db.from('notifications').insert({
+                    user_id: uid,
+                    type: 'system',
+                    icon: 'block',
+                    title: isDefinitive ? 'Kont ou banni' : 'Kont ou bloke pou 7 jou',
+                    body: (reason ? 'Rezon: ' + reason + '.' : 'Aksyon admin.')
+                        + (isDefinitive ? ' Sa defini — kontakte sipò AyitiMarket.' : ' W ap kapab konekte ankò apre 7 jou.'),
+                    color: '#dc2626',
+                }).then(({ error: e }) => { if (e) console.error('[Ban notif]', e); });
+                // Definitive ban → also queue an email (Edge Function picks
+                // these rows up; until that's wired, the row sits in the
+                // outbox so nothing is silently dropped).
+                if (isDefinitive) {
+                    db.from('pending_emails').insert({
+                        to_user: uid,
+                        subject: 'Kont AyitiMarket ou bani',
+                        body: 'Bonjou ' + name + ',\n\nKont ou sou AyitiMarket bani.'
+                            + (reason ? '\n\nRezon: ' + reason : '')
+                            + '\n\nPou diskite desizyon sa, kontakte sipò@ayitimarket app la.\n\n— Ekip AyitiMarket',
+                    }).then(({ error: e }) => {
+                        if (e) console.error('[Ban email queue]', e);
+                    });
+                }
+                // Mirror locally for instant re-render
+                const u = ADMIN_USERS.find(x => x.uid === uid);
+                if (u) { u.status = 'banned'; u.banned_until = banned_until; }
+                closeSheets();
+                renderAdminUsers();
+                toast(name + (isDefinitive ? ' bani definitif' : ' bloke 7 jou'));
+            } catch (e) {
+                console.error('[Ban]', e);
+                toast('Erè: ' + (e.message || 'pa kapab bloke'));
+            } finally {
+                if (targetBtn) { targetBtn.disabled = false; targetBtn.innerHTML = orig; }
+                A.banningUid = null;
+                A.banningName = null;
+            }
+        }
+
+        async function unblockUser(uid, name) {
+            if (A.user?.role !== 'admin') { toast('Admin sèlman'); return; }
+            if (!db || !uid) return;
+            try {
+                const { error } = await db.from('profiles').update({
+                    status: 'active',
+                    banned_until: null,
+                    ban_reason: null,
+                }).eq('id', uid);
+                if (error) throw error;
+                db.from('notifications').insert({
+                    user_id: uid,
+                    type: 'system',
+                    icon: 'lock_open',
+                    title: 'Kont ou debloke',
+                    body: 'Admin debloke kont ou. Ou ka kontinye sèvi avèk AyitiMarket.',
+                    color: '#00666f',
+                }).then(({ error: e }) => { if (e) console.error('[Unban notif]', e); });
+                const u = ADMIN_USERS.find(x => x.uid === uid);
+                if (u) { u.status = 'active'; u.banned_until = null; }
+                renderAdminUsers();
+                toast((name || 'Itilizatè') + ' debloke');
+            } catch (e) {
+                console.error('[Unban]', e);
+                toast('Erè: ' + (e.message || 'pa kapab debloke'));
+            }
+        }
+
+        window.openBlockUserSheet = openBlockUserSheet;
+        window.confirmBan = confirmBan;
+        window.unblockUser = unblockUser;
 
         // ── Admin: Conversations viewer (read-only) ──
         var _adminConvos = [];
@@ -6504,8 +7349,23 @@
             }
             navigator.geolocation.getCurrentPosition(pos => {
                 _userGeo = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                renderPickupList();
-                toast('Pozisyon detekte — triyè pa distans');
+                // Auto-select the closest pickup so its name surfaces in
+                // settings + everywhere else without forcing the user to
+                // tap a second time. Filter out rows that have no
+                // coordinates (data gap), and only swap if we don't
+                // already have a stickier explicit choice on the user.
+                const ranked = PICKUPS
+                    .filter(pk => pk.lat != null && pk.lng != null)
+                    .map(pk => ({ pk, km: haversineKm(_userGeo, pk) }))
+                    .sort((a, b) => a.km - b.km);
+                const closest = ranked[0];
+                if (closest && typeof setPickupZone === 'function') {
+                    setPickupZone(closest.pk.id);
+                    toast('Pwen Kolekte: ' + closest.pk.n + ' (' + closest.km.toFixed(1) + ' km)');
+                } else {
+                    renderPickupList();
+                    toast('Pozisyon detekte — triyè pa distans');
+                }
                 if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
                 // Persist geo so pickup sort works immediately next session.
                 if (db && A.user?.uid) {
@@ -6600,7 +7460,14 @@
       <p class="font-headline font-bold text-sm text-on-surface ${n.read ? 'opacity-70' : ''}">${n.title}</p>
       <p class="font-body text-xs text-on-surface-variant mt-0.5 leading-relaxed">${n.body || ''}</p>
     </div>
-    <span class="font-label text-[10px] text-on-surface-variant flex-shrink-0 mt-0.5">${n.time}</span>
+    <div class="flex flex-col items-end gap-1.5 flex-shrink-0">
+      <span class="font-label text-[10px] text-on-surface-variant mt-0.5">${n.time}</span>
+      <button onclick="deleteNotif('${n.id}', event)" aria-label="Efase notifikasyon"
+              class="w-7 h-7 rounded-full flex items-center justify-center active:scale-90 transition-all"
+              style="background:rgba(152,68,62,.06);color:#98443e">
+        <span class="material-symbols-outlined" style="font-size:15px">delete_outline</span>
+      </button>
+    </div>
   </div>`).join('');
             updateNotifBadge();
         }
@@ -6629,6 +7496,26 @@
                 if (n.action) { closeSheets(); n.action(); return; }
             }
             renderNotifList(document.querySelector('.notif-tab.bg-surface-container-lowest')?.id?.replace('nt-', '') || 'all');
+            updateNotifBadge();
+        }
+
+        // Manual delete from the user's notification history. The card's
+        // outer onClick is readNotif; the trash button calls this with
+        // event.stopPropagation so we don't also flip read=true on its way
+        // out. Click is intentional + reversible only by the system that
+        // generated the notif, so no confirm dialog — keeps it close to
+        // platform notification trays (Gmail / Telegram swipe-to-delete).
+        function deleteNotif(id, ev) {
+            if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+            const idx = NOTIFS.findIndex(x => x.id === id);
+            if (idx >= 0) NOTIFS.splice(idx, 1);
+            if (db && A.user?.uid) {
+                db.from('notifications').delete()
+                    .eq('id', id).eq('user_id', A.user.uid)
+                    .then(({ error }) => { if (error) console.error('[DeleteNotif]', error); });
+            }
+            const tab = document.querySelector('.notif-tab.bg-surface-container-lowest')?.id?.replace('nt-', '') || 'all';
+            renderNotifList(tab);
             updateNotifBadge();
         }
 
@@ -6913,10 +7800,80 @@
         // ══════════════════════════════════════════════════════════
         //  FONCTIONNALITE 2 — CURRENCY TOGGLE
         // ══════════════════════════════════════════════════════════
+        // Currency state is *local* to this device only — stored in
+        // localStorage, never written to the Supabase profile. A vendor
+        // viewing prices in USD therefore can't change what other buyers
+        // see (Bug I).
         const CURRENCY = {
-            rate: 130,
+            // Seed from the cached rate first so prices render correctly on
+            // first paint, even before the network fetch resolves; default
+            // to 130 only when nothing is cached yet.
+            rate: parseFloat(localStorage.getItem('aym_currency_rate') || '0') || 130,
             current: localStorage.getItem('aym_currency') || 'HTG'
         };
+
+        // Pull a fresh USD→HTG rate from a public ExchangeRate-API endpoint.
+        // We cache for 4h to keep app boots cheap and tolerate the API
+        // occasionally being slow. Any failure falls back to whatever
+        // CURRENCY.rate already holds (cached or default 130) — the app
+        // never crashes because the rate fetch errored.
+        async function fetchExchangeRate() {
+            const KEY = 'aym_currency_rate';
+            const TS  = 'aym_currency_rate_at';
+            const FOUR_H = 4 * 60 * 60 * 1000;
+            try {
+                const cachedAt = parseInt(localStorage.getItem(TS) || '0', 10);
+                const cachedVal = parseFloat(localStorage.getItem(KEY) || '0');
+                if (cachedVal > 0 && Date.now() - cachedAt < FOUR_H) {
+                    CURRENCY.rate = cachedVal;
+                    console.log('[Currency] Rate=' + cachedVal + ' (cached)');
+                    return cachedVal;
+                }
+                const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                const htg = data && data.rates && data.rates.HTG;
+                if (typeof htg !== 'number' || htg <= 0) throw new Error('HTG rate missing');
+                CURRENCY.rate = htg;
+                try {
+                    localStorage.setItem(KEY, String(htg));
+                    localStorage.setItem(TS, String(Date.now()));
+                } catch (_) { }
+                console.log('[Currency] Rate=' + htg + ' (fresh)');
+                return htg;
+            } catch (e) {
+                console.warn('[Currency] Rate fetch failed:', e.message, '— keeping', CURRENCY.rate);
+                return CURRENCY.rate;
+            }
+        }
+
+        // Format a HTG amount in the user's active currency. USD strips
+        // the "HTG" suffix entirely (Bug H) and shows "$X.XX". HTG keeps
+        // the existing thousands-separated digits + " HTG".
+        function fpc(htgAmount) {
+            const n = Number(htgAmount) || 0;
+            if (CURRENCY.current === 'USD') {
+                const r = CURRENCY.rate || 130;
+                return '$' + (n / r).toFixed(2);
+            }
+            return fp(n) + ' HTG';
+        }
+
+        // Kick off the rate refresh in the background. Fire-and-forget —
+        // anything already rendered is using the cached/default rate, and
+        // a successful fetch updates CURRENCY.rate for future renders +
+        // for the next currency toggle.
+        if (typeof fetchExchangeRate === 'function') {
+            fetchExchangeRate().then(rate => {
+                // If the user already had USD selected, refresh visible
+                // prices once the live rate lands.
+                if (CURRENCY.current === 'USD') {
+                    const lblRate = document.getElementById('currRateTxt');
+                    if (lblRate) lblRate.textContent = 'Taux: 1 USD = ' + rate.toFixed(2) + ' HTG';
+                    if (typeof renderFeed === 'function') renderFeed();
+                }
+            });
+        }
 
         function toggleCurrency() {
             const next = CURRENCY.current === 'HTG' ? 'USD' : 'HTG';
@@ -6942,17 +7899,18 @@
             if (ex) ex.textContent = cur === 'USD' ? `$${(3500 / CURRENCY.rate).toFixed(2)}` : '3 500 HTG';
             // Re-render feed
             renderFeed();
-            // Re-render détail si ouvert
+            // Re-render détail si ouvert — use fpc() so the HTG suffix
+            // disappears when USD is active (Bug H).
             if (A.curProd) {
                 const sp = document.querySelector('#detailContent .text-3xl');
-                if (sp) sp.textContent = fp(A.curProd.p);
+                if (sp) sp.textContent = fpc(A.curProd.p);
                 const sg = document.getElementById('similarGrid');
                 if (sg && sg.children.length > 0) renderSimilarProducts(A.curProd);
             }
             // Feedback bouton header
             const btn = document.getElementById('currBtn');
             if (btn) { btn.style.transform = 'scale(1.2)'; setTimeout(() => { btn.style.transform = ''; }, 200); }
-            toast(`Monnaie: ${cur} (1 USD = 130 HTG)`);
+            toast('Monnaie: ' + cur + ' (1 USD = ' + CURRENCY.rate.toFixed(2) + ' HTG)');
         }
 
         // Override fp() pour supporter la conversion
@@ -9048,9 +10006,6 @@
           <span class="material-symbols-outlined fi" style="font-size:18px">chat</span>
           Mesaj
         </button>
-        <button onclick="toast('WhatsApp ouvè pou ${seller.name}')" class="w-12 flex items-center justify-center rounded-xl active:scale-90 transition-transform" style="background:rgba(37,211,102,.1)">
-          <span class="material-symbols-outlined fi" style="font-size:20px;color:#075e54">chat</span>
-        </button>
       </div>
       <div class="flex items-center gap-2 mt-3 px-3 py-2.5 rounded-lg" style="background:rgba(0,102,111,.05)">
         <span class="material-symbols-outlined fi text-primary flex-shrink-0" style="font-size:14px">schedule</span>
@@ -9323,6 +10278,18 @@
         const email = session.user.email || '';
         const createdAt = session.user.created_at;
 
+        // Pre-read whatever we already trust about this user from a previous
+        // session on this device. We use this as the *fallback* identity if
+        // the live profile fetch fails or returns a partial row — never as
+        // a forced overwrite. Without this, a transient RLS / network
+        // failure on the SELECT would silently flip a vendor or admin back
+        // to 'buyer' until the next reload (Bug A).
+        let cachedSelf = null;
+        try {
+            const raw = JSON.parse(localStorage.getItem('aym_user') || 'null');
+            if (raw && raw.uid === uid) cachedSelf = raw;
+        } catch (_) { }
+
         let profile = null;
         let needsRoleSelection = false;
 
@@ -9332,11 +10299,14 @@
                 new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
             ]);
             if (!error) profile = data;
+            else console.warn('[Profile] SELECT erè:', error.message);
         } catch(e) { console.warn('[Profile] Fetch erè:', e.message); }
 
         // Kreye profil si li pa egziste
         if (!profile) {
-            needsRoleSelection = true;
+            // Don't *force* role selection just because the read failed —
+            // only when we genuinely have no role anywhere (no cache either).
+            if (!cachedSelf?.role) needsRoleSelection = true;
             const fn = meta.full_name?.split(' ')[0] || meta.name?.split(' ')[0] || meta.first_name || email.split('@')[0] || 'Itilizatè';
             const ln = meta.full_name?.split(' ').slice(1).join(' ') || meta.last_name || '';
             try {
@@ -9351,33 +10321,93 @@
             } catch(e) { console.warn('[Profile] Kreye erè:', e.message); }
         }
 
-        // Detekte si wòl pa chwazi (null oswa pa defini)
-        if (!profile?.role || profile.role === '' || localStorage.getItem('aym_needs_role') === uid) {
+        // Detekte si wòl pa chwazi.
+        // Single source of truth: an authoritative profile.role is missing.
+        // We no longer also gate on the legacy aym_needs_role flag — that
+        // flag was never cleared on logout, so a returning user who had
+        // already picked a role kept seeing the role screen on every login
+        // (Bug B).
+        if (!profile?.role && !cachedSelf?.role) {
             needsRoleSelection = true;
         }
 
-        const name = profile?.display_name || profile?.first_name || meta.full_name || meta.name || email.split('@')[0] || 'Itilizatè';
+        const name = profile?.display_name || profile?.first_name || cachedSelf?.name || meta.full_name || meta.name || email.split('@')[0] || 'Itilizatè';
         const initials = name.split(' ').filter(Boolean).map(w => w[0]?.toUpperCase()).join('').slice(0,2) || 'U';
+
+        // Ban gate — handle status='banned' here, before we hand control
+        // to bootApp, so a banned user can't slip past the auth screen.
+        // Three branches:
+        //   1. status='banned', banned_until in the future → still banned;
+        //      sign them out and surface why.
+        //   2. status='banned', banned_until in the past → tempora expired;
+        //      auto-promote back to active so the user isn't punished
+        //      forever because the admin set 7 days a year ago.
+        //   3. status='banned', banned_until NULL → permanent ban; sign out.
+        if (profile && profile.status === 'banned') {
+            const until = profile.banned_until ? new Date(profile.banned_until).getTime() : null;
+            if (until && until <= Date.now()) {
+                // Tempora ban expired — flip back to active before continuing.
+                try {
+                    await db.from('profiles').update({
+                        status: 'active', banned_until: null, ban_reason: null,
+                    }).eq('id', uid);
+                    profile.status = 'active';
+                    profile.banned_until = null;
+                    profile.ban_reason = null;
+                } catch (e) {
+                    console.warn('[Auth] auto-unban failed:', e.message);
+                }
+            } else {
+                const reason = profile.ban_reason ? '\nRezon: ' + profile.ban_reason : '';
+                const expiry = until
+                    ? '\nW ap kapab konekte ankò ' + new Date(until).toLocaleDateString('fr', { day: '2-digit', month: 'long', year: 'numeric' })
+                    : '\nKontakte sipò pou plis enfòmasyon.';
+                if (typeof toast === 'function') {
+                    toast('Kont ou bloke.' + reason);
+                } else {
+                    alert('Kont ou bloke.' + reason + expiry);
+                }
+                try { await db.auth.signOut(); } catch (_) { }
+                A.user = null; A.isAuth = false;
+                try { localStorage.removeItem('aym_user'); } catch (_) { }
+                return false;
+            }
+        }
 
         A.user = {
             uid, name, initials, email,
-            phone: profile?.phone || '',
-            role: profile?.role || 'buyer',
-            verifiedSeller: profile?.verified_seller || false,
-            photoURL: profile?.avatar_url || meta.avatar_url || meta.picture || null,
-            salesCount: profile?.sales_count || 0,
-            orderCount: profile?.order_count || 0,
-            ratingAvg: profile?.rating_avg || 0,
-            reviewCount: profile?.review_count || 0,
+            phone: profile?.phone ?? cachedSelf?.phone ?? '',
+            // Layered fallback: live row > cache from same uid > 'buyer'.
+            // Crucially, we never *overwrite* a known role with 'buyer'
+            // because the live SELECT happened to return null/error.
+            role: profile?.role || cachedSelf?.role || 'buyer',
+            verifiedSeller: (profile && 'verified_seller' in profile)
+                ? !!profile.verified_seller
+                : !!cachedSelf?.verifiedSeller,
+            photoURL: profile?.avatar_url || meta.avatar_url || meta.picture || cachedSelf?.photoURL || null,
+            salesCount: profile?.sales_count ?? cachedSelf?.salesCount ?? 0,
+            orderCount: profile?.order_count ?? cachedSelf?.orderCount ?? 0,
+            ratingAvg: profile?.rating_avg ?? cachedSelf?.ratingAvg ?? 0,
+            reviewCount: profile?.review_count ?? cachedSelf?.reviewCount ?? 0,
         };
         A.isAuth = true;
         localStorage.setItem('aym_user', JSON.stringify(A.user));
+        // Anyone with a valid Supabase session has already used the app
+        // (signed up at some point), so the onboarding intro is no longer
+        // applicable — even on a fresh device where the localStorage flag
+        // would otherwise be missing. Persist + release the gate so the
+        // splash setTimeout doesn't mount onboarding on top of the feed.
+        try { localStorage.setItem('aym_onboarded', '1'); } catch (_) { }
+        window.__pendingOnboarding = false;
         console.log('[Auth] ✅', A.user.name, '(' + A.user.role + ')', needsRoleSelection ? '← BEZWEN WÒL' : '← wòl deja chwazi');
 
         if (needsRoleSelection) {
             localStorage.setItem('aym_needs_role', uid);
             return 'role';
         }
+        // Defensive cleanup in case the legacy flag was left over from a
+        // previous logout on this device.
+        try { localStorage.removeItem('aym_needs_role'); } catch (_) { }
         return 'boot';
     }
 
@@ -9452,6 +10482,11 @@
             if (event === 'SIGNED_OUT') {
                 A.user = null; A.isAuth = false; A.booted = false;
                 localStorage.removeItem('aym_user');
+                // Clear the legacy "still needs to pick a role" flag too.
+                // Otherwise it survives the logout, and on the next login
+                // the role-selection screen reappears for a user who had
+                // already chosen one (Bug B).
+                localStorage.removeItem('aym_needs_role');
                 document.getElementById('topbar')?.classList.add('hidden');
                 document.getElementById('bottomNav')?.classList.add('hidden');
                 document.getElementById('fab')?.classList.add('hidden');
@@ -9793,7 +10828,7 @@
         if (!db || !A.user?.uid) return;
         try {
             const { data, error } = await db.from('followers')
-                .select('id, follower:profiles!follower_id(id, display_name, phone, created_at)')
+                .select('id, follower:profiles!follower_id(id, display_name, first_name, last_name, avatar_url, created_at)')
                 .eq('seller_id', A.user.uid);
             if (error) throw error;
             const el = document.getElementById('followersListInner');
@@ -9802,11 +10837,26 @@
                 el.innerHTML = '<p class="font-label text-xs text-on-surface-variant text-center py-8">Ou poko gen abonnen.</p>';
                 return;
             }
+            // Bug L — show real avatar (when available) and just the
+            // pseudo/name. Phone numbers are dropped from this list:
+            // they were neither requested nor appropriate for a public
+            // followers panel (privacy).
             el.innerHTML = '<p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-3">Lis Abonnen</p><div class="space-y-2">' + data.map(f => {
-                const n = f.follower?.display_name || 'Itilizatè';
-                return '<div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb"><div class="w-10 h-10 rounded-full cta flex items-center justify-center flex-shrink-0"><span class="font-headline font-bold text-white text-sm">' + n.charAt(0) + '</span></div><div class="flex-1"><p class="font-headline font-bold text-sm text-on-surface">' + n + '</p><p class="font-label text-xs text-on-surface-variant">' + (f.follower?.phone || '') + '</p></div></div>';
+                const fol = f.follower || {};
+                const name = fol.display_name
+                    || [fol.first_name, fol.last_name].filter(Boolean).join(' ').trim()
+                    || 'Itilizatè';
+                const initial = (name.charAt(0) || 'I').toUpperCase();
+                const avatar = fol.avatar_url
+                    ? '<img src="' + fol.avatar_url + '" alt="' + name + '" class="w-10 h-10 rounded-full object-cover flex-shrink-0" onerror="this.onerror=null;this.outerHTML=\'<div class=&quot;w-10 h-10 rounded-full cta flex items-center justify-center flex-shrink-0&quot;><span class=&quot;font-headline font-bold text-white text-sm&quot;>' + initial + '</span></div>\'"/>'
+                    : '<div class="w-10 h-10 rounded-full cta flex items-center justify-center flex-shrink-0"><span class="font-headline font-bold text-white text-sm">' + initial + '</span></div>';
+                const since = fol.created_at ? timeAgo(fol.created_at) : '';
+                return '<div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb">' + avatar
+                    + '<div class="flex-1 min-w-0"><p class="font-headline font-bold text-sm text-on-surface truncate">' + name + '</p>'
+                    + (since ? '<p class="font-label text-xs text-on-surface-variant">Abonnen depi ' + since + '</p>' : '')
+                    + '</div></div>';
             }).join('') + '</div>';
-        } catch (e) { console.warn('[Followers]', e.message); }
+        } catch (e) { console.error('[Followers]', e); }
     }
 
     // ── Fetch notifications from Supabase ──
@@ -9859,6 +10909,9 @@
                         e: fd.icon || 'palette', ec: fd.color || '#059669',
                         c: fd.category, l: fd.location, pct: fd.discount_pct || 0, stock: fd.stock || 0,
                         ends_at: fd.ends_at,
+                        // Keep product_id so feedCard can decorate the matching
+                        // product with a Flash Deal badge (Bug D).
+                        product_id: fd.product_id || null,
                     });
                 });
                 // Use the earliest ends_at as the countdown target
@@ -9882,10 +10935,17 @@
     async function loadAdminDataFromSupabase() {
         if (!db || A.user?.role !== 'admin') return;
         try {
-            // Verification requests
-            const { data: verifs } = await db.from('verification_requests')
+            // Verification requests — surface RLS / connection errors so the
+            // admin panel doesn't silently look empty when the SELECT was
+            // actually rejected (e.g. is_admin() returning false).
+            const { data: verifs, error: verifErr } = await db.from('verification_requests')
                 .select('*').order('created_at', { ascending: false });
-            if (verifs) {
+            if (verifErr) {
+                console.error('[Admin] verification_requests fetch failed:', verifErr);
+            } else if (Array.isArray(verifs)) {
+                if (verifs.length === 0) {
+                    console.info('[Admin] verification_requests: 0 rows (no pending demands or RLS hides them)');
+                }
                 VERIF_REQUESTS.length = 0;
                 verifs.forEach(v => VERIF_REQUESTS.push({
                     uid: v.user_id || v.id, name: v.name, phone: v.phone,
@@ -9925,6 +10985,7 @@
                     uid: u.id, name: u.display_name || (u.first_name + ' ' + (u.last_name || '')).trim(),
                     role: u.role || 'buyer', verified: u.verified_seller || false,
                     status: u.status || 'active', orders: u.order_count || 0, sales: u.sales_count || 0,
+                    banned_until: u.banned_until || null, ban_reason: u.ban_reason || null,
                 }));
             }
             renderVerifList();
@@ -9937,7 +10998,7 @@
             if (kao) kao.textContent = ADMIN_ORDERS.length;
             const kau = document.getElementById('kpiAdminUsers');
             if (kau) kau.textContent = ADMIN_USERS.length;
-        } catch (e) { console.warn('[Admin]', e.message); }
+        } catch (e) { console.error('[Admin] loadAdminDataFromSupabase fatal:', e); }
     }
 
     // ── Fetch chat messages from Supabase ──

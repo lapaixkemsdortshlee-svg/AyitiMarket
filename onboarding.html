@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AyitiMarket — Onboarding</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Plus Jakarta Sans','Inter',sans-serif;overflow:hidden;background:#fcf9f4;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{display:block}
+#root,#root>div{height:100%}
+
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes floatYSlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes pulsate{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.07)}}
+@keyframes pinDrop{0%{transform:translateY(-16px);opacity:.3}70%{transform:translateY(2px);opacity:1}100%{transform:translateY(0);opacity:1}}
+@keyframes bounceIn{0%{transform:scale(.5);opacity:.4}60%{transform:scale(1.08)}80%{transform:scale(.97)}100%{transform:scale(1);opacity:1}}
+@keyframes waveBar{0%,100%{height:3px}50%{height:14px}}
+@keyframes shimmer{0%,100%{opacity:.5}50%{opacity:1}}
+
+.float{animation:floatY 3.6s ease-in-out infinite}
+.float-slow{animation:floatYSlow 5s ease-in-out infinite}
+.pulse{animation:pulsate 2.2s ease-in-out infinite}
+.bounce{animation:bounceIn .65s cubic-bezier(.22,1,.36,1) both}
+.pin{animation:pinDrop .55s cubic-bezier(.22,1,.36,1) both}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const {useState, useEffect, useRef, useCallback} = React;
+
+const C = {
+  teal:'#00666f', tealD:'#004f57', tealL:'#d9f2f3', tealM:'#007d87',
+  orange:'#97422b', orangeL:'#fdf0eb', orangeM:'#b85030',
+  cream:'#fcf9f4', charcoal:'#1c1c19', subtle:'#f0ede8', subtleD:'#dedad3',
+  muted:'#7e7e76', dark:'#1a2a2b',
+};
+
+/* ══════════════════════════════
+   ILLUSTRATION 1 — Eskwo
+══════════════════════════════ */
+function Illus1() {
+  return (
+    <svg viewBox="0 0 340 290" fill="none" style={{width:'100%',height:'100%',display:'block'}}>
+      {/* blobs */}
+      <ellipse cx={170} cy={268} rx={115} ry={22} fill="rgba(255,255,255,.1)"/>
+      <ellipse cx={55}  cy={235} rx={44}  ry={26} fill="rgba(255,255,255,.07)"/>
+      <ellipse cx={295} cy={205} rx={38}  ry={22} fill="rgba(255,255,255,.07)"/>
+
+      {/* Shield group */}
+      <g className="float" style={{transformOrigin:'170px 128px'}}>
+        <path d="M170 30 L240 66 L240 132 C240 173 208 200 170 215 C132 200 100 173 100 132 L100 66 Z"
+          fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.38)" strokeWidth="1.5"/>
+        <path d="M170 46 L228 78 L228 132 C228 168 200 191 170 204 C140 191 112 168 112 132 L112 78 Z"
+          fill="rgba(255,255,255,.09)" stroke="rgba(255,255,255,.22)" strokeWidth="1"/>
+        <circle cx="170" cy="132" r="31" fill="rgba(255,255,255,.96)"/>
+        <path d="M157 132 L165 141 L184 121" stroke={C.teal} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </g>
+
+      {/* Coins */}
+      <g className="float-slow" style={{transformOrigin:'76px 180px',animationDelay:'.4s'}}>
+        <circle cx="76" cy="180" r="24" fill="rgba(255,255,255,.9)"/>
+        <circle cx="76" cy="180" r="20" fill={C.orange} opacity=".88"/>
+        <text x="76" y="185" textAnchor="middle" fontSize="13" fill="white" fontWeight="800">G</text>
+      </g>
+      <g className="float-slow" style={{transformOrigin:'272px 174px',animationDelay:'.85s'}}>
+        <circle cx="272" cy="174" r="17" fill="rgba(255,255,255,.8)"/>
+        <circle cx="272" cy="174" r="13" fill={C.orange} opacity=".7"/>
+        <text x="272" y="178" textAnchor="middle" fontSize="9" fill="white" fontWeight="800">G</text>
+      </g>
+      <g className="float-slow" style={{transformOrigin:'58px 110px',animationDelay:'1.3s'}}>
+        <circle cx="58" cy="110" r="11" fill="rgba(255,255,255,.5)"/>
+        <circle cx="58" cy="110" r="8" fill={C.orange} opacity=".5"/>
+      </g>
+
+      {/* OTP Card */}
+      <g className="float" style={{transformOrigin:'228px 230px',animationDelay:'.65s'}}>
+        <rect x="178" y="212" width="100" height="50" rx="14" fill="white"
+          style={{filter:'drop-shadow(0 4px 18px rgba(0,0,0,.22))'}}/>
+        <text x="228" y="231" textAnchor="middle" fontSize="8" fill={C.muted} fontWeight="500">CODE OTP</text>
+        <rect x="188" y="235" width="80" height="19" rx="6" fill={C.tealL}/>
+        <text x="228" y="249" textAnchor="middle" fontSize="14" fill={C.teal} fontWeight="800" letterSpacing="3">4 8 2 1</text>
+      </g>
+
+      {/* Lock badge */}
+      <g className="float-slow" style={{transformOrigin:'50px 232px',animationDelay:'1.05s'}}>
+        <rect x="28" y="214" width="44" height="44" rx="14" fill="rgba(255,255,255,.15)"
+          stroke="rgba(255,255,255,.28)" strokeWidth="1"/>
+        <path d="M42 232 v-5 a8 8 0 0 1 16 0 v5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+        <rect x="38" y="232" width="24" height="16" rx="5" fill="rgba(255,255,255,.86)"/>
+        <circle cx="50" cy="240" r="2.5" fill={C.teal}/>
+      </g>
+
+      {/* MonCash label */}
+      <g className="bounce" style={{animationDelay:'.55s',transformOrigin:'170px 270px'}}>
+        <rect x="110" y="260" width="120" height="22" rx="11" fill="rgba(255,255,255,.2)"/>
+        <text x="170" y="275" textAnchor="middle" fontSize="9" fill="white" fontWeight="700">✓ MonCash libere</text>
+      </g>
+    </svg>
+  );
+}
+
+/* ══════════════════════════════
+   ILLUSTRATION 2 — Chat
+══════════════════════════════ */
+function Illus2() {
+  const bars = [3,9,14,5,11,7,16,4,12,6,13,5];
+  return (
+    <svg viewBox="0 0 340 290" fill="none" style={{width:'100%',height:'100%',display:'block'}}>
+      <ellipse cx={170} cy={268} rx={108} ry={22} fill={C.tealL} opacity=".65"/>
+
+      {/* Phone */}
+      <g className="float-slow" style={{transformOrigin:'170px 152px'}}>
+        <rect x="112" y="36" width="116" height="212" rx="22" fill={C.charcoal}
+          style={{filter:'drop-shadow(0 12px 34px rgba(0,0,0,.28))'}}/>
+        <rect x="116" y="52" width="108" height="184" rx="16" fill={C.cream}/>
+
+        {/* Header */}
+        <rect x="116" y="52" width="108" height="32" rx="16" fill={C.teal}/>
+        <rect x="116" y="68" width="108" height="16" fill={C.teal}/>
+        <circle cx="136" cy="68" r="9" fill="rgba(255,255,255,.2)"/>
+        <text x="136" y="72" textAnchor="middle" fontSize="10">👩🏾</text>
+        <text x="168" y="72" fontSize="8" fill="white" fontWeight="600">Marie Laguerre</text>
+        <circle cx="216" cy="68" r="4" fill="#4ade80"/>
+
+        {/* Bubble — sent */}
+        <rect x="148" y="92" width="68" height="20" rx="10" fill={C.teal}/>
+        <text x="182" y="106" textAnchor="middle" fontSize="7" fill="white">Bonjou! 👋 Disponib?</text>
+
+        {/* Bubble — received */}
+        <rect x="120" y="120" width="60" height="20" rx="10" fill={C.subtle}/>
+        <text x="150" y="134" textAnchor="middle" fontSize="7" fill={C.charcoal}>Wi, ki pri a?</text>
+
+        {/* Voice note */}
+        <rect x="148" y="148" width="70" height="20" rx="10" fill={C.tealL} stroke={C.teal} strokeWidth=".6"/>
+        <circle cx="158" cy="158" r="4" fill={C.teal} opacity=".7"/>
+        {bars.map((h,i) => (
+          <rect key={i} x={165+i*3.6} y={158-h/2} width="2.2" height={h} rx="1"
+            fill={C.teal} opacity=".65"
+            style={{animation:`waveBar ${.38+i*.06}s ease-in-out infinite`,animationDelay:`${i*.055}s`}}/>
+        ))}
+
+        {/* GPS bubble */}
+        <rect x="120" y="176" width="72" height="22" rx="11" fill={C.orangeL} stroke={C.orange} strokeWidth=".6"/>
+        <text x="156" y="190" textAnchor="middle" fontSize="8" fill={C.orange}>📍 Lokasyon mwen</text>
+
+        {/* Time */}
+        <text x="220" y="208" textAnchor="end" fontSize="6" fill={C.muted}>9:41 ✓✓</text>
+
+        {/* Notch */}
+        <rect x="146" y="40" width="48" height="6" rx="3" fill="rgba(255,255,255,.12)"/>
+      </g>
+
+      {/* Signal burst */}
+      <g className="pulse" style={{transformOrigin:'265px 84px',animationDelay:'.2s'}}>
+        <circle cx="265" cy="84" r="7" fill={C.teal}/>
+        <circle cx="265" cy="84" r="15" stroke={C.teal} strokeWidth="1.5" fill="none" opacity=".38"/>
+        <circle cx="265" cy="84" r="24" stroke={C.teal} strokeWidth="1" fill="none" opacity=".18"/>
+      </g>
+
+      {/* Speed badge */}
+      <g className="bounce" style={{animationDelay:'.48s',transformOrigin:'280px 140px'}}>
+        <rect x="248" y="128" width="64" height="24" rx="12" fill={C.teal}
+          style={{filter:'drop-shadow(0 4px 14px rgba(0,102,111,.42))'}}>
+        </rect>
+        <text x="280" y="144" textAnchor="middle" fontSize="9" fill="white" fontWeight="700">{"<"} 1 segonn</text>
+      </g>
+
+      {/* Avatars */}
+      <g className="float-slow" style={{transformOrigin:'65px 108px',animationDelay:'.32s'}}>
+        <circle cx="65" cy="108" r="30" fill={C.orangeL} stroke={C.orange} strokeWidth="2"/>
+        <text x="65" y="116" textAnchor="middle" fontSize="22">👩🏾</text>
+      </g>
+      <g className="float-slow" style={{transformOrigin:'276px 200px',animationDelay:'.95s'}}>
+        <circle cx="276" cy="200" r="24" fill={C.tealL} stroke={C.teal} strokeWidth="1.5"/>
+        <text x="276" y="208" textAnchor="middle" fontSize="16">👨🏿</text>
+      </g>
+    </svg>
+  );
+}
+
+/* ══════════════════════════════
+   ILLUSTRATION 3 — Verify
+══════════════════════════════ */
+function Illus3() {
+  return (
+    <svg viewBox="0 0 340 290" fill="none" style={{width:'100%',height:'100%',display:'block'}}>
+      <ellipse cx={170} cy={268} rx={104} ry={21} fill={C.subtle} opacity=".8"/>
+
+      {/* ID card */}
+      <g className="float" style={{transformOrigin:'170px 148px'}}>
+        <rect x="62" y="86" width="216" height="130" rx="18" fill={C.charcoal}
+          style={{filter:'drop-shadow(0 14px 40px rgba(0,0,0,.3))'}}>
+        </rect>
+        <rect x="62" y="86" width="216" height="46" rx="18" fill={C.teal}/>
+        <rect x="62" y="114" width="216" height="18" fill={C.teal}/>
+        <rect x="74" y="94" width="24" height="24" rx="7" fill="rgba(255,255,255,.22)"/>
+        <text x="86" y="110" textAnchor="middle" fontSize="12">🛒</text>
+        <text x="132" y="104" fontSize="9" fill="white" fontWeight="700">AyitiMarket</text>
+        <text x="132" y="117" fontSize="7" fill="rgba(255,255,255,.6)">CARTE DE VENDEUR</text>
+        {/* photo */}
+        <rect x="76" y="142" width="50" height="62" rx="10" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)" strokeWidth="1"/>
+        <text x="101" y="180" textAnchor="middle" fontSize="28">👩🏾</text>
+        {/* info */}
+        {[0,1,2,3].map(i=>(
+          <rect key={i} x={138} y={142+i*14} width={[120,88,104,70][i]} height="7" rx="3.5"
+            fill={`rgba(255,255,255,${[.22,.14,.14,.14][i]})`}/>
+        ))}
+        {/* barcode */}
+        {[0,4,7,11,14,18,21,25,28,32].map((x,i)=>(
+          <rect key={i} x={138+x} y={200} width={i%3===0?2.5:1.5} height={11} rx=".5" fill="rgba(255,255,255,.38)"/>
+        ))}
+      </g>
+
+      {/* Selfie */}
+      <g className="float-slow" style={{transformOrigin:'258px 95px',animationDelay:'.45s'}}>
+        <circle cx="258" cy="95" r="37" fill={C.cream} style={{filter:'drop-shadow(0 6px 20px rgba(0,0,0,.14))'}}>
+        </circle>
+        <circle cx="258" cy="95" r="30" fill={C.orangeL}/>
+        <text x="258" y="104" textAnchor="middle" fontSize="28">👩🏾</text>
+        {/* scan sweep */}
+        <rect x="228" y="89" width="60" height="2" rx="1" fill={C.orange} opacity=".7"
+          style={{animation:'floatY 1.4s ease-in-out infinite'}}/>
+        {/* corners */}
+        {[[221,58],[295,58],[221,132],[295,132]].map(([x,y],i)=>(
+          <path key={i}
+            d={i===0?`M${x+10},${y} L${x},${y} L${x},${y+10}`:
+               i===1?`M${x-10},${y} L${x},${y} L${x},${y+10}`:
+               i===2?`M${x+10},${y} L${x},${y} L${x},${y-10}`:
+               `M${x-10},${y} L${x},${y} L${x},${y-10}`}
+            stroke={C.orange} strokeWidth="2.5" strokeLinecap="round"/>
+        ))}
+      </g>
+
+      {/* Admin eye */}
+      <g className="float-slow" style={{transformOrigin:'58px 104px',animationDelay:'1.15s'}}>
+        <rect x="34" y="86" width="48" height="40" rx="12" fill="white"
+          style={{filter:'drop-shadow(0 4px 12px rgba(0,0,0,.1))'}}>
+        </rect>
+        <text x="58" y="99" textAnchor="middle" fontSize="8" fill={C.muted} fontWeight="600">ADMIN</text>
+        <ellipse cx="58" cy="111" rx="12" ry="7" fill={C.tealL}/>
+        <circle cx="58" cy="111" r="5" fill={C.teal}/>
+        <circle cx="59.5" cy="109.5" r="2" fill="white"/>
+      </g>
+
+      {/* Verified */}
+      <g className="bounce" style={{animationDelay:'.78s',transformOrigin:'108px 246px'}}>
+        <rect x="56" y="234" width="104" height="30" rx="15" fill={C.teal}
+          style={{filter:'drop-shadow(0 5px 18px rgba(0,102,111,.48))'}}>
+        </rect>
+        <text x="108" y="254" textAnchor="middle" fontSize="12" fill="white" fontWeight="700">✓ Verifye</text>
+      </g>
+
+      {/* ID back */}
+      <g className="float-slow" style={{transformOrigin:'240px 232px',animationDelay:'.28s'}}>
+        <rect x="196" y="222" width="90" height="52" rx="10" fill={C.subtle}
+          style={{filter:'drop-shadow(0 3px 10px rgba(0,0,0,.09))'}}>
+        </rect>
+        <text x="241" y="239" textAnchor="middle" fontSize="7.5" fill={C.muted} fontWeight="500">DOS / BACK</text>
+        {[0,1,2].map(i=>(
+          <rect key={i} x={206} y={244+i*8} width={72-i*12} height="5" rx="2.5" fill={C.subtleD}/>
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+/* ══════════════════════════════
+   ILLUSTRATION 4 — Flash
+══════════════════════════════ */
+function Illus4({timeLeft}) {
+  const pct = (timeLeft%3600)/3600;
+  const r=42, circ=2*Math.PI*r;
+  return (
+    <svg viewBox="0 0 340 290" fill="none" style={{width:'100%',height:'100%',display:'block'}}>
+      <ellipse cx={170} cy={265} rx={108} ry={21} fill={C.orangeL} opacity=".75"/>
+
+      {/* Timer ring */}
+      <g className="float" style={{transformOrigin:'170px 116px'}}>
+        <circle cx="170" cy="116" r="56" fill={C.cream}
+          style={{filter:'drop-shadow(0 8px 26px rgba(0,0,0,.1))'}}>
+        </circle>
+        <circle cx="170" cy="116" r={r} stroke={C.subtle} strokeWidth="8" fill="none"/>
+        <circle cx="170" cy="116" r={r}
+          stroke={C.orange} strokeWidth="8" fill="none"
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={circ*(1-pct)}
+          transform="rotate(-90 170 116)"
+          style={{transition:'stroke-dashoffset 1s linear'}}/>
+        <path d="M174 92 L162 114 L172 114 L166 140 L178 114 L168 114 Z" fill={C.orange}/>
+      </g>
+
+      {/* % badge */}
+      <g className="bounce" style={{animationDelay:'.55s',transformOrigin:'266px 74px'}}>
+        <circle cx="266" cy="74" r="29" fill={C.orange}
+          style={{filter:'drop-shadow(0 6px 20px rgba(151,66,43,.52))'}}>
+        </circle>
+        <text x="266" y="79" textAnchor="middle" fontSize="14" fill="white" fontWeight="900">-30%</text>
+        <circle cx="266" cy="74" r="29" stroke="rgba(255,255,255,.22)" strokeWidth="1.5" fill="none"/>
+      </g>
+
+      {/* Cards */}
+      {[
+        {x:42,emoji:'👗',name:'Rad Kreyòl',price:'850 G',barW:42,delay:'.3s',bg:C.tealL},
+        {x:172,emoji:'🥭',name:'Mango Nasyonal',price:'150 G',barW:58,delay:'.75s',bg:C.orangeL,urgent:true},
+      ].map((p,i)=>(
+        <g key={i} className="float-slow" style={{transformOrigin:`${p.x+46}px 210px`,animationDelay:p.delay}}>
+          <rect x={p.x} y={178} width="94" height="98" rx="16" fill="white"
+            style={{filter:'drop-shadow(0 6px 22px rgba(0,0,0,.1))'}}>
+          </rect>
+          <rect x={p.x} y={178} width="94" height="52" rx="16" fill={p.bg}/>
+          <rect x={p.x} y={208} width="94" height="22" fill={p.bg}/>
+          <text x={p.x+47} y={212} textAnchor="middle" fontSize="28">{p.emoji}</text>
+          <text x={p.x+47} y={244} textAnchor="middle" fontSize="8.5" fill={C.charcoal} fontWeight="600">{p.name}</text>
+          <text x={p.x+47} y={258} textAnchor="middle" fontSize="11" fill={C.orange} fontWeight="800">{p.price}</text>
+          <rect x={p.x+10} y={264} width="74" height="6" rx="3" fill={C.subtle}/>
+          <rect x={p.x+10} y={264} width={p.barW} height="6" rx="3" fill={p.urgent?C.orange:C.teal} opacity=".65"/>
+          {p.urgent && <text x={p.x+47} y={277} textAnchor="middle" fontSize="7" fill={C.orange} fontWeight="600">⚡ 3 rete!</text>}
+        </g>
+      ))}
+
+      {/* Urgency strip */}
+      <g className="pulse" style={{transformOrigin:'170px 162px'}}>
+        <rect x="106" y="153" width="128" height="20" rx="10" fill={C.orangeL} stroke={C.orange} strokeWidth=".8"/>
+        <text x="170" y="167" textAnchor="middle" fontSize="9" fill={C.orange} fontWeight="700">⚡ Ofri Limite — Depèch ou!</text>
+      </g>
+    </svg>
+  );
+}
+
+/* ══════════════════════════════
+   ILLUSTRATION 5 — GPS Pickup
+══════════════════════════════ */
+function Illus5() {
+  const pins = [
+    {x:108,y:126,label:'Digicel',sub:'Pétion-Ville',dist:'0.8 km',color:C.teal,delay:'.08s'},
+    {x:220,y:112,label:'Epikri',sub:'Delmas 33',dist:'1.4 km',color:C.teal,delay:'.32s'},
+    {x:116,y:205,label:'MonCash',sub:'Tabarre',dist:'2.1 km',color:C.orange,delay:'.6s'},
+  ];
+  return (
+    <svg viewBox="0 0 340 290" fill="none" style={{width:'100%',height:'100%',display:'block'}}>
+      {/* Map */}
+      <rect x="26" y="36" width="288" height="236" rx="22" fill={C.subtle}/>
+      {[78,108,138,168,198,228].map(y=>(
+        <line key={y} x1="26" y1={y} x2="314" y2={y} stroke={C.subtleD} strokeWidth=".8" opacity=".7"/>
+      ))}
+      {[78,108,138,168,198,228,268].map(x=>(
+        <line key={x} x1={x} y1="36" x2={x} y2="272" stroke={C.subtleD} strokeWidth=".8" opacity=".7"/>
+      ))}
+      <rect x="26" y="156" width="288" height="9" rx="4.5" fill={C.subtleD} opacity=".6"/>
+      <rect x="157" y="36" width="9" height="236" rx="4.5" fill={C.subtleD} opacity=".6"/>
+      <text x="55" y="153" fontSize="7" fill={C.muted} opacity=".65">Rue Pétion</text>
+      <text x="160" y="52" fontSize="7" fill={C.muted} opacity=".65">Av. Delmas</text>
+
+      {/* User GPS */}
+      <g className="pulse" style={{transformOrigin:'161px 161px'}}>
+        <circle cx="161" cy="161" r="22" fill={C.teal} opacity=".12"/>
+        <circle cx="161" cy="161" r="12" fill={C.teal} opacity=".24"/>
+        <circle cx="161" cy="161" r="6"  fill={C.teal}/>
+        <circle cx="162.5" cy="159.5" r="2" fill="white"/>
+      </g>
+      <circle cx="161" cy="161" r="34" stroke={C.teal} strokeWidth="1" strokeDasharray="4 3" fill="none" opacity=".28"/>
+
+      {/* Pins */}
+      {pins.map((p,i)=>(
+        <g key={i} className="pin" style={{animationDelay:p.delay,transformOrigin:`${p.x}px ${p.y}px`}}>
+          <rect x={p.x-44} y={p.y-52} width="88" height="36" rx="10" fill="white"
+            style={{filter:'drop-shadow(0 4px 13px rgba(0,0,0,.14))'}}>
+          </rect>
+          <text x={p.x} y={p.y-37} textAnchor="middle" fontSize="9" fill={p.color} fontWeight="700">{p.label}</text>
+          <text x={p.x} y={p.y-25} textAnchor="middle" fontSize="7.5" fill={C.muted}>{p.sub}</text>
+          <path d={`M${p.x-5},${p.y-16} L${p.x},${p.y-10} L${p.x+5},${p.y-16}`} fill="white"/>
+          <path d={`M${p.x},${p.y+8} C${p.x-11},${p.y-2} ${p.x-11},${p.y-13} ${p.x},${p.y-15} C${p.x+11},${p.y-13} ${p.x+11},${p.y-2} ${p.x},${p.y+8}Z`}
+            fill={p.color}/>
+          <circle cx={p.x} cy={p.y-4} r="3.2" fill="white"/>
+          <rect x={p.x+10} y={p.y-11} width="38" height="15" rx="7.5" fill={p.color} opacity=".92"/>
+          <text x={p.x+29} y={p.y+0} textAnchor="middle" fontSize="7.5" fill="white" fontWeight="600">{p.dist}</text>
+        </g>
+      ))}
+
+      {/* Compass */}
+      <g className="float-slow" style={{transformOrigin:'290px 54px'}}>
+        <circle cx="290" cy="54" r="18" fill="white" style={{filter:'drop-shadow(0 3px 10px rgba(0,0,0,.1))'}}>
+        </circle>
+        <path d="M290 40 L294 56 L290 54 L286 56 Z" fill={C.orange}/>
+        <path d="M290 68 L286 52 L290 54 L294 52 Z" fill={C.muted} opacity=".45"/>
+        <text x="290" y="41" textAnchor="middle" fontSize="6" fill={C.orange} fontWeight="700">N</text>
+      </g>
+    </svg>
+  );
+}
+
+/* ══════════════════════════════
+   SCREEN CONFIG
+══════════════════════════════ */
+const SCREENS = [
+  {
+    id:0, tag:'Peman Sikiri',
+    title:'Eskwo ki\nProteje Ou',
+    body:'Lajan an bloke jis livrezon fèt. Ou bay kòd OTP 6 chif nan pwen kolèk — epi sèlman lè sa a MonCash libere fon yo. Pa gen fwod, pa gen pèt.',
+    cta:'Kontinye',
+    bg:C.teal, dark:true,
+    tagBg:'rgba(255,255,255,.18)', tagC:'white',
+    titleC:'white', bodyC:'rgba(255,255,255,.76)',
+    cardBg:'rgba(0,0,0,.2)', cardBorder:'rgba(255,255,255,.1)',
+    Illus:Illus1,
+  },
+  {
+    id:1, tag:'Kominikasyon',
+    title:'Chat ak Nòt\nVokal Reyèl',
+    body:'Mesaj rive an mwens pase 1 segonn. Voye nòt vokal ak pataje lokalizasyon GPS dirèkteman nan konvèsasyon pou livrezon fasil.',
+    cta:'Kontinye',
+    bg:C.cream, dark:false,
+    tagBg:C.tealL, tagC:C.teal,
+    titleC:C.charcoal, bodyC:C.muted,
+    cardBg:'rgba(255,255,255,.72)', cardBorder:'rgba(255,255,255,.95)',
+    Illus:Illus2,
+  },
+  {
+    id:2, tag:'Konfyans',
+    title:'Vandè Verifye\navèk Badge',
+    body:'Chak vandè soumèt foto ID ak selfie. Admin revize manyèlman — badge "Verifye" garanti ou konnen ak kilès ou fè biznis.',
+    cta:'Kontinye',
+    bg:'#1a2a2b', dark:true,
+    tagBg:'rgba(0,125,135,.32)', tagC:'#6ee7ea',
+    titleC:'white', bodyC:'rgba(255,255,255,.68)',
+    cardBg:'rgba(0,0,0,.26)', cardBorder:'rgba(255,255,255,.1)',
+    Illus:Illus3,
+  },
+  {
+    id:3, tag:'Flash Deals',
+    title:'Pwomosyon\nLimite Reyèl',
+    body:'Countdown desann an tan reyèl. Ou wè konbyen stòk rete ak konbyen tan ki genyen — presyon pozitif pou achte vit!',
+    cta:'Kontinye', hasTimer:true,
+    bg:C.cream, dark:false,
+    tagBg:C.orangeL, tagC:C.orange,
+    titleC:C.charcoal, bodyC:C.muted,
+    cardBg:'rgba(255,255,255,.72)', cardBorder:'rgba(255,255,255,.95)',
+    Illus:Illus4,
+  },
+  {
+    id:4, tag:'Pwen Kolèk',
+    title:'GPS Klase\npa Distans',
+    body:'Pwen kolèk fiks — Digicel, Epikri, MonCash. GPS aktive? App la mete pi pre a an premye ak distans an kilomèt afiche.',
+    cta:'Kòmanse', isLast:true,
+    bg:C.teal, dark:true,
+    tagBg:'rgba(255,255,255,.18)', tagC:'white',
+    titleC:'white', bodyC:'rgba(255,255,255,.76)',
+    cardBg:'rgba(0,0,0,.2)', cardBorder:'rgba(255,255,255,.1)',
+    Illus:Illus5,
+  },
+];
+
+/* ══════════════════════════════
+   MAIN APP — Native full-screen onboarding
+══════════════════════════════ */
+function App() {
+  const [cur, setCur]      = useState(()=>{ try{return parseInt(localStorage.getItem('aym_ob')||'0');}catch{return 0;} });
+  const [timeLeft,setTime] = useState(2387);
+  const touchX             = useRef(null);
+
+  useEffect(()=>{ try{localStorage.setItem('aym_ob',cur);}catch{} },[cur]);
+  useEffect(()=>{ const t=setInterval(()=>setTime(v=>v>0?v-1:3600),1000); return()=>clearInterval(t); },[]);
+
+  // Tell the parent window (index.html) that the first onboarding screen
+  // has rendered, so it can swap the splash for us without a black/login
+  // flash. Standalone (no parent) just no-ops.
+  useEffect(()=>{
+    if (window.parent && window.parent !== window) {
+      try { window.parent.postMessage({type:'aym:onboarding-ready'}, '*'); } catch(_) {}
+    }
+  },[]);
+
+  const goTo = useCallback(i=>{ if(i>=0&&i<SCREENS.length)setCur(i); },[]);
+
+  const fmtTime = s => {
+    const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  };
+
+  const sc    = SCREENS[cur];
+  const Illus = sc.Illus;
+
+  // swipe
+  const onTS = e=>{ touchX.current=e.touches[0].clientX; };
+  const onTE = e=>{ if(touchX.current==null)return; const dx=e.changedTouches[0].clientX-touchX.current; if(dx<-50)goTo(cur+1); else if(dx>50)goTo(cur-1); touchX.current=null; };
+
+  const onCtaClick = ()=>{
+    if(!sc.isLast){ goTo(cur+1); return; }
+    // Embedded in index.html → notify parent. Standalone → flag + navigate.
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({type:'aym:onboarding-complete'}, '*');
+    } else {
+      try{ localStorage.setItem('aym_onboarded','1'); }catch{}
+      try{ localStorage.removeItem('aym_ob'); }catch{}
+      window.location.replace('index.html');
+    }
+  };
+
+  return (
+    <div
+      onTouchStart={onTS} onTouchEnd={onTE}
+      style={{
+        width:'100%',
+        height:'100dvh',
+        minHeight:'100vh',
+        background: sc.bg,
+        transition:'background .55s cubic-bezier(.4,0,.2,1)',
+        display:'flex',
+        flexDirection:'column',
+        position:'relative',
+        overflow:'hidden',
+        fontFamily:"'Plus Jakarta Sans','Inter',sans-serif",
+        WebkitFontSmoothing:'antialiased',
+      }}>
+
+      {/* Skip */}
+      {cur < SCREENS.length-1 && (
+        <button onClick={()=>goTo(SCREENS.length-1)}
+          style={{
+            position:'absolute',
+            top:'calc(env(safe-area-inset-top, 0px) + 18px)',
+            right:18, zIndex:60,
+            background: sc.dark?'rgba(255,255,255,.14)':'rgba(28,28,25,.07)',
+            border:'none', borderRadius:22,
+            padding:'8px 18px',
+            fontSize:13, fontWeight:600,
+            color: sc.dark?'rgba(255,255,255,.88)':C.muted,
+            cursor:'pointer', fontFamily:'inherit',
+            backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)',
+          }}>
+          Sote
+        </button>
+      )}
+
+      {/* Illustration — fills the upper region. SVG has a fixed viewBox
+          and preserves aspect ratio on its own, so we just give it a
+          flex cell that can shrink (minHeight:0) and clip nothing. */}
+      <div style={{
+        flex:'1 1 0',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        padding:'calc(env(safe-area-inset-top, 0px) + 72px) 20px 8px',
+        minHeight:0, overflow:'hidden',
+      }}>
+        <div style={{
+          width:'100%', height:'100%',
+          maxWidth:460,
+          display:'flex', alignItems:'center', justifyContent:'center',
+        }}>
+          <Illus timeLeft={timeLeft} key={`illus-${cur}`}/>
+        </div>
+      </div>
+
+      {/* Bottom card */}
+      <div style={{
+        flex:'0 0 auto',
+        background: sc.cardBg,
+        backdropFilter:'blur(28px)', WebkitBackdropFilter:'blur(28px)',
+        borderRadius:'32px 32px 0 0',
+        borderTop:`1px solid ${sc.cardBorder}`,
+        padding:'26px 26px calc(env(safe-area-inset-bottom, 0px) + 30px)',
+        transition:'background .55s, border-color .55s',
+      }}>
+        {/* Tag */}
+        <div style={{display:'inline-flex',alignItems:'center',gap:6,
+          background:sc.tagBg,borderRadius:20,padding:'5px 13px',marginBottom:14}}>
+          <div style={{width:5,height:5,borderRadius:'50%',background:sc.tagC}}/>
+          <span style={{fontSize:10,fontWeight:700,color:sc.tagC,
+            letterSpacing:'.08em',textTransform:'uppercase',whiteSpace:'nowrap'}}>
+            {sc.tag}
+          </span>
+        </div>
+
+        {/* Title */}
+        <h1 style={{
+          fontFamily:"'Plus Jakarta Sans',sans-serif",
+          fontSize:30, fontWeight:800, lineHeight:1.18,
+          color:sc.titleC, marginBottom:11,
+          whiteSpace:'pre-line', letterSpacing:'-.02em',
+        }}>
+          {sc.title}
+        </h1>
+
+        {/* Timer */}
+        {sc.hasTimer && (
+          <div style={{display:'inline-flex',alignItems:'center',gap:7,
+            background:C.orangeL,borderRadius:12,padding:'7px 14px',marginBottom:10}}>
+            <span style={{fontSize:12}}>⚡</span>
+            <span style={{fontSize:17,fontWeight:800,color:C.orange,
+              fontVariantNumeric:'tabular-nums',letterSpacing:'.04em'}}>
+              {fmtTime(timeLeft)}
+            </span>
+          </div>
+        )}
+
+        {/* Body */}
+        <p style={{
+          fontFamily:"'Manrope','Inter',sans-serif",
+          fontSize:14.5, lineHeight:1.65,
+          color:sc.bodyC, marginBottom:22, fontWeight:400,
+        }}>
+          {sc.body}
+        </p>
+
+        {/* Dots + CTA */}
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div style={{display:'flex',gap:7,alignItems:'center'}}>
+            {SCREENS.map((_,i)=>(
+              <button key={i} onClick={()=>goTo(i)} aria-label={`Ekran ${i+1}`} style={{
+                width:i===cur?22:7, height:7, borderRadius:4,
+                background:i===cur?(sc.dark?'white':C.teal):(sc.dark?'rgba(255,255,255,.28)':C.subtleD),
+                border:'none', cursor:'pointer', padding:0,
+                transition:'all .35s cubic-bezier(.4,0,.2,1)',
+              }}/>
+            ))}
+          </div>
+
+          <button
+            onClick={onCtaClick}
+            onMouseEnter={e=>e.currentTarget.style.transform='scale(1.04)'}
+            onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+            style={{
+              display:'flex',alignItems:'center',gap:8,
+              background:sc.dark?'white':C.teal,
+              color:sc.dark?C.teal:'white',
+              border:'none',borderRadius:50,
+              padding:sc.isLast?'14px 26px':'13px 18px',
+              fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:'inherit',
+              boxShadow:`0 10px 28px ${sc.dark?'rgba(0,0,0,.28)':'rgba(0,102,111,.42)'}`,
+              transition:'transform .18s ease, box-shadow .25s ease',
+            }}>
+            {sc.cta}
+            {!sc.isLast && (
+              <div style={{width:28,height:28,borderRadius:'50%',
+                background:sc.dark?C.teal:'rgba(255,255,255,.2)',
+                display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                  <path d="M3.5 2l4 3.5-4 3.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
