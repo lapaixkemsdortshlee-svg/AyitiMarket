@@ -3409,6 +3409,14 @@
         function fp(n) { return Number(n).toLocaleString("fr"); }
         function sl(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+        // Computes a positive integer discount % when p.oldP is set and is
+        // strictly greater than p.p. Returns 0 if no discount applies.
+        function discountPct(p) {
+            if (!p || typeof p.oldP !== 'number' || p.oldP <= p.p) return 0;
+            return Math.round((1 - p.p / p.oldP) * 100);
+        }
+        window.discountPct = discountPct;
+
         // ══════════════════════════════════════════════════════════
         //  INIT — Splash → Auth Check → Login ou Feed
         //  Séquence: Splash 1.8s → Vérifye Supabase session → Boot ou Login
@@ -3841,15 +3849,30 @@
         <h1 class="font-headline font-extrabold text-[1.6rem] text-on-surface tracking-tight leading-tight">${p.t}</h1>
         <p class="font-body text-xs text-on-surface-variant mt-0.5">${p.c} · ${p.l}</p>
       </div>
-      <div class="flex items-end gap-3">
+      <div class="flex items-end gap-3 flex-wrap">
         <span class="font-headline font-extrabold text-3xl text-primary">${fpc(p.p)}</span>
+        ${p.oldP && p.oldP > p.p ? `<span class="font-label text-on-surface-variant line-through pb-1" style="font-size:.875rem">${fpc(p.oldP)}</span><span class="font-label font-bold rounded-full px-2 py-0.5 mb-0.5" style="font-size:.6875rem;background:rgba(151,66,43,.12);color:#97422b">-${discountPct(p)}%</span>` : ''}
         <span class="font-label text-xs text-on-surface-variant pb-1">${p.s <= 2 ? `${p.s} rete` : `An estòk (${p.s})`}</span>
       </div>
       ${p.sizes.length ? `<div><p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-2">Tay</p><div class="flex flex-wrap gap-2">${p.sizes.map((sz, i) => `<button class="szb w-12 h-10 rounded-lg font-label font-bold text-sm ${i === 0 ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant'}" onclick="selSz(this)">${sz}</button>`).join('')}</div></div>` : ''}
       ${(() => {
-                    const seller = SELLERS[p.sellerId] || { id: p.sellerId, name: p.sellerName || 'Vandè', initials: (p.sellerName || 'V').split(' ').map(w=>w[0]).join('').slice(0,2), verified: !!p.b, rating: p.r || 0, reviewCount: 0, responseTime: '', badges: [] };
+                    const cached = SELLERS[p.sellerId] || {};
+                    const initials = cached.initials || (p.sellerName || 'V').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+                    const seller = {
+                        id: p.sellerId,
+                        name: cached.name || p.sellerName || 'Vandè',
+                        initials,
+                        avatarUrl: cached.avatarUrl || p.sellerAvatarUrl || null,
+                        verified: cached.verified ?? (p.sellerVerified || !!p.b),
+                        rating: cached.rating ?? (p.r || 0),
+                        salesCount: cached.salesCount || 0,
+                        location: cached.location || p.l || '',
+                    };
+                    const avatarHtml = seller.avatarUrl
+                        ? `<img src="${seller.avatarUrl}" alt="${seller.name}" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML='<span class=\\'font-headline font-bold text-white text-sm\\'>${initials}</span>'"/>`
+                        : `<span class="font-headline font-bold text-white text-sm">${initials}</span>`;
                     return `<div class="bg-surface-container-lowest rounded-xl p-4 flex items-center gap-3 cursor-pointer active:bg-surface-container-low transition-colors" onclick="openSellerProfile('${seller.id}')">
-        <div class="w-11 h-11 rounded-full cta flex items-center justify-center flex-shrink-0"><span class="font-headline font-bold text-white text-sm">${seller.initials}</span></div>
+        <div class="w-11 h-11 rounded-full cta flex items-center justify-center flex-shrink-0 overflow-hidden">${avatarHtml}</div>
         <div class="flex-1">
           <div class="flex items-center gap-1.5">
             <p class="font-headline font-bold text-sm text-on-surface">${seller.name}</p>
@@ -4083,7 +4106,10 @@
       </div>
       <div class="p-2.5">
         <p class="font-headline font-bold text-on-surface leading-tight mb-1" style="font-size:.75rem">${p.t}</p>
-        <p class="font-headline font-extrabold text-primary" style="font-size:.8125rem">${fp(p.p)}</p>
+        <div class="flex items-baseline gap-1 flex-wrap">
+          <p class="font-headline font-extrabold text-primary" style="font-size:.8125rem">${fp(p.p)}</p>
+          ${p.oldP && p.oldP > p.p ? `<span class="font-label text-on-surface-variant line-through" style="font-size:.5625rem">${fp(p.oldP)}</span><span class="font-label font-bold rounded-full px-1" style="font-size:.5rem;background:rgba(151,66,43,.12);color:#97422b;line-height:1.4">-${discountPct(p)}%</span>` : ''}
+        </div>
         <div class="flex items-center justify-between mt-1.5">
           <p class="font-label text-on-surface-variant" style="font-size:9px">${p.l}</p>
           <button onclick="event.stopPropagation();startOrder(${spid})"
@@ -4141,7 +4167,10 @@
       </div>
       <div class="p-3">
         <h3 class="font-headline font-bold text-on-surface leading-tight" style="font-size:.8rem">${p.t}</h3>
-        <p class="font-headline font-extrabold text-primary mt-0.5" style="font-size:.875rem">${fp(p.p)} HTG</p>
+        <div class="flex items-baseline gap-1.5 mt-0.5 flex-wrap">
+          <p class="font-headline font-extrabold text-primary" style="font-size:.875rem">${fp(p.p)} HTG</p>
+          ${p.oldP && p.oldP > p.p ? `<span class="font-label text-on-surface-variant line-through" style="font-size:.625rem">${fp(p.oldP)}</span><span class="font-label font-bold rounded-full px-1.5" style="font-size:.5625rem;background:rgba(151,66,43,.12);color:#97422b;line-height:1.4">-${discountPct(p)}%</span>` : ''}
+        </div>
         <p class="font-label text-on-surface-variant mt-0.5" style="font-size:10px">${p.l} · ${p.r}★</p>
       </div>
     </div>
@@ -4614,7 +4643,10 @@
       <div class="flex-1">
         <p class="font-headline font-bold text-sm text-on-surface">${p.t}</p>
         <p class="font-label text-xs text-on-surface-variant">${p.sellerName || 'Vandè'} ${p.b ? '· Verifye' : ''}</p>
-        <p class="font-headline font-extrabold text-xl text-primary mt-1">${fp(sub)} HTG</p>
+        <div class="flex items-baseline gap-1.5 mt-1 flex-wrap">
+          <p class="font-headline font-extrabold text-xl text-primary">${fp(sub)} HTG</p>
+          ${p.oldP && p.oldP > p.p ? `<span class="font-label text-on-surface-variant line-through" style="font-size:.75rem">${fp(p.oldP)}</span><span class="font-label font-bold rounded-full px-1.5" style="font-size:.625rem;background:rgba(151,66,43,.12);color:#97422b;line-height:1.5">-${discountPct(p)}%</span>` : ''}
+        </div>
       </div>
     </div>
     <p class="font-label text-[10px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-2">Metòd Peman</p>
@@ -5077,7 +5109,10 @@
       <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style="background:#f0ede8">${thumb}</div>
       <div class="flex-1 min-w-0">
         <p class="font-headline font-bold text-xs text-on-surface truncate">${p.t}</p>
-        <p class="font-headline font-extrabold text-sm text-primary">${fp(p.p)} HTG</p>
+        <div class="flex items-baseline gap-1 flex-wrap">
+          <p class="font-headline font-extrabold text-sm text-primary">${fp(p.p)} HTG</p>
+          ${p.oldP && p.oldP > p.p ? `<span class="font-label text-on-surface-variant line-through" style="font-size:.625rem">${fp(p.oldP)}</span><span class="font-label font-bold rounded-full px-1" style="font-size:.5625rem;background:rgba(151,66,43,.12);color:#97422b;line-height:1.4">-${discountPct(p)}%</span>` : ''}
+        </div>
       </div>
       <span class="material-symbols-outlined text-on-surface-variant" style="font-size:16px">chevron_right</span>
     </div>
@@ -8862,7 +8897,10 @@
       <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" style="background:#f0ede8">${thumb}</div>
       <div class="flex-1 min-w-0">
         <p class="font-headline font-bold text-xs text-on-surface truncate">${p.t}</p>
-        <p class="font-headline font-extrabold text-sm text-primary">${fp(p.p)} HTG</p>
+        <div class="flex items-baseline gap-1 flex-wrap">
+          <p class="font-headline font-extrabold text-sm text-primary">${fp(p.p)} HTG</p>
+          ${p.oldP && p.oldP > p.p ? `<span class="font-label text-on-surface-variant line-through" style="font-size:.625rem">${fp(p.oldP)}</span><span class="font-label font-bold rounded-full px-1" style="font-size:.5625rem;background:rgba(151,66,43,.12);color:#97422b;line-height:1.4">-${discountPct(p)}%</span>` : ''}
+        </div>
       </div>
       <span class="material-symbols-outlined text-on-surface-variant" style="font-size:16px">chevron_right</span>
     </div>
@@ -10276,9 +10314,11 @@
 
       <!-- Avatar overlapping header -->
       <div class="flex flex-col items-center" style="margin-top:-56px;position:relative;z-index:10">
-        <div class="w-[88px] h-[88px] rounded-full cta flex items-center justify-center amb seller-animate"
+        <div class="w-[88px] h-[88px] rounded-full cta flex items-center justify-center amb seller-animate overflow-hidden"
              style="border:4px solid #fcf9f4;box-shadow:0 4px 20px rgba(0,102,111,.2)">
-          <span class="font-headline font-extrabold text-white text-2xl">${seller.initials}</span>
+          ${seller.avatarUrl
+            ? `<img src="${seller.avatarUrl}" alt="${seller.name}" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML='<span class=\\'font-headline font-extrabold text-white text-2xl\\'>${seller.initials}</span>'"/>`
+            : `<span class="font-headline font-extrabold text-white text-2xl">${seller.initials}</span>`}
         </div>
         <div class="flex items-center gap-2 mt-3 seller-animate seller-animate-delay-1">
           <h2 class="font-headline font-extrabold text-xl text-on-surface tracking-tight">${seller.name}</h2>
@@ -10408,7 +10448,10 @@
       </div>
       <div class="p-2.5">
         <p class="font-headline font-bold text-on-surface leading-tight mb-1" style="font-size:.75rem">${p.t}</p>
-        <p class="font-headline font-extrabold text-primary" style="font-size:.8125rem">${fp(p.p)}</p>
+        <div class="flex items-baseline gap-1 flex-wrap">
+          <p class="font-headline font-extrabold text-primary" style="font-size:.8125rem">${fp(p.p)}</p>
+          ${p.oldP && p.oldP > p.p ? `<span class="font-label text-on-surface-variant line-through" style="font-size:.5625rem">${fp(p.oldP)}</span><span class="font-label font-bold rounded-full px-1" style="font-size:.5rem;background:rgba(151,66,43,.12);color:#97422b;line-height:1.4">-${discountPct(p)}%</span>` : ''}
+        </div>
         <div class="flex items-center justify-between mt-1.5">
           <p class="font-label text-on-surface-variant" style="font-size:9px">${p.l} · ${p.r}★</p>
           <button onclick="event.stopPropagation();startOrder(${p.id})"
@@ -11085,7 +11128,10 @@
                         desc: p.description, img: imgs.length > 0 ? imgs[0] : null, images: imgs,
                         s: p.stock, v: p.views, r: p.seller?.rating_avg || 0,
                         b: p.seller?.verified_seller ? 'Verifye' : '', sellerId: p.seller_id,
-                        sellerName: p.seller?.display_name || 'Vandè', sizes: p.sizes || [],
+                        sellerName: p.seller?.display_name || 'Vandè',
+                        sellerAvatarUrl: p.seller?.avatar_url || null,
+                        sellerVerified: !!p.seller?.verified_seller,
+                        sizes: p.sizes || [],
                         e: 'palette', ec: '#7c3aed',
                     };
                 });
@@ -11145,6 +11191,7 @@
             const seller = {
                 id: data.id, name,
                 initials: name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+                avatarUrl: data.avatar_url || null,
                 verified: data.verified_seller || false,
                 rating: data.rating_avg || 0,
                 reviewCount: data.review_count || 0,
