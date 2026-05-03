@@ -3631,6 +3631,9 @@
                 if (typeof subscribeToNotifications === 'function') subscribeToNotifications();
                 if (typeof refreshUserStats === 'function') refreshUserStats();
                 if (typeof loadAppSettings === 'function') loadAppSettings();
+                if (typeof loadCartFromSupabase === 'function' && A.user.role !== 'admin') {
+                    loadCartFromSupabase();
+                }
             }
             updateNotifBadge();
             if (typeof updateMsgBadge === 'function') updateMsgBadge();
@@ -5295,43 +5298,131 @@
         }
 
         // ══════════════════════════════════════════════════════════
-        //  CART (Panye)
+        //  CART (Panye) — multi-vandè, groupement pa boutik
         // ══════════════════════════════════════════════════════════
         if (!A.cart) A.cart = [];
 
-        function addToCart(productId) {
+        // Charge le panier persisté en Supabase au démarrage. Reconstitue
+        // A.cart à partir de cart_items + products (pour avoir titre/img/prix
+        // à jour sans cache obsolète).
+        async function loadCartFromSupabase() {
+            if (!db || !A.user?.uid) return;
+            try {
+                const { data, error } = await db.from('cart_items')
+                    .select('product_id, qty, products:product_id (id, title, price, old_price, images, location, seller_id, stock, status)')
+                    .eq('user_id', A.user.uid);
+                if (error) throw error;
+                const rows = (data || []).filter(r => r.products && r.products.status !== 'archived');
+                // Hydrate PRODUCTS cache so renderCartContent finds them
+                rows.forEach(r => {
+                    const pr = r.products;
+                    if (!PRODUCTS.find(x => x.id === pr.id)) {
+                        PRODUCTS.push({
+                            id: pr.id, t: pr.title, p: pr.price, oldP: pr.old_price,
+                            l: pr.location, s: pr.stock,
+                            img: (pr.images && pr.images[0]) || null,
+                            images: pr.images || [],
+                            sellerId: pr.seller_id, sellerName: '',
+                            e: 'palette', ec: '#7c3aed',
+                        });
+                    }
+                });
+                A.cart = rows.map(r => ({ id: r.product_id, qty: r.qty }));
+                updateCartBadge();
+            } catch (e) {
+                console.warn('[Cart load]', e.message);
+            }
+        }
+        window.loadCartFromSupabase = loadCartFromSupabase;
+
+        async function addToCart(productId) {
             if (!A.isAuth) { toast('Ou dwe konekte pou ajoute nan panye'); return; }
-            const p = PRODUCTS.find(x => x.id === productId);
+            let p = PRODUCTS.find(x => x.id === productId);
+            if (!p && db) {
+                // Defensive fetch — product card may have been rendered from a
+                // stale list while PRODUCTS was wiped by a feed reload
+                const { data } = await db.from('products').select('*').eq('id', productId).maybeSingle();
+                if (data) {
+                    p = {
+                        id: data.id, t: data.title, p: data.price, oldP: data.old_price,
+                        l: data.location, s: data.stock, img: (data.images && data.images[0]) || null,
+                        images: data.images || [], sellerId: data.seller_id, sellerName: '',
+                        e: 'palette', ec: '#7c3aed',
+                    };
+                    PRODUCTS.push(p);
+                }
+            }
             if (!p) { toast('Pwodwi pa jwenn'); return; }
+            if (typeof p.s === 'number' && p.s <= 0) { toast('Pwodwi sa epuize'); return; }
+
             const existing = A.cart.find(c => c.id === productId);
-            if (existing) { existing.qty++; }
+            const newQty = existing ? Math.min(existing.qty + 1, Math.max(p.s || 99, 1)) : 1;
+            if (existing) { existing.qty = newQty; }
             else { A.cart.push({ id: productId, qty: 1 }); }
+
             updateCartBadge();
             toast(p.t + ' ajoute nan panye');
-            // Save cart to Supabase if available
+
             if (db && A.user?.uid) {
-                db.from('cart_items').upsert({
+                const { error } = await db.from('cart_items').upsert({
                     user_id: A.user.uid,
                     product_id: productId,
-                    qty: existing ? existing.qty : 1,
-                }, { onConflict: 'user_id,product_id' }).then(({ error }) => {
-                    if (error) console.warn('[Cart]', error.message);
-                });
+                    qty: newQty,
+                }, { onConflict: 'user_id,product_id' });
+                if (error) console.warn('[Cart upsert]', error.message);
             }
             playNotifSound();
             if (VIBRATE_ON && navigator.vibrate) navigator.vibrate(30);
         }
+        window.addToCart = addToCart;
 
-        function removeFromCart(productId) {
+        async function removeFromCart(productId) {
+            const before = A.cart.length;
             A.cart = A.cart.filter(c => c.id !== productId);
             updateCartBadge();
-            openCartScreen();
+            // Optimistic UI re-render of the cart screen if open
+            if (document.getElementById('s-cart')?.classList.contains('on')) {
+                renderCartContent();
+            }
+            if (db && A.user?.uid && before !== A.cart.length) {
+                const { error } = await db.from('cart_items').delete()
+                    .eq('user_id', A.user.uid)
+                    .eq('product_id', productId);
+                if (error) {
+                    console.warn('[Cart delete]', error.message);
+                    toast('Erè: pa ka retire atik la');
+                } else {
+                    toast('Atik retire');
+                }
+            }
         }
+        window.removeFromCart = removeFromCart;
+
+        // Update qty (used by +/- buttons in cart). Pass delta = +1 or -1.
+        async function updateCartQty(productId, delta) {
+            const item = A.cart.find(c => c.id === productId);
+            if (!item) return;
+            const p = PRODUCTS.find(x => x.id === productId);
+            const max = (p && typeof p.s === 'number' && p.s > 0) ? p.s : 99;
+            const next = item.qty + delta;
+            if (next <= 0) { return removeFromCart(productId); }
+            if (next > max) { toast('Stòk maksimòm: ' + max); return; }
+            item.qty = next;
+            updateCartBadge();
+            renderCartContent();
+            if (db && A.user?.uid) {
+                const { error } = await db.from('cart_items').upsert({
+                    user_id: A.user.uid, product_id: productId, qty: next,
+                }, { onConflict: 'user_id,product_id' });
+                if (error) console.warn('[Cart qty]', error.message);
+            }
+        }
+        window.updateCartQty = updateCartQty;
 
         function updateCartBadge() {
             const badge = document.getElementById('cartBadge');
             if (badge) {
-                const count = A.cart.reduce((s, c) => s + c.qty, 0);
+                const count = (A.cart || []).reduce((s, c) => s + c.qty, 0);
                 badge.textContent = count;
                 badge.classList.toggle('hidden', count === 0);
             }
@@ -5350,30 +5441,259 @@
             document.getElementById('toptitle').style.display = '';
             renderCartContent();
         }
+        window.openCartScreen = openCartScreen;
+
+        // Build an <img> with onerror → prodPlaceholder fallback. Returns
+        // a string usable inside innerHTML.
+        function cartProductImageHTML(p, sizePx) {
+            const src = p.img || (p.images && p.images[0]) || null;
+            const ph = prodPlaceholder(p, sizePx).replace(/"/g, '&quot;');
+            if (src) {
+                return '<img src="' + src + '" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=\'' + ph.replace(/'/g, "\\'") + '\'"/>';
+            }
+            return prodPlaceholder(p, sizePx);
+        }
+
+        // Group cart items by sellerId. Returns an array of seller groups,
+        // each containing { sellerId, sellerName, sellerVerified, items, total }.
+        function cartGroupBySeller() {
+            const groups = new Map();
+            for (const c of A.cart) {
+                const p = PRODUCTS.find(x => x.id === c.id);
+                if (!p) continue;
+                const sid = p.sellerId || 'unknown';
+                if (!groups.has(sid)) {
+                    groups.set(sid, {
+                        sellerId: sid,
+                        sellerName: p.sellerName || 'Boutik',
+                        sellerVerified: !!p.b || !!p.sellerVerified,
+                        items: [], total: 0,
+                    });
+                }
+                const g = groups.get(sid);
+                const sub = (p.p || 0) * c.qty;
+                g.items.push({ p, qty: c.qty, sub });
+                g.total += sub;
+            }
+            return Array.from(groups.values());
+        }
 
         function renderCartContent() {
             const el = document.getElementById('cartContent');
             if (!el) return;
-            if (A.cart.length === 0) {
-                el.innerHTML = '<div class="flex flex-col items-center justify-center py-16 text-center"><span class="material-symbols-outlined text-on-surface-variant mb-3" style="font-size:56px">shopping_cart</span><h3 class="font-headline font-bold text-lg text-on-surface mb-1">Panye ou vid</h3><p class="font-body text-sm text-on-surface-variant">Ajoute pwodwi nan panye ou depi feed la</p></div>';
+            if (!A.cart || A.cart.length === 0) {
+                el.innerHTML = '<div class="flex flex-col items-center justify-center py-16 text-center px-6"><span class="material-symbols-outlined text-on-surface-variant mb-3" style="font-size:56px">shopping_cart</span><h3 class="font-headline font-bold text-lg text-on-surface mb-1">Panye ou vid</h3><p class="font-body text-sm text-on-surface-variant">Ajoute pwodwi nan panye ou depi feed la</p></div>';
                 return;
             }
-            let total = 0;
-            el.innerHTML = A.cart.map(c => {
-                const p = PRODUCTS.find(x => x.id === c.id);
-                if (!p) return '';
-                const sub = p.p * c.qty;
-                total += sub;
-                return '<div class="bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 amb mb-3"><div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">' + prodPlaceholder(p, 56) + '</div><div class="flex-1 min-w-0"><p class="font-headline font-bold text-sm text-on-surface truncate">' + p.t + '</p><p class="font-label text-xs text-on-surface-variant">' + p.l + '</p><div class="flex items-center gap-2 mt-1"><span class="font-headline font-extrabold text-sm text-primary">' + fp(p.p) + ' HTG</span><span class="font-label text-xs text-on-surface-variant">x' + c.qty + '</span></div></div><button onclick="removeFromCart(' + c.id + ')" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90" style="background:rgba(152,68,62,.08)"><span class="material-symbols-outlined text-secondary" style="font-size:16px">delete</span></button></div>';
-            }).join('') + '<div class="mt-4 p-4 rounded-xl" style="background:rgba(0,102,111,.06)"><div class="flex justify-between items-center"><span class="font-headline font-bold text-lg">Total</span><span class="font-headline font-extrabold text-2xl text-primary">' + fp(total) + ' HTG</span></div></div><button onclick="checkoutCart()" class="w-full mt-4 py-4 rounded-xl cta font-headline font-extrabold text-base active:scale-[.98] flex items-center justify-center gap-2 amb">Peye ak MonCash <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span></button>';
-        }
 
-        function checkoutCart() {
-            if (A.cart.length === 0) { toast('Panye vid'); return; }
-            A.curProd = PRODUCTS.find(x => x.id === A.cart[0]?.id);
-            goBack();
-            setTimeout(() => { openSheet('orderSheet'); renderOrderSheet(); }, 300);
+            const groups = cartGroupBySeller();
+            let grandTotal = 0;
+            const groupsHtml = groups.map(g => {
+                grandTotal += g.total;
+                const sellerInitials = (g.sellerName || 'B').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+                const sidAttr = String(g.sellerId).replace(/'/g, "\\'");
+
+                const itemsHtml = g.items.map(({ p, qty, sub }) => {
+                    const pidAttr = typeof p.id === 'string' ? `'${String(p.id).replace(/'/g, "\\'")}'` : p.id;
+                    const hasDiscount = p.oldP && p.oldP > p.p;
+                    const priceLine = hasDiscount
+                        ? '<span class="font-headline font-extrabold text-sm text-primary">' + fp(p.p) + ' HTG</span><span class="font-label text-[10px] text-on-surface-variant line-through">' + fp(p.oldP) + '</span>'
+                        : '<span class="font-headline font-extrabold text-sm text-primary">' + fp(p.p) + ' HTG</span>';
+                    return `
+            <div class="flex items-center gap-3 py-3" style="border-top:1px solid rgba(188,201,200,.18)">
+              <div class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0" style="background:#f0ede8">${cartProductImageHTML(p, 64)}</div>
+              <div class="flex-1 min-w-0">
+                <p class="font-headline font-bold text-sm text-on-surface truncate">${p.t || 'Pwodwi'}</p>
+                <p class="font-label text-[11px] text-on-surface-variant truncate">${p.l || ''}</p>
+                <div class="flex items-center gap-2 mt-1">${priceLine}</div>
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                <button onclick="removeFromCart(${pidAttr})" class="w-8 h-8 flex items-center justify-center rounded-full active:scale-90" style="background:rgba(152,68,62,.08)" title="Retire atik">
+                  <span class="material-symbols-outlined text-secondary" style="font-size:16px">delete</span>
+                </button>
+                <div class="flex items-center gap-1 rounded-full" style="background:#f0ede8">
+                  <button onclick="updateCartQty(${pidAttr}, -1)" class="w-7 h-7 flex items-center justify-center rounded-full active:scale-90"><span class="material-symbols-outlined" style="font-size:14px">remove</span></button>
+                  <span class="font-headline font-bold text-xs text-on-surface" style="min-width:14px;text-align:center">${qty}</span>
+                  <button onclick="updateCartQty(${pidAttr}, 1)" class="w-7 h-7 flex items-center justify-center rounded-full active:scale-90"><span class="material-symbols-outlined" style="font-size:14px">add</span></button>
+                </div>
+              </div>
+            </div>`;
+                }).join('');
+
+                return `
+        <div class="bg-surface-container-lowest rounded-2xl p-4 amb mb-4" id="cartGroup_${sidAttr}">
+          <div class="flex items-center gap-3 pb-3" style="border-bottom:1px solid rgba(188,201,200,.18)">
+            <div class="w-9 h-9 rounded-full cta flex items-center justify-center flex-shrink-0">
+              <span class="font-headline font-bold text-white text-xs">${sellerInitials}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5">
+                <p class="font-headline font-bold text-sm text-on-surface truncate">${g.sellerName || 'Boutik'}</p>
+                ${g.sellerVerified ? '<span class="material-symbols-outlined fi text-primary" style="font-size:14px">verified</span>' : ''}
+              </div>
+              <p class="font-label text-[10px] text-on-surface-variant">${g.items.length} atik · ${g.items.reduce((s, it) => s + it.qty, 0)} pyès</p>
+            </div>
+          </div>
+          ${itemsHtml}
+          <div class="flex justify-between items-center mt-3 pt-3" style="border-top:1px solid rgba(188,201,200,.18)">
+            <span class="font-label text-xs text-on-surface-variant">Total boutik</span>
+            <span class="font-headline font-extrabold text-lg text-primary">${fp(g.total)} HTG</span>
+          </div>
+          <button onclick="placeSellerOrder('${sidAttr}')" class="w-full mt-3 py-3 rounded-xl cta font-headline font-bold text-sm active:scale-[.98] flex items-center justify-center gap-2 amb">
+            <span class="material-symbols-outlined" style="font-size:18px">shopping_bag</span>
+            Kòmande nan boutik sa a
+          </button>
+        </div>`;
+            }).join('');
+
+            el.innerHTML = groupsHtml + `
+        <div class="mt-2 mb-4 p-4 rounded-xl" style="background:rgba(0,102,111,.06)">
+          <div class="flex justify-between items-center">
+            <span class="font-headline font-bold text-base">Gran Total</span>
+            <span class="font-headline font-extrabold text-2xl text-primary">${fp(grandTotal)} HTG</span>
+          </div>
+          <p class="font-label text-[10px] text-on-surface-variant mt-1">Komand yo separe pou chak boutik. Peman MonCash chak komand apa.</p>
+        </div>`;
         }
+        window.renderCartContent = renderCartContent;
+
+        // Seller-scoped checkout. Creates ONE order row per cart line for the
+        // given seller, decrements stock, notifies parties, clears those lines
+        // from cart (local + Supabase), refreshes badge, and opens the escrow
+        // payment sheet showing the consolidated total for that seller.
+        async function placeSellerOrder(sellerId) {
+            if (!A.isAuth || !A.user?.uid) { toast('Konekte pou kòmande'); return; }
+            if (!db) { toast('Pa gen koneksyon'); return; }
+            const groups = cartGroupBySeller();
+            const group = groups.find(g => String(g.sellerId) === String(sellerId));
+            if (!group || group.items.length === 0) { toast('Pa gen atik nan boutik sa'); return; }
+            if (sellerId === 'unknown' || !sellerId) { toast('Vandè envalid pou atik sa yo'); return; }
+            if (sellerId === A.user.uid) { toast('Ou pa ka kòmande nan pwòp boutik ou'); return; }
+
+            const pickup = PICKUPS.find(pk => pk.id === A.selPickup) || PICKUPS[0];
+            const feePct = (APP_SETTINGS.fee_percent || 3) / 100;
+            const otp = (typeof generateDeliveryOTP === 'function') ? generateDeliveryOTP() : String(Math.floor(100000 + Math.random() * 900000));
+
+            const createdOrders = [];
+            const failed = [];
+            for (const it of group.items) {
+                const p = it.p;
+                const qty = it.qty;
+                const unitPrice = p.p;
+                const totalAmount = unitPrice * qty;
+                const feeAmount = Math.round(totalAmount * feePct);
+                const netAmount = totalAmount - feeAmount;
+                try {
+                    const { data, error } = await db.from('orders').insert({
+                        buyer_id: A.user.uid,
+                        seller_id: sellerId,
+                        product_id: p.id,
+                        product_title: p.t,
+                        buyer_name: A.user.name,
+                        seller_name: group.sellerName,
+                        quantity: qty,
+                        unit_price: unitPrice,
+                        total_amount: totalAmount,
+                        fee_amount: feeAmount,
+                        net_amount: netAmount,
+                        status: 'awaiting_payment',
+                        payment_method: 'MONCASH',
+                        pickup_location: pickup.n,
+                        otp_code: otp,
+                    }).select().single();
+                    if (error) { failed.push({ p, msg: error.message }); continue; }
+                    createdOrders.push(data);
+
+                    // Decrement stock locally + in DB (best-effort)
+                    if (typeof p.s === 'number' && p.s > 0) {
+                        const newStock = Math.max(0, p.s - qty);
+                        await db.from('products').update({ stock: newStock }).eq('id', p.id);
+                        p.s = newStock;
+                        const idx = PRODUCTS.findIndex(x => x.id === p.id);
+                        if (idx >= 0) PRODUCTS[idx].s = newStock;
+                    }
+                } catch (e) {
+                    failed.push({ p, msg: e.message });
+                }
+            }
+
+            if (createdOrders.length === 0) {
+                toast('Erè: pa ka kreye komand. ' + (failed[0]?.msg || ''));
+                return;
+            }
+
+            // Clear ordered items from cart (local + Supabase)
+            const orderedIds = createdOrders.map(o => o.product_id);
+            A.cart = A.cart.filter(c => !orderedIds.includes(c.id));
+            updateCartBadge();
+            try {
+                await db.from('cart_items').delete()
+                    .eq('user_id', A.user.uid)
+                    .in('product_id', orderedIds);
+            } catch (e) { console.warn('[Cart clear]', e.message); }
+
+            // Notify seller (one summary notif) and buyer
+            const grandTotal = createdOrders.reduce((s, o) => s + (o.total_amount || 0), 0);
+            const itemsLabel = createdOrders.length === 1
+                ? createdOrders[0].product_title
+                : (createdOrders.length + ' pwodwi');
+
+            db.from('notifications').insert({
+                user_id: sellerId, type: 'order', icon: 'shopping_bag',
+                title: 'Nouvo komand!',
+                body: (A.user.name || 'Yon kliyan') + ' kòmande ' + itemsLabel + ' — ap tann peman MonCash.',
+                color: '#00666f',
+            });
+            db.from('notifications').insert({
+                user_id: A.user.uid, type: 'order', icon: 'payments',
+                title: 'Komand kreye — peye kounye a',
+                body: 'Voye ' + fp(grandTotal) + ' HTG MonCash pou fini komand ' + itemsLabel + '.',
+                color: '#97422b',
+            });
+
+            updateNotifBadge();
+            renderCartContent();
+
+            if (failed.length > 0) {
+                toast('Komand kreye, men ' + failed.length + ' atik echwe');
+            }
+
+            // Show escrow payment sheet — consolidated for the group
+            openEscrowPaymentSheetForGroup(createdOrders, group, grandTotal);
+        }
+        window.placeSellerOrder = placeSellerOrder;
+
+        // Wraps openEscrowPaymentSheet to show one synthetic summary for a
+        // multi-row checkout. Stores the order id list on A._escrowGroupIds
+        // so submitPaymentRef advances all of them with the same MonCash ref.
+        function openEscrowPaymentSheetForGroup(orders, group, grandTotal) {
+            if (!orders || orders.length === 0) return;
+            // Synthetic order object reused by the existing escrow UI
+            const summary = {
+                id: orders[0].id,
+                product_title: orders.length === 1
+                    ? orders[0].product_title
+                    : (orders.length + ' pwodwi · ' + (group?.sellerName || 'Boutik')),
+                total_amount: grandTotal,
+                moncash_ref: '',
+            };
+            A._escrowGroupIds = orders.map(o => o.id);
+            if (typeof openEscrowPaymentSheet === 'function') {
+                openEscrowPaymentSheet(summary);
+            }
+        }
+        window.openEscrowPaymentSheetForGroup = openEscrowPaymentSheetForGroup;
+
+        // Legacy entry point — now redirects to per-seller flow. If a single
+        // seller is in the cart, immediately checkout that seller; otherwise
+        // ask the user to use the per-shop "Kòmande" buttons.
+        function checkoutCart() {
+            if (!A.cart || A.cart.length === 0) { toast('Panye vid'); return; }
+            const groups = cartGroupBySeller();
+            if (groups.length === 1) { return placeSellerOrder(groups[0].sellerId); }
+            toast('Chwazi yon boutik pou kòmande');
+        }
+        window.checkoutCart = checkoutCart;
 
         // ══════════════════════════════════════════════════════════
         //  BOUTIQUE (Espas Vandè)
@@ -8195,16 +8515,35 @@
             const ref = refEl.value.trim();
             if (ref.length < 4) { toast('Antre referans tranzaksyon MonCash ou'); return; }
             if (!db) { toast('Pa gen koneksyon'); return; }
-            const { data, error } = await db.rpc('advance_order_status', {
-                p_order_id: order.id,
-                p_to_status: 'payment_submitted',
-                p_moncash_ref: ref,
-                p_admin_note: null,
-            });
-            if (error) { console.warn('[submit payment]', error.message); toast('Erè: ' + error.message); return; }
+
+            // If this escrow sheet was opened for a multi-order group (cart
+            // checkout for a single seller), advance every row with the same
+            // MonCash ref so admin sees them as one logical payment.
+            const groupIds = Array.isArray(A._escrowGroupIds) && A._escrowGroupIds.length > 1
+                ? A._escrowGroupIds.slice()
+                : [order.id];
+
+            const failures = [];
+            for (const oid of groupIds) {
+                const { error } = await db.rpc('advance_order_status', {
+                    p_order_id: oid,
+                    p_to_status: 'payment_submitted',
+                    p_moncash_ref: ref,
+                    p_admin_note: null,
+                });
+                if (error) failures.push({ oid, msg: error.message });
+            }
+            if (failures.length === groupIds.length) {
+                console.warn('[submit payment]', failures[0].msg);
+                toast('Erè: ' + failures[0].msg);
+                return;
+            }
             closeSheets();
-            toast('Peman deklare — admin ap verifye');
-            // Notify admin(s)
+            A._escrowGroupIds = null;
+            toast(failures.length > 0
+                ? 'Peman deklare (' + (groupIds.length - failures.length) + '/' + groupIds.length + ')'
+                : 'Peman deklare — admin ap verifye');
+            // Notify admin(s) once for the whole group
             db.from('profiles').select('id').eq('role', 'admin').then(({ data: admins }) => {
                 (admins || []).forEach(a => db.from('notifications').insert({
                     user_id: a.id, type: 'order', icon: 'task',
