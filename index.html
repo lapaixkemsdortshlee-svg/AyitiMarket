@@ -3417,6 +3417,48 @@
         }
         window.discountPct = discountPct;
 
+        // ── Centralized notification helpers ─────────────────────────
+        // Insert one in-app notification row. Realtime subscription on the
+        // user's id then updates their UI live (see subscribeToNotifications).
+        async function notify(userId, opts) {
+            if (!db || !userId) return null;
+            opts = opts || {};
+            const { error } = await db.from('notifications').insert({
+                user_id: userId,
+                type: opts.type || 'system',
+                icon: opts.icon || 'notifications',
+                title: opts.title || '',
+                body: opts.body || '',
+                color: opts.color || '#00666f',
+            });
+            if (error) console.warn('[notify]', error.message);
+            return error;
+        }
+        window.notify = notify;
+
+        // Fan-out a single notification to every admin profile (excluding the
+        // current user if they happen to be an admin acting on their own row).
+        async function notifyAdmins(opts) {
+            if (!db) return null;
+            const { data, error } = await db.from('profiles').select('id').eq('role', 'admin');
+            if (error || !data) { if (error) console.warn('[notifyAdmins query]', error.message); return error; }
+            const rows = data
+                .filter(a => a.id && a.id !== A.user?.uid)
+                .map(a => ({
+                    user_id: a.id,
+                    type: (opts && opts.type) || 'system',
+                    icon: (opts && opts.icon) || 'notifications',
+                    title: (opts && opts.title) || '',
+                    body: (opts && opts.body) || '',
+                    color: (opts && opts.color) || '#97422b',
+                }));
+            if (rows.length === 0) return null;
+            const { error: insErr } = await db.from('notifications').insert(rows);
+            if (insErr) console.warn('[notifyAdmins insert]', insErr.message);
+            return insErr;
+        }
+        window.notifyAdmins = notifyAdmins;
+
         // ══════════════════════════════════════════════════════════
         //  INIT — Splash → Auth Check → Login ou Feed
         //  Séquence: Splash 1.8s → Vérifye Supabase session → Boot ou Login
@@ -5026,22 +5068,26 @@
                     }
 
                     // Notify seller: new pending-payment order
-                    db.from('notifications').insert({
-                        user_id: p.sellerId,
-                        type: 'order',
-                        icon: 'shopping_bag',
+                    notify(p.sellerId, {
+                        type: 'order', icon: 'shopping_bag',
                         title: 'Nouvo komand!',
                         body: (A.user.name || 'Yon kliyan') + ' kòmande ' + p.t + ' — ap tann peman MonCash.',
                         color: '#00666f',
                     });
 
                     // Notify buyer (self): order created, need to pay
-                    db.from('notifications').insert({
-                        user_id: A.user.uid,
-                        type: 'order',
-                        icon: 'payments',
+                    notify(A.user.uid, {
+                        type: 'order', icon: 'payments',
                         title: 'Komand kreye — peye kounye a',
                         body: 'Voye ' + fp(totalAmount) + ' HTG MonCash pou fini komand ' + p.t + '.',
+                        color: '#97422b',
+                    });
+
+                    // Bug 4.1: alert admins in real time when a new order is active
+                    notifyAdmins({
+                        type: 'order', icon: 'shopping_bag',
+                        title: 'Nouvo komand aktif',
+                        body: (A.user.name || 'Yon achtè') + ' kòmande ' + p.t + ' — ap tann peman MonCash.',
                         color: '#97422b',
                     });
                 } catch(e) {
@@ -5087,6 +5133,11 @@
             document.getElementById("backbtn").classList.remove("hidden");
             document.getElementById("backbtn").classList.add("flex");
             document.getElementById("toptitle").textContent = A.chatSellerName;
+            // Bug 3.2: reset the input so the voice button is visible by
+            // default (toggleVoiceBtn hides it as soon as the input has text;
+            // a stale value from a previous chat would leave the mic hidden).
+            const _msgIn = document.getElementById('msgIn');
+            if (_msgIn) { _msgIn.value = ''; toggleVoiceBtn(''); }
         }
 
         function callSeller() {
@@ -5673,16 +5724,23 @@
                 ? createdOrders[0].product_title
                 : (createdOrders.length + ' pwodwi');
 
-            db.from('notifications').insert({
-                user_id: sellerId, type: 'order', icon: 'shopping_bag',
+            notify(sellerId, {
+                type: 'order', icon: 'shopping_bag',
                 title: 'Nouvo komand!',
                 body: (A.user.name || 'Yon kliyan') + ' kòmande ' + itemsLabel + ' — ap tann peman MonCash.',
                 color: '#00666f',
             });
-            db.from('notifications').insert({
-                user_id: A.user.uid, type: 'order', icon: 'payments',
+            notify(A.user.uid, {
+                type: 'order', icon: 'payments',
                 title: 'Komand kreye — peye kounye a',
                 body: 'Voye ' + fp(grandTotal) + ' HTG MonCash pou fini komand ' + itemsLabel + '.',
+                color: '#97422b',
+            });
+            // Bug 4.1: alert admins in real time when a new order is active
+            notifyAdmins({
+                type: 'order', icon: 'shopping_bag',
+                title: 'Nouvo komand aktif',
+                body: (A.user.name || 'Yon achtè') + ' kòmande ' + itemsLabel + ' — ap tann peman MonCash.',
                 color: '#97422b',
             });
 
@@ -7249,10 +7307,16 @@
             toast('Komand ranbouse');
             const o = await fetchOrder(orderId);
             if (o) {
-                db.from('notifications').insert({
-                    user_id: o.buyer_id, type: 'order', icon: 'currency_exchange',
+                notify(o.buyer_id, {
+                    type: 'order', icon: 'currency_exchange',
                     title: 'Komand ranbouse',
                     body: 'Admin ranbouse komand ou. Rezon: ' + note,
+                    color: '#97422b',
+                });
+                notify(o.seller_id, {
+                    type: 'order', icon: 'currency_exchange',
+                    title: 'Komand ranbouse',
+                    body: 'Komand "' + (o.product_title || 'pwodwi') + '" ranbouse pa admin. Rezon: ' + note,
                     color: '#97422b',
                 });
             }
@@ -8062,12 +8126,16 @@
 
         async function sendVoiceMessage(blob) {
             var pid = A.chatId;
-            var sellerId = A.chatSellerId;
+            // Bug 3.2: chat peer id was previously read only from chatSellerId,
+            // which left admins/buyers without a receiver in some flows where
+            // only chatOtherId was populated. Fall back to either, ignoring
+            // self so we never insert a self-targeted message.
+            var peerId = (A.chatSellerId && A.chatSellerId !== A.user?.uid)
+                ? A.chatSellerId
+                : (A.chatOtherId && A.chatOtherId !== A.user?.uid ? A.chatOtherId : null);
             var uid = A.user?.uid;
-            if (!pid || !uid || !sellerId) {
-                toast('Chat pa pare — reyesye');
-                return;
-            }
+            if (!pid || !uid) { toast('Chat pa pare — reyesye'); return; }
+            if (!peerId) { toast('Korespondan pa idantifye — reouvri chat la'); return; }
             var elapsed = Math.floor((Date.now() - (VOICE.startTime || Date.now())) / 1000);
             if (elapsed < 1) elapsed = 1;
             var sec = elapsed % 60;
@@ -8090,7 +8158,7 @@
 
                 var result = await db.from('messages').insert({
                     sender_id: uid,
-                    receiver_id: sellerId,
+                    receiver_id: peerId,
                     product_id: pid,
                     content: dbContent,
                 });
@@ -8100,6 +8168,13 @@
                 A.msgs[pid].push({ s: true, type: 'voice', url: dataUrl, dur: dur, size: sizeKb, tm: tm });
                 renderChatMsgs(pid);
                 toast('Nòt vokal voye — ' + dur);
+                // Realtime notification to the peer (works for any role)
+                notify(peerId, {
+                    type: 'chat', icon: 'chat',
+                    title: 'Nòt vokal',
+                    body: '🎙️ ' + (A.user.name || 'Yon kontak') + ' voye yon nòt vokal',
+                    color: '#00666f',
+                });
             } catch (err) {
                 console.warn('[Voice send]', err);
                 toast('Erè vokal: ' + (err.message || 'reyesye'));
@@ -8600,6 +8675,34 @@
             });
             if (error) { toast('Erè: ' + error.message); return; }
             toast('Komand anile');
+            // Notify the OTHER party + admins so each role sees the cancellation
+            const o = await fetchOrder(orderId);
+            if (o) {
+                const actor = A.user?.uid;
+                const title = (o.product_title || 'komand');
+                if (o.buyer_id && o.buyer_id !== actor) {
+                    notify(o.buyer_id, {
+                        type: 'order', icon: 'cancel',
+                        title: 'Komand anile',
+                        body: 'Komand "' + title + '" anile.',
+                        color: '#991b1b',
+                    });
+                }
+                if (o.seller_id && o.seller_id !== actor) {
+                    notify(o.seller_id, {
+                        type: 'order', icon: 'cancel',
+                        title: 'Komand anile',
+                        body: 'Komand "' + title + '" anile pa achtè a.',
+                        color: '#991b1b',
+                    });
+                }
+                notifyAdmins({
+                    type: 'order', icon: 'cancel',
+                    title: 'Komand anile',
+                    body: 'Komand "' + title + '" anile.',
+                    color: '#991b1b',
+                });
+            }
             if (typeof renderOrderScreen === 'function') renderOrderScreen();
         }
         window.cancelOrder = cancelOrder;
@@ -8661,13 +8764,19 @@
                         color: '#065f46',
                     }));
                 });
-                // Notify buyer that delivery is confirmed
+                // Notify buyer + seller that delivery is confirmed
                 const o = await fetchOrder(orderId);
                 if (o) {
-                    db.from('notifications').insert({
-                        user_id: o.buyer_id, type: 'order', icon: 'check_circle',
+                    notify(o.buyer_id, {
+                        type: 'order', icon: 'check_circle',
                         title: 'Livrezon konfime',
                         body: 'OTP ou valide. Mèsi pou konfyans ou!',
+                        color: '#065f46',
+                    });
+                    notify(o.seller_id, {
+                        type: 'order', icon: 'check_circle',
+                        title: 'Livrezon konfime',
+                        body: 'Achtè a konfime resepsyon "' + (o.product_title || 'komand') + '". Lajan ap libere.',
                         color: '#065f46',
                     });
                 }
