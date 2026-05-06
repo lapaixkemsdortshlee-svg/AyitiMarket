@@ -2745,6 +2745,40 @@
         </div>
     </div>
 
+    <!-- ══ ADMIN — CONFIRM PAYMENT SHEET (Bug 4.2) ══ -->
+    <div class="sheet" id="adminConfirmPaymentSheet">
+        <div class="handle"></div>
+        <div class="text-center mb-4">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 amb" style="background:#065f46">
+                <span class="material-symbols-outlined fi text-white" style="font-size:26px">verified</span>
+            </div>
+            <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight">Konfime peman</h3>
+            <p class="font-body text-sm text-on-surface-variant mt-1 leading-relaxed">
+                Verifye ke ou wè lajan an rive sou kont MonCash AyitiMarket avan ou konfime.
+            </p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-4 mb-3" id="adminConfPayInfo"></div>
+        <div class="bg-surface-container-low rounded-xl p-3 mb-4">
+            <p class="font-label text-[10px] font-bold uppercase tracking-[.1em] text-on-surface-variant mb-1">Nòt admin (opsyonèl)</p>
+            <textarea id="adminConfPayNote" class="si w-full" rows="2" placeholder="ex: Ref MonCash valide, lajan rive sou kont la"></textarea>
+        </div>
+        <div class="flex items-start gap-2 p-3 rounded-xl mb-4" style="background:rgba(101,124,71,.08)">
+            <span class="material-symbols-outlined" style="font-size:16px;color:#065f46">info</span>
+            <p class="font-label text-[11px] text-on-surface-variant leading-relaxed">
+                Apre konfimasyon, lajan ap antre nan eskwo, vandè avèk achtè ap resevwa yon notifikasyon, ak vandè a ka prepare pwodwi a.
+            </p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="closeSheets()" class="px-4 py-3 rounded-xl bg-surface-container font-label font-bold text-sm text-on-surface-variant">
+                Anile
+            </button>
+            <button id="adminConfPayBtn" onclick="submitAdminConfirmPayment()" class="flex-1 py-3 rounded-xl font-label font-bold text-sm active:scale-95 flex items-center justify-center gap-2" style="background:#065f46;color:#fcf9f4">
+                <span class="material-symbols-outlined" style="font-size:18px">check_circle</span>
+                Wi, peman resevwa — Konfime
+            </button>
+        </div>
+    </div>
+
     <!-- ══ RATING SHEET — Buyer rates seller after delivery ══ -->
     <div class="sheet" id="ratingSheet">
         <div class="handle"></div>
@@ -3683,6 +3717,10 @@
                 if (typeof loadAppSettings === 'function') loadAppSettings();
                 if (typeof loadCartFromSupabase === 'function' && A.user.role !== 'admin') {
                     loadCartFromSupabase();
+                }
+                // Bug 4.1: realtime alert on every new order — admin only
+                if (A.user.role === 'admin' && typeof subscribeToAdminOrders === 'function') {
+                    subscribeToAdminOrders();
                 }
             }
             updateNotifBadge();
@@ -7202,7 +7240,7 @@
             list.innerHTML = tabsHTML + data.map(o => {
                 const actions = [];
                 if (o.status === 'payment_submitted') {
-                    actions.push(`<button onclick="adminVerifyPayment('${o.id}')" class="flex-1 py-2 rounded-lg cta font-label font-bold text-[11px] active:scale-95"><span class="material-symbols-outlined align-middle" style="font-size:13px">check_circle</span> Konfime peman</button>`);
+                    actions.push(`<button onclick="openAdminConfirmPayment('${o.id}')" class="flex-1 py-2 rounded-lg font-label font-bold text-[11px] active:scale-95 flex items-center justify-center gap-1" style="background:#065f46;color:#fcf9f4"><span class="material-symbols-outlined" style="font-size:13px">check_circle</span> Wi, peman resevwa</button>`);
                     actions.push(`<button onclick="adminRefund('${o.id}')" class="px-3 py-2 rounded-lg bg-surface-container font-label font-bold text-[11px]">Ranbouse</button>`);
                 } else if (o.status === 'otp_confirmed') {
                     actions.push(`<button onclick="adminReleaseEscrow('${o.id}')" class="flex-1 py-2 rounded-lg font-label font-bold text-[11px] active:scale-95" style="background:#065f46;color:#fcf9f4"><span class="material-symbols-outlined align-middle" style="font-size:13px">paid</span> Lage lajan (${fp(o.net_amount || o.total_amount)} HTG)</button>`);
@@ -7230,32 +7268,71 @@
         }
         window.renderAdminOrders = renderAdminOrders;
 
-        async function adminVerifyPayment(orderId) {
-            if (!db) return;
-            const note = prompt('Nòt (opsyonèl) — ou konfime ou wè lajan an rive?', '');
-            const { error } = await db.rpc('advance_order_status', {
-                p_order_id: orderId, p_to_status: 'payment_verified',
-                p_moncash_ref: null, p_admin_note: note || null,
-            });
-            if (error) { toast('Erè: ' + error.message); return; }
-            toast('Peman verifye — eskwo aktive');
+        // Bug 4.2: opens a clear confirmation sheet instead of a native
+        // prompt() — admin sees a summary of the order they're about to
+        // confirm (buyer/seller, amount, MonCash ref) and a clearly
+        // labelled green CTA. Stores the order on A._adminConfPayOrder
+        // for submitAdminConfirmPayment to read.
+        async function openAdminConfirmPayment(orderId) {
+            if (!db) { toast('Pa gen koneksyon'); return; }
             const o = await fetchOrder(orderId);
-            if (o) {
-                db.from('notifications').insert({
-                    user_id: o.seller_id, type: 'order', icon: 'verified',
-                    title: 'Eskwo aktive',
-                    body: 'Lajan pou "' + (o.product_title || 'komand') + '" bloke nan eskwo. Prepare pwodwi a.',
-                    color: '#1e40af',
-                });
-                db.from('notifications').insert({
-                    user_id: o.buyer_id, type: 'order', icon: 'verified',
-                    title: 'Peman verifye',
-                    body: 'Lajan ou bloke nan eskwo. Vandè ap prepare pwodwi a.',
-                    color: '#1e40af',
-                });
+            if (!o) { toast('Komand pa jwenn'); return; }
+            A._adminConfPayOrder = o;
+            const info = document.getElementById('adminConfPayInfo');
+            const noteEl = document.getElementById('adminConfPayNote');
+            if (noteEl) noteEl.value = '';
+            if (info) {
+                info.innerHTML = `
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <p class="font-headline font-bold text-sm flex-1">${o.product_title || 'Pwodwi'}</p>
+                        <span class="font-label text-[10px] text-on-surface-variant">#${(o.id || '').slice(0, 8)}</span>
+                    </div>
+                    <p class="font-label text-[11px] text-on-surface-variant"><strong>Achtè:</strong> ${o.buyer_name || '—'}</p>
+                    <p class="font-label text-[11px] text-on-surface-variant"><strong>Vandè:</strong> ${o.seller_name || '—'}</p>
+                    <p class="font-label text-[11px] mt-2"><strong>Total deklare:</strong> <span class="font-headline font-extrabold text-base text-primary">${fp(o.total_amount || 0)} HTG</span></p>
+                    ${o.moncash_ref ? `<p class="font-label text-[11px] mt-1"><strong>Ref MonCash:</strong> <code style="background:#f4f1eb;padding:2px 6px;border-radius:4px">${o.moncash_ref}</code></p>` : '<p class="font-label text-[11px] mt-1" style="color:#991b1b"><strong>⚠️ Pa gen referans MonCash</strong></p>'}
+                `;
             }
+            openSheet('adminConfirmPaymentSheet');
+        }
+        window.openAdminConfirmPayment = openAdminConfirmPayment;
+
+        async function submitAdminConfirmPayment() {
+            const o = A._adminConfPayOrder;
+            if (!o) { toast('Pa gen komand chwazi'); return; }
+            const noteEl = document.getElementById('adminConfPayNote');
+            const note = (noteEl?.value || '').trim() || null;
+            const btn = document.getElementById('adminConfPayBtn');
+            if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
+            const { error } = await db.rpc('advance_order_status', {
+                p_order_id: o.id, p_to_status: 'payment_verified',
+                p_moncash_ref: null, p_admin_note: note,
+            });
+            if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+            if (error) { toast('Erè: ' + error.message); return; }
+            closeSheets();
+            A._adminConfPayOrder = null;
+            toast('Peman konfime — eskwo aktive');
+            // Notify both parties via the centralized helper
+            notify(o.seller_id, {
+                type: 'order', icon: 'verified',
+                title: 'Eskwo aktive',
+                body: 'Lajan pou "' + (o.product_title || 'komand') + '" bloke nan eskwo. Prepare pwodwi a.',
+                color: '#1e40af',
+            });
+            notify(o.buyer_id, {
+                type: 'order', icon: 'verified',
+                title: 'Peman verifye',
+                body: 'Lajan ou bloke nan eskwo. Vandè ap prepare pwodwi a.',
+                color: '#1e40af',
+            });
             renderAdminOrders();
         }
+        window.submitAdminConfirmPayment = submitAdminConfirmPayment;
+
+        // Legacy entry point — kept for backwards compatibility with any
+        // older code path that calls it; routes through the new sheet UI.
+        function adminVerifyPayment(orderId) { return openAdminConfirmPayment(orderId); }
         window.adminVerifyPayment = adminVerifyPayment;
 
         async function adminReleaseEscrow(orderId) {
@@ -11207,6 +11284,50 @@
             .subscribe();
     }
     window.subscribeToNotifications = subscribeToNotifications;
+
+    // ── Bug 4.1: realtime admin orders channel ──────────────────────
+    // Subscribed at boot when the current user is admin. INSERT fires for
+    // any new order on the platform; UPDATE fires for status transitions
+    // (esp. payment_submitted → ready to verify). The handler refreshes
+    // the admin orders list if it's currently visible AND surfaces a
+    // small toast + sound for INSERTs so the admin notices without being
+    // on the orders tab.
+    let _rtAdminOrdersChannel = null;
+    function subscribeToAdminOrders() {
+        if (!db || !A.user?.uid || A.user.role !== 'admin') return;
+        if (_rtAdminOrdersChannel) { try { db.removeChannel(_rtAdminOrdersChannel); } catch (_) { } }
+        _rtAdminOrdersChannel = db.channel('admin-orders:' + A.user.uid)
+            .on('postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'orders' },
+                payload => {
+                    const o = payload.new; if (!o) return;
+                    if (typeof playNotifSound === 'function') playNotifSound();
+                    if (typeof toast === 'function') {
+                        toast('Nouvo komand: ' + (o.product_title || 'pwodwi') + ' · ' + fp(o.total_amount || 0) + ' HTG');
+                    }
+                    const panelOpen = document.getElementById('admin-orders');
+                    if (panelOpen && !panelOpen.classList.contains('hidden')) {
+                        renderAdminOrders();
+                    }
+                })
+            .on('postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'orders' },
+                payload => {
+                    const o = payload.new; if (!o) return;
+                    const panelOpen = document.getElementById('admin-orders');
+                    if (panelOpen && !panelOpen.classList.contains('hidden')) {
+                        renderAdminOrders();
+                    }
+                    // Surface payment_submitted as a higher-priority cue —
+                    // these are the rows the admin needs to action next.
+                    if (o.status === 'payment_submitted' && typeof toast === 'function') {
+                        toast('Peman pou verifye: ' + (o.product_title || 'komand'));
+                        if (typeof playNotifSound === 'function') playNotifSound();
+                    }
+                })
+            .subscribe();
+    }
+    window.subscribeToAdminOrders = subscribeToAdminOrders;
 
     // ── DATA: Products from Supabase ──
     // Feed: ALL active products with stock > 0, newest first. Silent offline-cache
