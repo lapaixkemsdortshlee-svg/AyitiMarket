@@ -5855,9 +5855,16 @@
             let myProducts = [];
             try {
                 if (db) {
+                    // Bug "delete pa fè anyen": archived products were
+                    // reappearing because the query had no status filter.
+                    // The delete flow soft-archives (status='archived') to
+                    // preserve the orders.product_id FK. Hide archived rows
+                    // here so the seller sees the deletion immediately and
+                    // it sticks across refreshes.
                     const { data, error } = await db.from('products')
                         .select('*')
                         .eq('seller_id', A.user.uid)
+                        .neq('status', 'archived')
                         .order('created_at', { ascending: false });
                     if (error) throw error;
                     myProducts = (data || []).map(p => ({
@@ -5877,7 +5884,7 @@
                 }
             } catch(e) {
                 console.warn('[Boutique] Load error:', e.message);
-                myProducts = PRODUCTS.filter(p => p.sellerId === A.user.uid);
+                myProducts = PRODUCTS.filter(p => p.sellerId === A.user.uid && p.status !== 'archived');
             }
 
             A.myBoutiqueProducts = myProducts;
