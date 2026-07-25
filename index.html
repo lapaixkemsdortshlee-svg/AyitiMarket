@@ -4546,10 +4546,21 @@
             }, 2400);
         });
 
+        // Montre ekran chwazi wòl la (san bootApp) — yon sèl kote.
+        function _showRoleScreen() {
+            hideSplash();
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+            document.getElementById('s-role')?.classList.add('on');
+        }
+
         function continuePostSplash() {
             // Si Supabase a déjà résolu la session (Google redirect ou session existante)
             if (A.isAuth && A.user) {
                 console.log('[Boot] Auth déjà résolu par Supabase →', A.user.name);
+                // Wòl poko chwazi → ekran wòl la, PA feed la. Anvan sa, minitè
+                // splash la (2,4s) te bat kont ekran wòl la epi voye moun nan
+                // dirèk nan feed la: pwofil la te rete SAN wòl nan baz done a.
+                if (!A.user.role) { _showRoleScreen(); return; }
                 if (!A.booted) { A.booted = true; bootApp(); }
                 return;
             }
@@ -4561,6 +4572,7 @@
                     A.user = JSON.parse(saved);
                     A.isAuth = true;
                     console.log('[Boot] User restauré depuis cache →', A.user.name);
+                    if (!A.user.role) { _showRoleScreen(); return; }
                     bootApp();
                 } catch(e) {
                     localStorage.removeItem("aym_user");
@@ -14787,6 +14799,10 @@
         // kont ki poko aksepte vèsyon aktyèl la → montre fèy akseptasyon (pa bloke).
         async function _checkTermsConsent() {
             if (!db || !A.user || !A.user.uid) return;
+            // Pa deranje pandan moun nan ap chwazi wòl li — fèy la te parèt
+            // sou ekran wòl la epi kase chwa a. supabaseSaveRole rele nou
+            // apre wòl la anrejistre.
+            if (!A.user.role) return;
             let pending = null;
             try { pending = localStorage.getItem('aym_terms_pending'); } catch (_) { }
             let ver = null;
@@ -16330,6 +16346,8 @@
         hideAuthLoader();
         A.booted = true;
         bootApp();
+        // Kondisyon yo: mande apre wòl la chwazi (pa pandan).
+        if (typeof _checkTermsConsent === 'function') _checkTermsConsent();
 
         if (updateSuccess) {
             toast('Wòl ' + (role === 'buyer' ? 'Achtè' : 'Vandè') + ' anrejistre!');
@@ -16892,16 +16910,22 @@
             if (card) card.classList.add('hidden');
         }
 
+        // Tutoryèl la se PA-KONT (menm leson ak monnen/mòd sonm): anvan,
+        // `aym_tutorial_done` te global sou aparèy la → yon nouvo kont sou yon
+        // telefòn ki te deja sèvi pa t janm wè tutoryèl la.
+        function _tutorialKey() {
+            return 'aym_tutorial_done_' + (A.user && A.user.uid ? A.user.uid : 'guest');
+        }
         function maybeRunFirstRun() {
             try {
-                var firstRun = !localStorage.getItem('aym_tutorial_done');
+                var firstRun = !localStorage.getItem(_tutorialKey());
                 if (firstRun && A.user && A.user.role !== 'admin') {
                     showWelcomeCard(false);
                     setTimeout(function () {
                         try { startTour(); } catch (e) { console.warn('[tour]', e); endTour(); }
                     }, 950);
                 } else {
-                    if (firstRun) { try { localStorage.setItem('aym_tutorial_done', '1'); } catch (e) { } }
+                    if (firstRun) { try { localStorage.setItem(_tutorialKey(), '1'); } catch (e) { } }
                     showWelcomeCard(true);
                 }
             } catch (e) { console.warn('[firstRun]', e); }
@@ -16943,7 +16967,7 @@
                 var r = el.getBoundingClientRect();
                 return r.width > 1 && r.height > 1;
             });
-            if (!steps.length) { try { localStorage.setItem('aym_tutorial_done', '1'); } catch (e) { } return; }
+            if (!steps.length) { try { localStorage.setItem(_tutorialKey(), '1'); } catch (e) { } return; }
             _tour = { steps: steps, i: 0 };
             buildTourDom();
             _tour.onResize = function () { layoutTourStep(_tour.i); };
@@ -16992,7 +17016,7 @@
             if (_tour.i > 0) { _tour.i--; layoutTourStep(_tour.i); }
         }
         function endTour() {
-            try { localStorage.setItem('aym_tutorial_done', '1'); } catch (e) { }
+            try { localStorage.setItem(_tutorialKey(), '1'); } catch (e) { }
             if (_tour && _tour.onResize) window.removeEventListener('resize', _tour.onResize);
             ['tourBackdrop', 'tourSpot', 'tourTip'].forEach(function (id) {
                 var n = document.getElementById(id); if (n) n.remove();
