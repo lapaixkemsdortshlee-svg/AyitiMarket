@@ -8855,7 +8855,10 @@
         function convRowHTML(c) {
             const m = convMeta(c.otherId);
             const initials = c.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'U';
-            const pid = typeof c.productId === 'string' ? `'${c.productId.replace(/'/g, "\\'")}'` : 'null';
+            // jsAttr() echape tou backslash yo — yon `replace(/'/g, ...)` senp
+            // pa ase (CodeQL: incomplete string escaping).
+            const pid = typeof c.productId === 'string' ? `'${jsAttr(c.productId)}'` : 'null';
+            const oid = jsAttr(c.otherId);
             const nameAttr = jsAttr(c.name);
             const badge = c.official
                 ? '<span class="material-symbols-outlined fi flex-shrink-0" style="font-size:14px;color:#c08a2e" title="Boutik ofisyèl">verified</span>'
@@ -8867,7 +8870,7 @@
                 : '';
             return `
       <div class="ekv-row">
-        <button class="ekv-open" onclick="openConversation(${pid}, '${c.otherId}', '${nameAttr}')">
+        <button class="ekv-open" onclick="openConversation(${pid}, '${oid}', '${nameAttr}')">
           <span class="ekv-av">${c.avatar
                 ? `<img alt="Foto pwofil" src="${esc(c.avatar)}" onerror="this.parentElement.innerHTML='<span class=\\'font-headline font-bold text-white\\' style=\\'font-size:15px\\'>${esc(initials)}</span>'"/>`
                 : `<span class="font-headline font-bold text-white" style="font-size:15px">${esc(initials)}</span>`}</span>
@@ -8889,7 +8892,7 @@
             ${labelsHTML}
           </span>
         </button>
-        <button class="ekv-more" aria-label="Opsyon pou konvèsasyon ak ${esc(c.name)}" onclick="openConvMenu('${c.otherId}')">
+        <button class="ekv-more" aria-label="Opsyon pou konvèsasyon ak ${esc(c.name)}" onclick="openConvMenu('${oid}')">
           <span class="material-symbols-outlined" style="font-size:20px">more_vert</span>
         </button>
       </div>`;
