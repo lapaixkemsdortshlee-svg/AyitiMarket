@@ -7,6 +7,28 @@
 
 ---
 
+## 2026-07-25 (suite) : Mesaj yo, header feed, Swiv kòmand, mémoire des leçons (5 PR : #239 à #243)
+
+Longue session de design produit menée au retour terrain, écran par écran. Skills actifs : ayitimarket, ui-ux-pro-max, frontend-design, systematic-debugging, verification-before-completion, puis ecriture-pro-et-lecons installé en fin de session.
+
+- **#239 Refonte de la liste de conversations.** Titre pleine page, barre de recherche, filtres Tout / Poko li / Favori, épingle, favori, glissements gauche et droite, étiquettes client personnalisables, marquer non lu. Deux tables : `conversation_meta` et `conversation_labels`, RLS propriétaire seul. Postgres ne pouvant pas poser de FK sur un élément de tableau, un trigger nettoie les identifiants d'étiquettes supprimées.
+- **#240 Ajustements + deux bugs pré-existants.** Titre réduit, bloc vide descendu. La règle `.sheet` avait un `calc(env(...)+1.5rem)` invalide qui annulait le padding des **32 feuilles** de l'app, mesuré à 0px sur chacune. Migration `search_path` sur `sync_is_admin_with_role`, dernier avertissement advisor de sa catégorie.
+- **#241 Nouveau header du feed + écran Swiv kòmand.** Six bandeaux empilés remplacés par une barre de recherche avec filtre intégré et une carte glissante à encoche. Deux sources l'alimentent : `announcements` enrichie d'une image et d'un CTA, et une nouvelle table `hero_slides`. Écran de suivi de commande avec timeline escrow en 5 étapes.
+- **#242 Neuf retours terrain.** Le plus grave : quand le destinataire n'était pas identifié, `sendMsg` abandonnait sur un `console.warn`. La bulle s'affichait, l'écriture ne partait jamais, le message disparaissait au rafraîchissement. Plus le retour de navigation qui sautait Mesaj yo, et le spinner d'adresse qui tournait sans fin.
+- **#243 Mémoire des leçons.** Skill `ecriture-pro-et-lecons` installé, `LEARNINGS.md` versionné à la racine, bloc « Avant toute action » ajouté à CLAUDE.md. Titre Mesaj yo remonté à 72px après vérification.
+
+**Décisions produit prises dans la session :**
+- **Étiquettes personnalisables** plutôt que jeu fermé. Un vendeur haïtien ne vend pas ce que WhatsApp Business imagine. Couleurs stockées par **clé** et non en hexadécimal, pour que le mode sombre reste lisible quel que soit le choix.
+- **Deux sources pour la carte glissante.** Une annonce est un message, une bannière est un visuel. `hero_slides` servira aussi à mettre en avant une boutique qui paie pour ça.
+- **Pas de coursier suivi en direct** sur l'écran de suivi. Ekomat n'a pas de coursiers, le modèle est le retrait en zone avec OTP. Un point qui court sur un trajet aurait été une interface qui ment.
+- **Actions CTA en liste fermée** (`shop`, `sell`, `orders`, `profile`, `search`), contrainte en base. Un champ admin ne doit jamais devenir un `onclick` qui exécute du texte libre.
+
+**Leçons durables (semées agentmemory) :** (1) Un test vert ne prouve que ce qu'il regarde. Deux fois cette session le harnais a dit « 0 erreur » sur un écran cassé, et c'est une mesure manuelle qui a vu le problème. (2) Une écriture qui échoue et qu'un `console.warn` avale est un mensonge à l'utilisateur, même classe de bug que la RLS `flash_deals` du 19 juillet. (3) Ne jamais annoncer une contrainte bloquante sans l'avoir mesurée : j'ai déclaré impossible de remonter un titre en supposant un `safe-area-inset-top` qui n'existait pas.
+
+SW v64 à v72 sur la session. Toutes les PR mergées, CI verte, les trois migrations vérifiées en production sans divergence de version.
+
+---
+
 ## 2026-07-25 : Bascule des comptes, Boutik Ofisyèl, trou de sécurité admin, base remise à ZÉRO pour le pilote (5 PR : #233 à #237)
 
 Fin de la même très longue session. Thrasher passe du polish produit à la préparation réelle du pilote. Skills actifs : systematic-debugging, ayitimarket, verification-before-completion, dataviz.
