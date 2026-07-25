@@ -425,16 +425,43 @@
         .ekv-lbs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
         .ekv-lb { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-family: 'Manrope', sans-serif; font-size: 10px; font-weight: 700; line-height: 1.6; }
         .ekv-lb::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: 0 0 auto; }
-        .ekv-lb-nouvo { background: rgba(0,102,111,.12); color: #00565e; }
-        .ekv-lb-komann { background: rgba(0,32,159,.10); color: #00209f; }
-        .ekv-lb-tann_peman { background: rgba(151,66,43,.12); color: #8d3b26; }
-        .ekv-lb-peye { background: rgba(31,122,77,.13); color: #1a6a42; }
-        .ekv-lb-fini { background: rgba(93,106,106,.14); color: #4f5c5c; }
-        body.dark .ekv-lb-nouvo { background: rgba(90,215,230,.16); color: #5ad7e6; }
-        body.dark .ekv-lb-komann { background: rgba(107,155,255,.16); color: #6b9bff; }
-        body.dark .ekv-lb-tann_peman { background: rgba(249,145,136,.16); color: #f99188; }
-        body.dark .ekv-lb-peye { background: rgba(99,210,154,.16); color: #63d29a; }
-        body.dark .ekv-lb-fini { background: rgba(163,172,172,.16); color: #a3acac; }
+        /* Palèt etikèt: 8 kle, chak ak yon vèsyon klè ak yon vèsyon sonm.
+           Nou estoke KLE a nan baz la, pa yon hex — konsa mòd sonm nan rete
+           lizib kèlkeswa koulè vandè a chwazi. */
+        .ekv-lb-c-teal { background: rgba(0,102,111,.12); color: #00565e; }
+        .ekv-lb-c-rust { background: rgba(151,66,43,.12); color: #8d3b26; }
+        .ekv-lb-c-blue { background: rgba(0,32,159,.10); color: #00209f; }
+        .ekv-lb-c-green { background: rgba(26,106,66,.13); color: #1a6a42; }
+        .ekv-lb-c-gold { background: rgba(138,100,16,.14); color: #7a5809; }
+        .ekv-lb-c-plum { background: rgba(123,45,85,.12); color: #7b2d55; }
+        .ekv-lb-c-slate { background: rgba(79,92,92,.14); color: #4f5c5c; }
+        .ekv-lb-c-sky { background: rgba(15,108,134,.13); color: #0f6c86; }
+        body.dark .ekv-lb-c-teal { background: rgba(90,215,230,.16); color: #5ad7e6; }
+        body.dark .ekv-lb-c-rust { background: rgba(249,145,136,.16); color: #f99188; }
+        body.dark .ekv-lb-c-blue { background: rgba(107,155,255,.16); color: #6b9bff; }
+        body.dark .ekv-lb-c-green { background: rgba(99,210,154,.16); color: #63d29a; }
+        body.dark .ekv-lb-c-gold { background: rgba(224,182,74,.16); color: #e0b64a; }
+        body.dark .ekv-lb-c-plum { background: rgba(240,144,192,.16); color: #f090c0; }
+        body.dark .ekv-lb-c-slate { background: rgba(163,172,172,.16); color: #a3acac; }
+        body.dark .ekv-lb-c-sky { background: rgba(103,200,232,.16); color: #67c8e8; }
+        /* Menm kle, men ranpli nèt: pastiy chwazisè a ak ti won nan lis la. */
+        .ekv-cs-teal { background: #00666f; } body.dark .ekv-cs-teal { background: #5ad7e6; }
+        .ekv-cs-rust { background: #97422b; } body.dark .ekv-cs-rust { background: #f99188; }
+        .ekv-cs-blue { background: #00209f; } body.dark .ekv-cs-blue { background: #6b9bff; }
+        .ekv-cs-green { background: #1a6a42; } body.dark .ekv-cs-green { background: #63d29a; }
+        .ekv-cs-gold { background: #8a6410; } body.dark .ekv-cs-gold { background: #e0b64a; }
+        .ekv-cs-plum { background: #7b2d55; } body.dark .ekv-cs-plum { background: #f090c0; }
+        .ekv-cs-slate { background: #4f5c5c; } body.dark .ekv-cs-slate { background: #a3acac; }
+        .ekv-cs-sky { background: #0f6c86; } body.dark .ekv-cs-sky { background: #67c8e8; }
+        .ekv-cs { width: 34px; height: 34px; border-radius: 999px; border: 0; padding: 0; cursor: pointer; position: relative; flex: 0 0 auto; }
+        .ekv-cs.on::after { content: ''; position: absolute; inset: -4px; border-radius: 999px; box-shadow: 0 0 0 2px #00666f; }
+        body.dark .ekv-cs.on::after { box-shadow: 0 0 0 2px #5ad7e6; }
+        .ekv-dot { width: 12px; height: 12px; border-radius: 999px; flex: 0 0 auto; }
+        .ekv-lbrow { width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 14px; border: 0; border-radius: 14px; background: none; text-align: left; cursor: pointer; }
+        .ekv-lbrow:active { background: rgba(0,102,111,.07); }
+        body.dark .ekv-lbrow:active { background: rgba(90,215,230,.09); }
+        .ekv-del { background: rgba(151,66,43,.1); color: #8d3b26; }
+        body.dark .ekv-del { background: rgba(249,145,136,.12); color: #f99188; }
         .ekv-lb.off { background: transparent; color: #6d7979; box-shadow: inset 0 0 0 1px rgba(61,73,73,.22); }
         body.dark .ekv-lb.off { color: #a8b0b0; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
         .ekv-lbbtn { padding: 6px 12px; font-size: 11.5px; border: 0; cursor: pointer; }
@@ -2486,6 +2513,13 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════
+     SCREEN — ETIKÈT KLIYAN (vandè sèlman)
+══════════════════════════════════════════════════════ -->
+    <div class="screen pb-32 max-w-lg mx-auto" id="s-labels">
+        <div class="pt-24" id="labelsContent"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
      SCREEN — INBOX / MESAJ YO (Conversations)
 ══════════════════════════════════════════════════════ -->
     <div class="screen pb-32 max-w-lg mx-auto" id="s-inbox">
@@ -3165,6 +3199,13 @@
         style="max-height:82vh;overflow-y:auto;padding:1.25rem 1.25rem calc(env(safe-area-inset-bottom) + 1.5rem)">
         <div class="handle"></div>
         <div id="convMenuBody"></div>
+    </div>
+
+    <!-- Kreye / modifye yon etikèt kliyan -->
+    <div class="sheet" id="labelEditSheet"
+        style="max-height:88vh;overflow-y:auto;padding:1.25rem 1.25rem calc(env(safe-area-inset-bottom) + 1.5rem)">
+        <div class="handle"></div>
+        <div id="labelEditBody"></div>
     </div>
 
     <!-- Success overlay -->
@@ -5119,6 +5160,14 @@
                 A.chatId = null;
                 A.chatOtherId = null;
                 if (typeof refreshUserStats === 'function') refreshUserStats();
+            }
+            // Etikèt kliyan ouvè depi lis mesaj la: nou tounen sou lis la.
+            // openInbox() remete antre a nou retire a, konsa pil la rete egal.
+            if (document.getElementById('s-labels')?.classList.contains('on') && A._lblFromInbox) {
+                A._lblFromInbox = false;
+                A.stack.pop();
+                openInbox();
+                return;
             }
             const prev = A.stack.pop() || "feed";
             navTo(prev);
@@ -7466,6 +7515,7 @@
             if (u.role === 'seller') {
                 items.push({ i: "storefront", l: "Boutik Mwen", s: "Pwodwi, stòk, lavant", a: "openBoutiqueScreen()" });
                 items.push({ i: "group", l: "Kliyan Abonnen", s: (A.followers || 0) + " abonnen", a: "openFollowersScreen()" });
+                items.push({ i: "sell", l: "Etikèt Kliyan", s: "Klase konvèsasyon ou yo", a: "openLabelsScreen()" });
             }
             items.push({ i: "favorite", l: "Favori Mwen", s: A.favs.size + " pwodwi", a: "openFavsSheet()" });
             // Zòn kolekte detekte via GPS — montre li si li egziste,
@@ -8644,18 +8694,34 @@
         //  (epingle / favori / etikèt) rete nan `conversation_meta`. Si tab
         //  la poko deplwaye, tout bagay degrade sou yon lis san meta.
         // ══════════════════════════════════════════════════════════
-        const CONV_LABELS = {
-            nouvo: 'Nouvo kliyan',
-            komann: 'Nouvo kòmann',
-            tann_peman: 'Ap tann peman',
-            peye: 'Peye',
-            fini: 'Kòmann fini',
-        };
-        const CONV_LABEL_ORDER = ['nouvo', 'komann', 'tann_peman', 'peye', 'fini'];
+        // Kle palèt la — menm lis ak CHECK `conversation_labels_color_known`.
+        const LABEL_COLORS = ['teal', 'rust', 'blue', 'green', 'gold', 'plum', 'slate', 'sky'];
+        // Pwopozisyon nan fèy kreyasyon an (vandè a ka chanje non ak koulè).
+        const LABEL_SUGGEST = [
+            { n: 'Nouvo kliyan', c: 'green' },
+            { n: 'Nouvo kòmann', c: 'gold' },
+            { n: 'Ap tann peman', c: 'rust' },
+            { n: 'Peye', c: 'teal' },
+            { n: 'Kòmann fini', c: 'slate' },
+            { n: 'Enpòtan', c: 'plum' },
+            { n: 'Pou swiv', c: 'sky' },
+            { n: 'Pwospè', c: 'blue' },
+        ];
 
         // Etikèt yo se yon zouti vandè (klase kliyan yo), pa yon zouti achtè.
+        // Yon achtè gen favori, epingle ak li/poko li — pa etikèt.
         function inboxCanLabel() {
             return A.user?.role === 'seller' || A.user?.role === 'admin';
+        }
+
+        function convLabel(id) {
+            return (A.inbox && A.inbox.labelMap) ? A.inbox.labelMap[id] : null;
+        }
+
+        // Etikèt yon konvèsasyon, san sa ki efase (array la ka gen yon id
+        // òfelen yon ti moman anvan trigger la pase).
+        function convLabelsOf(otherId) {
+            return convMeta(otherId).labels.filter(convLabel);
         }
 
         function convMeta(otherId) {
@@ -8711,10 +8777,13 @@
                             productId: m.product_id, // most recent product in this thread
                             otherId,
                             lastMsg: m,
+                            lastRecvId: null,
                             unread: 0,
                         });
                     }
                     const c = convs.get(otherId);
+                    // Dènye mesaj NOU resevwa: sa ke « make kòm poko li » ap vire.
+                    if (m.receiver_id === uid && !c.lastRecvId) c.lastRecvId = m.id;
                     if (!m.read && m.receiver_id === uid) c.unread++;
                 });
 
@@ -8723,13 +8792,20 @@
                 // Fetch partner names + product info + my conversation meta in parallel
                 const otherIds = [...new Set(convList.map(c => c.otherId))];
                 const prodIds = [...new Set(convList.map(c => c.productId).filter(Boolean))];
-                const [profRes, prodRes, metaRes] = await Promise.all([
+                const [profRes, prodRes, metaRes, lblRes] = await Promise.all([
                     otherIds.length ? db.from('profiles').select('id, display_name, first_name, last_name, avatar_url, verified_seller, official_seller').in('id', otherIds) : Promise.resolve({ data: [] }),
                     prodIds.length ? db.from('products').select('id, title, price, images, seller_id').in('id', prodIds) : Promise.resolve({ data: [] }),
                     // Degrade an silans si migrasyon an poko sou pwodiksyon.
                     db.from('conversation_meta').select('contact_id, pinned, favorite, labels').eq('owner_id', uid)
                         .then(r => r, () => ({ data: [], error: true })),
+                    inboxCanLabel()
+                        ? db.from('conversation_labels').select('id, name, color').eq('owner_id', uid).order('created_at')
+                            .then(r => r, () => ({ data: [], error: true }))
+                        : Promise.resolve({ data: [] }),
                 ]);
+                A.inbox.labels = lblRes.error ? [] : (lblRes.data || []);
+                A.inbox.labelMap = {};
+                A.inbox.labels.forEach(l => { A.inbox.labelMap[l.id] = l; });
                 const profMap = {};
                 (profRes.data || []).forEach(p => { profMap[p.id] = p; });
                 const prodMap = {};
@@ -8758,6 +8834,7 @@
                         otherId: c.otherId,
                         productId: c.productId,
                         unread: c.unread,
+                        lastRecvId: c.lastRecvId,
                         at: c.lastMsg.created_at,
                         name,
                         avatar: partner.avatar_url || null,
@@ -8816,10 +8893,12 @@
                 + (count ? `<span class="ekv-chip-n">${count}</span>` : '') + '</button>';
             let html = chip('all', 'Tout', 0) + chip('unread', 'Poko li', nUnread) + chip('fav', 'Favori', nFav);
             if (inboxCanLabel()) {
-                CONV_LABEL_ORDER.forEach(k => {
-                    const n = convs.filter(c => convMeta(c.otherId).labels.indexOf(k) !== -1).length;
-                    if (n > 0) html += chip('lb:' + k, CONV_LABELS[k], n);
+                (A.inbox.labels || []).forEach(l => {
+                    const n = convs.filter(c => convMeta(c.otherId).labels.indexOf(l.id) !== -1).length;
+                    if (n > 0) html += chip('lb:' + l.id, l.name, n);
                 });
+                html += `<button class="ekv-chip" onclick="openLabelsScreen()" aria-label="Jere etikèt kliyan yo">
+          <span class="material-symbols-outlined" style="font-size:16px">sell</span>Etikèt</button>`;
             }
             wrap.innerHTML = html;
         }
@@ -8878,8 +8957,12 @@
                 : c.verified
                     ? '<span class="material-symbols-outlined fi flex-shrink-0 text-primary" style="font-size:14px" title="Vandè verifye">verified</span>'
                     : '';
-            const labelsHTML = m.labels.length
-                ? `<div class="ekv-lbs">${m.labels.filter(k => CONV_LABELS[k]).map(k => `<span class="ekv-lb ekv-lb-${k}">${esc(CONV_LABELS[k])}</span>`).join('')}</div>`
+            const shown = convLabelsOf(c.otherId);
+            const labelsHTML = shown.length
+                ? `<div class="ekv-lbs">${shown.map(id => {
+                    const l = convLabel(id);
+                    return `<span class="ekv-lb ekv-lb-c-${l.color}">${esc(l.name)}</span>`;
+                }).join('')}</div>`
                 : '';
             // Panno glise yo. `tabindex=-1`: yo double aksyon ki nan fèy `⋮` la,
             // ki rete chemen aksesib la (klavye / lektè ekran).
@@ -8887,12 +8970,15 @@
                 `<button class="ekv-sw-b" tabindex="-1" aria-hidden="true" style="background:${bg}"
            onclick="convSwipeAct('${kind}','${oid}')">
            <span class="material-symbols-outlined fi" style="font-size:20px">${icon}</span>${esc(label)}</button>`;
-            const left = (c.unread ? swb('l', 'read', '#00818c', 'mark_chat_read', 'Li') : '')
+            const canUnread = !!c.lastRecvId;
+            const left = (c.unread
+                ? swb('l', 'read', '#00818c', 'mark_chat_read', 'Li')
+                : canUnread ? swb('l', 'unread', '#00818c', 'mark_chat_unread', 'Poko li') : '')
                 + swb('l', 'pin', '#5d6a6a', 'push_pin', m.pinned ? 'Dekwoke' : 'Epengle');
             const right = swb('r', 'more', '#5d6a6a', 'more_horiz', 'Plis')
                 + swb('r', 'fav', '#c08a2e', 'star', m.favorite ? 'Retire' : 'Favori');
             return `
-      <div class="ekv-sw" data-lw="${c.unread ? 152 : 76}" data-rw="152" data-dx="0">
+      <div class="ekv-sw" data-lw="${(c.unread || canUnread) ? 152 : 76}" data-rw="152" data-dx="0">
         <div class="ekv-sw-l">${left}</div>
         <div class="ekv-sw-r">${right}</div>
         <div class="ekv-row">
@@ -9001,10 +9087,195 @@
             }, true);
         }
 
+        // ══════════════════════════════════════════════════════════
+        //  ETIKÈT KLIYAN — paj vandè a pou pèsonalize etikèt li yo
+        // ══════════════════════════════════════════════════════════
+        function openLabelsScreen() {
+            if (!inboxCanLabel()) { toast('Etikèt yo se pou vandè'); return; }
+            closeSheets();
+            // Depi lis mesaj la, `goBack` dwe tounen sou lis la, pa sou tab la.
+            // Nan ka sa openInbox() te deja anpile yon antre: nou pa double l.
+            A._lblFromInbox = !!document.getElementById('s-inbox')?.classList.contains('on');
+            if (!A._lblFromInbox) A.stack.push(A.tab);
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+            document.getElementById('s-labels').classList.add('on');
+            document.getElementById('bottomNav').classList.add('hidden');
+            document.getElementById('fab').classList.add('hidden');
+            document.getElementById('backbtn').classList.remove('hidden');
+            document.getElementById('backbtn').classList.add('flex');
+            document.getElementById('toptitle').textContent = 'Etikèt kliyan';
+            const logoEl = document.getElementById('headerLogo');
+            if (logoEl) logoEl.style.display = 'none';
+            document.getElementById('toptitle').style.display = '';
+            if (!A.inbox) A.inbox = { convs: [], meta: {}, labels: [], labelMap: {}, filter: 'all', q: '' };
+            renderLabelsScreen();
+            loadLabels();
+        }
+        window.openLabelsScreen = openLabelsScreen;
+
+        async function loadLabels() {
+            if (!db || !A.user?.uid) return;
+            const { data, error } = await db.from('conversation_labels')
+                .select('id, name, color').eq('owner_id', A.user.uid).order('created_at');
+            if (error) { console.warn('[Labels]', error.message); return; }
+            A.inbox.labels = data || [];
+            A.inbox.labelMap = {};
+            A.inbox.labels.forEach(l => { A.inbox.labelMap[l.id] = l; });
+            renderLabelsScreen();
+        }
+
+        function renderLabelsScreen() {
+            const el = document.getElementById('labelsContent');
+            if (!el) return;
+            const labels = (A.inbox && A.inbox.labels) || [];
+            // Konbyen konvèsasyon chak etikèt kouvri — sa bay yon sans a lis la.
+            const useCount = id => ((A.inbox && A.inbox.convs) || [])
+                .filter(c => convMeta(c.otherId).labels.indexOf(id) !== -1).length;
+            const rows = labels.map(l => {
+                const n = useCount(l.id);
+                return `
+        <div class="flex items-center gap-1 bg-surface-container-lowest rounded-2xl amb">
+          <button class="ekv-lbrow" onclick="openLabelEdit('${jsAttr(l.id)}')">
+            <span class="ekv-dot ekv-cs-${l.color}"></span>
+            <span class="flex-1 min-w-0 block">
+              <span class="block font-headline font-bold text-sm text-on-surface truncate">${esc(l.name)}</span>
+              <span class="block font-label text-[11px] text-on-surface-variant">${n ? n + ' konvèsasyon' : 'Poko itilize'}</span>
+            </span>
+            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:18px">edit</span>
+          </button>
+        </div>`;
+            }).join('');
+            el.innerHTML = `
+      <div class="px-4 pb-2">
+        <h2 class="ekv-title text-on-surface">Etikèt kliyan</h2>
+        <p class="font-body text-sm text-on-surface-variant mt-2">Chak etikèt ou kreye vin yon filtè anlè lis mesaj ou yo. Se ou menm sèl ki wè yo. Kliyan an pa janm konnen.</p>
+      </div>
+      <div class="px-4 pt-3 space-y-2">${rows}</div>
+      <div class="px-4 pt-4">
+        <button onclick="openLabelEdit('')" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-full cta font-label font-bold text-sm active:scale-95 amb">
+          <span class="material-symbols-outlined" style="font-size:19px">add</span>Nouvo etikèt
+        </button>
+      </div>
+      ${labels.length ? '' : `<div class="px-4 pt-2">${emptyState('sell', 'Poko gen etikèt', 'Kreye premye etikèt ou a pou w klase kliyan ou yo (nouvo kliyan, ap tann peman, elatriye).')}</div>`}`;
+        }
+
+        // id vid = kreyasyon. A._lblEdit kenbe brouyon an pandan fèy la ouvè.
+        function openLabelEdit(id) {
+            const cur = id ? convLabel(id) : null;
+            A._lblEdit = {
+                id: id || '',
+                name: cur ? cur.name : '',
+                color: cur ? cur.color : 'teal',
+            };
+            renderLabelEdit();
+            openSheet('labelEditSheet');
+        }
+        window.openLabelEdit = openLabelEdit;
+
+        function renderLabelEdit() {
+            const body = document.getElementById('labelEditBody');
+            const d = A._lblEdit;
+            if (!body || !d) return;
+            const swatches = LABEL_COLORS.map(c =>
+                `<button class="ekv-cs ekv-cs-${c}${d.color === c ? ' on' : ''}" aria-label="Koulè ${c}"
+           onclick="setLabelColor('${c}')"></button>`).join('');
+            const suggest = d.id ? '' : `
+      <p class="font-label text-[11px] font-bold text-on-surface-variant mt-5 mb-2" style="text-transform:uppercase;letter-spacing:.06em">Pwopozisyon</p>
+      <div class="space-y-1">
+        ${LABEL_SUGGEST.map((s, i) => `
+          <button class="ekv-lbrow" onclick="useLabelSuggest(${i})">
+            <span class="ekv-dot ekv-cs-${s.c}"></span>
+            <span class="flex-1 font-body text-sm text-on-surface">${esc(s.n)}</span>
+            <span class="material-symbols-outlined text-on-surface-variant" style="font-size:18px">north_east</span>
+          </button>`).join('')}
+      </div>`;
+            body.innerHTML = `
+      <div class="flex items-center justify-between mb-4">
+        <button onclick="closeSheets()" class="font-label text-sm font-bold text-on-surface-variant active:opacity-70">Anile</button>
+        <p class="font-headline font-extrabold text-base text-on-surface">${d.id ? 'Modifye etikèt' : 'Nouvo etikèt'}</p>
+        <button onclick="saveLabel()" class="font-label text-sm font-bold text-primary active:opacity-70">Anrejistre</button>
+      </div>
+      <p class="font-label text-[11px] font-bold text-on-surface-variant mb-2" style="text-transform:uppercase;letter-spacing:.06em">Non etikèt la</p>
+      <div class="ekv-search mb-3">
+        <input id="lblName" type="text" maxlength="24" autocomplete="off" value="${esc(d.name)}"
+          aria-label="Non etikèt la" placeholder="Egzanp: Kliyan fidèl, ap tann peman"
+          oninput="A._lblEdit.name = this.value"/>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap mb-1">${swatches}</div>
+      ${suggest}
+      ${d.id ? `
+        <button onclick="deleteLabel()" class="ekv-del w-full mt-5 py-3 rounded-full font-label font-bold text-sm active:opacity-80">Efase etikèt sa a</button>` : ''}`;
+        }
+
+        function setLabelColor(c) {
+            if (!A._lblEdit) return;
+            // Nou li chan an anvan re-rann nan, sinon sa moun nan tape pèdi.
+            const inp = document.getElementById('lblName');
+            if (inp) A._lblEdit.name = inp.value;
+            A._lblEdit.color = c;
+            renderLabelEdit();
+        }
+        window.setLabelColor = setLabelColor;
+
+        function useLabelSuggest(i) {
+            const s = LABEL_SUGGEST[i];
+            if (!s || !A._lblEdit) return;
+            A._lblEdit.name = s.n;
+            A._lblEdit.color = s.c;
+            renderLabelEdit();
+        }
+        window.useLabelSuggest = useLabelSuggest;
+
+        async function saveLabel() {
+            const d = A._lblEdit;
+            if (!d || !db || !A.user?.uid) return;
+            const inp = document.getElementById('lblName');
+            const name = ((inp ? inp.value : d.name) || '').trim();
+            if (!name) { toast('Bay etikèt la yon non'); return; }
+            if (name.length > 24) { toast('Non an twò long (24 karaktè max)'); return; }
+            const dup = (A.inbox.labels || []).some(l => l.id !== d.id && l.name.toLowerCase() === name.toLowerCase());
+            if (dup) { toast('Ou gen yon etikèt ak non sa a deja'); return; }
+            const res = d.id
+                ? await db.from('conversation_labels').update({ name, color: d.color }).eq('id', d.id).eq('owner_id', A.user.uid)
+                : await db.from('conversation_labels').insert({ owner_id: A.user.uid, name, color: d.color });
+            if (res.error) {
+                console.warn('[Labels] save', res.error.message);
+                toast('Nou pa t ka anrejistre etikèt la');
+                return;
+            }
+            closeSheets();
+            await loadLabels();
+            renderInboxChips(); renderInboxList();
+            toast(d.id ? 'Etikèt modifye' : 'Etikèt kreye');
+        }
+        window.saveLabel = saveLabel;
+
+        async function deleteLabel() {
+            const d = A._lblEdit;
+            if (!d || !d.id || !db || !A.user?.uid) return;
+            const { error } = await db.from('conversation_labels').delete().eq('id', d.id).eq('owner_id', A.user.uid);
+            if (error) {
+                console.warn('[Labels] delete', error.message);
+                toast('Nou pa t ka efase etikèt la');
+                return;
+            }
+            closeSheets();
+            // Trigger la retire id la nan baz la; nou fè menm bagay lokalman.
+            Object.keys(A.inbox.meta || {}).forEach(k => {
+                A.inbox.meta[k].labels = A.inbox.meta[k].labels.filter(x => x !== d.id);
+            });
+            if (A.inbox.filter === 'lb:' + d.id) A.inbox.filter = 'all';
+            await loadLabels();
+            renderInboxChips(); renderInboxList();
+            toast('Etikèt efase');
+        }
+        window.deleteLabel = deleteLabel;
+
         function convSwipeAct(kind, oid) {
             swClose(_swOpen);
             A._convMenuId = oid;
             if (kind === 'read') convMarkRead();
+            else if (kind === 'unread') convMarkUnread();
             else if (kind === 'pin') toggleConvPin();
             else if (kind === 'fav') toggleConvFav();
             else openConvMenu(oid);
@@ -9033,15 +9304,19 @@
            <span class="material-symbols-outlined text-primary${filled ? ' fi' : ''}" style="font-size:22px">${icon}</span>
            <span class="font-label text-sm font-bold text-on-surface">${esc(label)}</span>
          </button>`;
+            const labels = A.inbox.labels || [];
             const labelsHTML = inboxCanLabel()
                 ? `<div style="border-top:1px solid rgba(61,73,73,.12);margin-top:8px;padding-top:12px">
-             <p class="font-label text-[11px] font-bold text-on-surface-variant mb-2" style="text-transform:uppercase;letter-spacing:.06em">Etikèt kliyan</p>
-             <div class="flex flex-wrap gap-2">
-               ${CONV_LABEL_ORDER.map(k => {
-                    const on = m.labels.indexOf(k) !== -1;
-                    return `<button class="ekv-lb ekv-lbbtn ${on ? 'ekv-lb-' + k : 'off'}" onclick="toggleConvLabel('${k}')">${esc(CONV_LABELS[k])}</button>`;
-                }).join('')}
+             <div class="flex items-center justify-between mb-2">
+               <p class="font-label text-[11px] font-bold text-on-surface-variant" style="text-transform:uppercase;letter-spacing:.06em">Etikèt kliyan</p>
+               <button onclick="openLabelsScreen()" class="font-label text-xs font-bold text-primary active:opacity-70">Jere</button>
              </div>
+             ${labels.length
+                    ? `<div class="flex flex-wrap gap-2">${labels.map(l => {
+                        const on = m.labels.indexOf(l.id) !== -1;
+                        return `<button class="ekv-lb ekv-lbbtn ${on ? 'ekv-lb-c-' + l.color : 'off'}" onclick="toggleConvLabel('${jsAttr(l.id)}')">${esc(l.name)}</button>`;
+                    }).join('')}</div>`
+                    : `<p class="font-body text-xs text-on-surface-variant">Ou poko kreye okenn etikèt. Kreye pa ou yo pou w klase kliyan ou yo.</p>`}
            </div>`
                 : '';
             body.innerHTML = `
@@ -9049,7 +9324,9 @@
       <p class="font-label text-xs text-on-surface-variant mb-3">${c.unread ? c.unread + ' mesaj ou poko li' : 'Tout mesaj li'}</p>
       ${act('push_pin', !m.pinned, m.pinned ? 'Retire epengle a' : 'Epengle anlè lis la', 'toggleConvPin()')}
       ${act('star', !m.favorite, m.favorite ? 'Retire nan favori' : 'Mete nan favori', 'toggleConvFav()')}
-      ${c.unread ? act('mark_chat_read', true, 'Make kòm li', 'convMarkRead()') : ''}
+      ${c.unread
+                    ? act('mark_chat_read', true, 'Make kòm li', 'convMarkRead()')
+                    : c.lastRecvId ? act('mark_chat_unread', true, 'Make kòm poko li', 'convMarkUnread()') : ''}
       ${labelsHTML}`;
         }
 
@@ -9106,6 +9383,32 @@
             if (typeof refreshUserStats === 'function') refreshUserStats();
         }
         window.convMarkRead = convMarkRead;
+
+        // Make kòm poko li: nou vire SÈLMAN dènye mesaj nou resevwa a. Vire
+        // tout tras la ta fè badj la monte san rezon ak ta efase istorik lekti.
+        async function convMarkUnread() {
+            const otherId = A._convMenuId;
+            const c = A.inbox && A.inbox.convs.find(x => x.otherId === otherId);
+            if (!c || c.unread || !c.lastRecvId || !A.user?.uid) return;
+            closeSheets();
+            c.unread = 1;
+            A.unreadMsgCount = (A.unreadMsgCount || 0) + 1;
+            if (typeof updateMsgBadge === 'function') updateMsgBadge();
+            renderInboxChips(); renderInboxList();
+            if (!db) return;
+            const { error } = await db.from('messages').update({ read: false }).eq('id', c.lastRecvId);
+            if (error) {
+                console.warn('[Inbox] markUnread', error.message);
+                c.unread = 0;
+                A.unreadMsgCount = Math.max(0, (A.unreadMsgCount || 0) - 1);
+                if (typeof updateMsgBadge === 'function') updateMsgBadge();
+                renderInboxChips(); renderInboxList();
+                toast('Nou pa t ka make l poko li');
+                return;
+            }
+            if (typeof refreshUserStats === 'function') refreshUserStats();
+        }
+        window.convMarkUnread = convMarkUnread;
 
         // Open a conversation from the inbox — works for both buyer and seller
         async function openConversation(productId, otherId, otherName) {
