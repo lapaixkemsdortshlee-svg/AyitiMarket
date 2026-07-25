@@ -690,6 +690,8 @@
         .role-chip--seller-v { background: #00666f; color: #fcf9f4; }
         .role-chip--seller-p { background: rgba(151, 66, 43, .1); color: #97422b; }
         .role-chip--admin { background: #97422b; color: #fcf9f4; }
+        .role-chip--seller-o { background: linear-gradient(135deg,#d4af37,#b8860b); color: #fff; }
+        body.dark .role-chip--seller-o { background: linear-gradient(135deg,#f0cc5a,#c9992a); color: #241d05; }
         body.dark .role-chip--buyer { background: rgba(90, 215, 230, .12); color: #5ad7e6; }
         body.dark .role-chip--seller-p { background: rgba(249, 145, 136, .12); color: #f99188; }
 
@@ -4901,6 +4903,7 @@
                 rb.innerHTML = '<span class="material-symbols-outlined fi">' + icon + '</span>' + label;
             };
             if (A.user.role === "admin") chip('role-chip--admin', 'admin_panel_settings', 'Admin');
+            else if (A.user.official) chip('role-chip--seller-o', 'workspace_premium', 'Boutik Ofisyèl');
             else if (A.user.verifiedSeller) chip('role-chip--seller-v', 'verified', 'Vandè · Verifye');
             else if (A.user.role === "seller") chip('role-chip--seller-p', 'storefront', 'Vandè · An atant');
             else chip('role-chip--buyer', 'shopping_bag', 'Achtè');
@@ -7354,8 +7357,9 @@
             <h2 class="font-headline font-extrabold text-xl text-on-surface tracking-tight truncate">${esc(u.name)}</h2>
             <p class="font-label text-xs text-on-surface-variant mt-0.5 truncate">${u.moncashNumber || u.phone || ""}</p>
           </div>
-          <span class="font-label text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 flex items-center gap-1" style="background:rgba(0,102,111,.08);color:#00666f">
+          <span class="font-label text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 flex items-center gap-1${u.official ? ' badge-gold' : ''}" style="${u.official ? '' : 'background:rgba(0,102,111,.08);color:#00666f'}">
             ${u.role === "admin" ? '<span class="material-symbols-outlined fi" style="font-size:12px">shield</span>Admin'
+                    : u.official ? '<span class="material-symbols-outlined fi" style="font-size:12px">workspace_premium</span>Ofisyèl'
                     : u.verifiedSeller ? '<span class="material-symbols-outlined fi" style="font-size:12px">verified</span>Vandè'
                         : u.role === "seller" ? 'Vandè (an atant)'
                             : '<span class="material-symbols-outlined fi" style="font-size:12px">shopping_bag</span>Achtè'}
@@ -7617,6 +7621,7 @@
                         sellerId: sid,
                         sellerName: p.sellerName || 'Boutik',
                         sellerVerified: !!p.b || !!p.sellerVerified,
+                        sellerOfficial: p.b === 'Ofisyèl' || !!p.sellerOfficial,
                         items: [], total: 0,
                     });
                 }
@@ -7679,7 +7684,9 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1.5">
                 <p class="font-headline font-bold text-sm text-on-surface truncate">${g.sellerName || 'Boutik'}</p>
-                ${g.sellerVerified ? '<span class="material-symbols-outlined fi text-primary" style="font-size:14px">verified</span>' : ''}
+                ${g.sellerOfficial
+                ? '<span class="material-symbols-outlined fi gold-ink" style="font-size:14px" title="Boutik Ofisyèl">workspace_premium</span>'
+                : g.sellerVerified ? '<span class="material-symbols-outlined fi text-primary" style="font-size:14px">verified</span>' : ''}
               </div>
               <p class="font-label text-[11px] text-on-surface-variant">${g.items.length} atik · ${g.items.reduce((s, it) => s + it.qty, 0)} pyès</p>
             </div>
@@ -13461,7 +13468,7 @@
                     // 2) Fallback: rechèch pasyèl dirèk (migration poko la — pa gen filtre
                     //    kategori isit, li mache sèlman via RPC la)
                     let sq = db.from('profiles')
-                        .select('id, display_name, avatar_url, verified_seller, rating_avg, review_count, location')
+                        .select('id, display_name, avatar_url, verified_seller, official_seller, rating_avg, review_count, location')
                         .eq('role', 'seller').eq('status', 'active');
                     if (query) sq = sq.ilike('display_name', '%' + query + '%');
                     if (zone) sq = sq.ilike('location', '%' + zone + '%');
@@ -13484,7 +13491,9 @@
             const avatar = s.avatar_url
                 ? '<img src="' + esc(s.avatar_url) + '" alt="Foto boutik ' + name + '" class="w-11 h-11 rounded-full object-cover flex-shrink-0"/>'
                 : '<div class="w-11 h-11 rounded-full flex items-center justify-center font-headline font-bold text-white flex-shrink-0" style="background:#00666f">' + esc(initials) + '</div>';
-            const verified = s.verified_seller
+            const verified = s.official_seller
+                ? '<span class="material-symbols-outlined fi gold-ink" style="font-size:14px" title="Boutik Ofisyèl">workspace_premium</span>'
+                : s.verified_seller
                 ? '<span class="material-symbols-outlined fi" style="font-size:14px;color:#00666f" title="Verifye">verified</span>'
                 : '';
             const meta = (loc ? loc + ' · ' : '') + (rating > 0 ? '★ ' + rating.toFixed(1) + ' (' + rc + ')' : 'Pa gen nòt');
@@ -13546,7 +13555,7 @@
                 } else {
                     // Fallback san RPC (pa gen filtre kategori)
                     let sq = db.from('profiles')
-                        .select('id, display_name, avatar_url, verified_seller, rating_avg, review_count, location')
+                        .select('id, display_name, avatar_url, verified_seller, official_seller, rating_avg, review_count, location')
                         .eq('role', 'seller').eq('status', 'active');
                     if (q) sq = sq.ilike('display_name', '%' + q + '%');
                     if (zone) sq = sq.ilike('location', '%' + zone + '%');
@@ -15428,7 +15437,7 @@
                         b: p.seller?.official_seller ? 'Ofisyèl' : (p.seller?.verified_seller ? 'Verifye' : ''), sellerId: p.seller_id,
                         sellerName: p.seller?.display_name || 'Vandè',
                         sellerAvatarUrl: p.seller?.avatar_url || null,
-                        sellerVerified: !!p.seller?.verified_seller,
+                        sellerVerified: !!p.seller?.verified_seller, sellerOfficial: !!p.seller?.official_seller,
                         sizes: p.sizes || [], e: 'palette', ec: '#7c3aed',
                     };
                     const i = PRODUCTS.findIndex(x => x.id === mapped.id);
@@ -16051,6 +16060,9 @@
             verifiedSeller: (profile && 'verified_seller' in profile)
                 ? !!profile.verified_seller
                 : !!cachedSelf?.verifiedSeller,
+            official: (profile && 'official_seller' in profile)
+                ? !!profile.official_seller
+                : !!cachedSelf?.official,
             photoURL: profile?.avatar_url || meta.avatar_url || meta.picture || cachedSelf?.photoURL || null,
             coverURL: profile?.cover_url || cachedSelf?.coverURL || null,
             salesCount: profile?.sales_count ?? cachedSelf?.salesCount ?? 0,
@@ -16607,7 +16619,7 @@
             b: p.seller?.official_seller ? 'Ofisyèl' : (p.seller?.verified_seller ? 'Verifye' : ''), sellerId: p.seller_id,
             sellerName: p.seller?.display_name || 'Vandè',
             sellerAvatarUrl: p.seller?.avatar_url || null,
-            sellerVerified: !!p.seller?.verified_seller,
+            sellerVerified: !!p.seller?.verified_seller, sellerOfficial: !!p.seller?.official_seller,
             sizes: p.sizes || [],
             e: 'palette', ec: '#7c3aed',
         };
@@ -16899,6 +16911,7 @@
                 users.forEach(u => ADMIN_USERS.push({
                     uid: u.id, name: u.display_name || (u.first_name + ' ' + (u.last_name || '')).trim(),
                     role: u.role || 'buyer', verified: u.verified_seller || false,
+                    official: u.official_seller || false,
                     status: u.status || 'active', orders: u.order_count || 0, sales: u.sales_count || 0,
                     banned_until: u.banned_until || null, ban_reason: u.ban_reason || null,
                 }));
