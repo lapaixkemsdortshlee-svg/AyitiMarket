@@ -389,7 +389,7 @@
         }
 
         /* ── Lis konvèsasyon yo (Mesaj yo) — gwo tit, rechèch, chip, etikèt ── */
-        .ekv-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 2rem; line-height: 1.05; letter-spacing: -.03em; }
+        .ekv-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.75rem; line-height: 1.05; letter-spacing: -.03em; }
         .ekv-search { display: flex; align-items: center; gap: 8px; background: #e5e2dd; border-radius: 999px; padding: 0 14px; }
         body.dark .ekv-search { background: #383834; }
         .ekv-search input { flex: 1 1 auto; min-width: 0; background: none; border: 0; outline: none; padding: 11px 0; font-family: 'Manrope', sans-serif; font-size: 14px; color: #1c1c19; }
@@ -627,7 +627,10 @@
             z-index: 90;
             background: #fcf9f4;
             border-radius: 1.5rem 1.5rem 0 0;
-            padding: 1.5rem 1.5rem calc(env(safe-area-inset-bottom)+1.5rem);
+            /* Espas obligatwa otou `+` la: san yo calc() la envalid epi
+               navigatè a jete TOUT deklarasyon `padding` la (fèy yo te kole
+               nan bò ekran an). */
+            padding: 1.5rem 1.5rem calc(env(safe-area-inset-bottom) + 1.5rem);
             max-height: 92dvh;
             overflow-y: auto;
             transform: translateY(100%);
@@ -2516,14 +2519,14 @@
      SCREEN — ETIKÈT KLIYAN (vandè sèlman)
 ══════════════════════════════════════════════════════ -->
     <div class="screen pb-32 max-w-lg mx-auto" id="s-labels">
-        <div class="pt-24" id="labelsContent"></div>
+        <div class="pt-20" id="labelsContent"></div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════
      SCREEN — INBOX / MESAJ YO (Conversations)
 ══════════════════════════════════════════════════════ -->
     <div class="screen pb-32 max-w-lg mx-auto" id="s-inbox">
-        <div class="pt-24" id="inboxContent"></div>
+        <div class="pt-20" id="inboxContent"></div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════
@@ -3193,17 +3196,13 @@
     </div>
 
     <!-- Aksyon sou yon konvèsasyon (epingle, favori, etikèt) -->
-    <!-- NOTE: `.sheet` gen yon `padding` ki envalid (calc(env(...)+1.5rem) san
-         espas otou +), kidonk navigatè a jete l. Nou mete pa nou an isit la. -->
-    <div class="sheet" id="convMenuSheet"
-        style="max-height:82vh;overflow-y:auto;padding:1.25rem 1.25rem calc(env(safe-area-inset-bottom) + 1.5rem)">
+    <div class="sheet" id="convMenuSheet" style="max-height:82vh;overflow-y:auto">
         <div class="handle"></div>
         <div id="convMenuBody"></div>
     </div>
 
     <!-- Kreye / modifye yon etikèt kliyan -->
-    <div class="sheet" id="labelEditSheet"
-        style="max-height:88vh;overflow-y:auto;padding:1.25rem 1.25rem calc(env(safe-area-inset-bottom) + 1.5rem)">
+    <div class="sheet" id="labelEditSheet" style="max-height:88vh;overflow-y:auto">
         <div class="handle"></div>
         <div id="labelEditBody"></div>
     </div>
@@ -8863,7 +8862,9 @@
             // Rechèch ak filtè yo parèt sèlman lè gen konvèsasyon — yon bwat
             // rechèch sou yon lis vid se dekò, li pa ede pèsonn.
             if (!A.inbox.convs.length) {
-                el.innerHTML = title + '<div class="px-2">'
+                // Yon ti souf anplis anba tit la: san li blòk vid la kole twò
+                // wo, jis anba « Mesaj yo ».
+                el.innerHTML = title + '<div class="px-2" style="padding-top:34px">'
                     + emptyState('forum', 'Pa gen mesaj', 'Konvèsasyon ou yo ap parèt la') + '</div>';
                 return;
             }
