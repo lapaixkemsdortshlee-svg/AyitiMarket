@@ -4794,6 +4794,15 @@
         //  BOOT APP — after successful auth
         // ══════════════════════════════════════════════════════════
         function bootApp() {
+            // GARANTI: yon kont konekte PA janm rive nan feed la san wòl.
+            // Se sèl pwen pasaj la, konsa okenn chemen (minitè splash,
+            // minitè sekirite 10s, kach lokal, oswa yon chemen fiti) pa ka
+            // kontounen ekran chwazi pwofil la. Mòd envite pa pase isit.
+            if (A.user && !A.user.role) {
+                A.booted = false;
+                _showRoleScreen();
+                return;
+            }
             document.getElementById("topbar").classList.remove("hidden");
             document.getElementById("bottomNav").classList.remove("hidden");
             document.getElementById("fab").classList.remove("hidden");
@@ -16127,7 +16136,7 @@
                 const safetyTimer = setTimeout(() => {
                     console.warn('[Auth] Safety timeout');
                     hideAuthLoader();
-                    if (!A.booted) { hideSplash(); if (A.user) { A.booted = true; bootApp(); } else { goTo('s-login'); } }
+                    if (!A.booted) { hideSplash(); if (A.user && A.user.role) { A.booted = true; bootApp(); } else if (A.user) { _showRoleScreen(); } else { goTo('s-login'); } }
                 }, 10000);
                 try {
                     const result = await handleAuthSession(session);
@@ -16154,7 +16163,7 @@
                     const safetyTimer = setTimeout(() => {
                         console.warn('[Auth] Safety timeout');
                         hideAuthLoader();
-                        if (!A.booted) { hideSplash(); if (A.user) { A.booted = true; bootApp(); } else { goTo('s-login'); } }
+                        if (!A.booted) { hideSplash(); if (A.user && A.user.role) { A.booted = true; bootApp(); } else if (A.user) { _showRoleScreen(); } else { goTo('s-login'); } }
                     }, 10000);
                     try {
                         const result = await handleAuthSession(session);
