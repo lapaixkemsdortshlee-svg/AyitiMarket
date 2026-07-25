@@ -388,6 +388,49 @@
             .ekm-dot::after { animation: none; opacity: 0; }
         }
 
+        /* ── Lis konvèsasyon yo (Mesaj yo) — gwo tit, rechèch, chip, etikèt ── */
+        .ekv-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 2rem; line-height: 1.05; letter-spacing: -.03em; }
+        .ekv-search { display: flex; align-items: center; gap: 8px; background: #e5e2dd; border-radius: 999px; padding: 0 14px; }
+        body.dark .ekv-search { background: #383834; }
+        .ekv-search input { flex: 1 1 auto; min-width: 0; background: none; border: 0; outline: none; padding: 11px 0; font-family: 'Manrope', sans-serif; font-size: 14px; color: #1c1c19; }
+        body.dark .ekv-search input { color: #fcf9f4; }
+        .ekv-search input::placeholder { color: #6d7979; }
+        .ekv-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+        .ekv-chips::-webkit-scrollbar { display: none; }
+        .ekv-chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 8px 15px; border: 0; border-radius: 999px; background: #e5e2dd; color: #3d4949; font-family: 'Manrope', sans-serif; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: background .15s ease, color .15s ease; }
+        body.dark .ekv-chip { background: #383834; color: #a8b0b0; }
+        .ekv-chip.on { background: #8cf2ff; color: #001f23; }
+        body.dark .ekv-chip.on { background: #00666f; color: #d6fbff; }
+        .ekv-chip-n { font-size: 11.5px; font-weight: 800; opacity: .8; }
+        .ekv-row { display: flex; align-items: center; gap: 2px; border-radius: 16px; transition: background .15s ease; }
+        .ekv-row:active { background: rgba(0,102,111,.07); }
+        body.dark .ekv-row:active { background: rgba(90,215,230,.09); }
+        .ekv-open { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 10px 4px 10px 10px; background: none; border: 0; text-align: left; cursor: pointer; }
+        .ekv-more { flex: 0 0 auto; width: 34px; height: 34px; margin-right: 4px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; background: none; color: #6d7979; cursor: pointer; }
+        .ekv-more:active { background: rgba(0,0,0,.06); }
+        body.dark .ekv-more { color: #a8b0b0; }
+        .ekv-av { width: 52px; height: 52px; border-radius: 999px; flex: 0 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg,#00666f,#00818c); }
+        .ekv-av img { width: 100%; height: 100%; object-fit: cover; }
+        .ekv-lbs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+        .ekv-lb { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-family: 'Manrope', sans-serif; font-size: 10px; font-weight: 700; line-height: 1.6; }
+        .ekv-lb::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: 0 0 auto; }
+        .ekv-lb-nouvo { background: rgba(0,102,111,.12); color: #00565e; }
+        .ekv-lb-komann { background: rgba(0,32,159,.10); color: #00209f; }
+        .ekv-lb-tann_peman { background: rgba(151,66,43,.12); color: #8d3b26; }
+        .ekv-lb-peye { background: rgba(31,122,77,.13); color: #1a6a42; }
+        .ekv-lb-fini { background: rgba(93,106,106,.14); color: #4f5c5c; }
+        body.dark .ekv-lb-nouvo { background: rgba(90,215,230,.16); color: #5ad7e6; }
+        body.dark .ekv-lb-komann { background: rgba(107,155,255,.16); color: #6b9bff; }
+        body.dark .ekv-lb-tann_peman { background: rgba(249,145,136,.16); color: #f99188; }
+        body.dark .ekv-lb-peye { background: rgba(99,210,154,.16); color: #63d29a; }
+        body.dark .ekv-lb-fini { background: rgba(163,172,172,.16); color: #a3acac; }
+        .ekv-lb.off { background: transparent; color: #6d7979; box-shadow: inset 0 0 0 1px rgba(61,73,73,.22); }
+        body.dark .ekv-lb.off { color: #a8b0b0; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+        .ekv-lbbtn { padding: 6px 12px; font-size: 11.5px; border: 0; cursor: pointer; }
+        .ekv-act { width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 4px; background: none; border: 0; text-align: left; cursor: pointer; border-radius: 12px; }
+        .ekv-act:active { background: rgba(0,102,111,.07); }
+        body.dark .ekv-act:active { background: rgba(90,215,230,.09); }
+
         @keyframes slideup {
             from {
                 opacity: 0;
@@ -3102,6 +3145,15 @@
                 id="nt-system" onclick="switchNotifTab('system')">Sistèm</button>
         </div>
         <div class="space-y-2" id="notifList"></div>
+    </div>
+
+    <!-- Aksyon sou yon konvèsasyon (epingle, favori, etikèt) -->
+    <!-- NOTE: `.sheet` gen yon `padding` ki envalid (calc(env(...)+1.5rem) san
+         espas otou +), kidonk navigatè a jete l. Nou mete pa nou an isit la. -->
+    <div class="sheet" id="convMenuSheet"
+        style="max-height:82vh;overflow-y:auto;padding:1.25rem 1.25rem calc(env(safe-area-inset-bottom) + 1.5rem)">
+        <div class="handle"></div>
+        <div id="convMenuBody"></div>
     </div>
 
     <!-- Success overlay -->
@@ -8576,8 +8628,30 @@
         }
 
         // ══════════════════════════════════════════════════════════
-        //  INBOX — Conversation history for buyers + sellers
+        //  INBOX — Lis konvèsasyon yo (stil WhatsApp, mak Ekomat)
+        //  Yon liy pa kontak, gwo tit + rechèch + filtè. Meta pa itilizatè
+        //  (epingle / favori / etikèt) rete nan `conversation_meta`. Si tab
+        //  la poko deplwaye, tout bagay degrade sou yon lis san meta.
         // ══════════════════════════════════════════════════════════
+        const CONV_LABELS = {
+            nouvo: 'Nouvo kliyan',
+            komann: 'Nouvo kòmann',
+            tann_peman: 'Ap tann peman',
+            peye: 'Peye',
+            fini: 'Kòmann fini',
+        };
+        const CONV_LABEL_ORDER = ['nouvo', 'komann', 'tann_peman', 'peye', 'fini'];
+
+        // Etikèt yo se yon zouti vandè (klase kliyan yo), pa yon zouti achtè.
+        function inboxCanLabel() {
+            return A.user?.role === 'seller' || A.user?.role === 'admin';
+        }
+
+        function convMeta(otherId) {
+            const m = A.inbox && A.inbox.meta ? A.inbox.meta[otherId] : null;
+            return m || { pinned: false, favorite: false, labels: [] };
+        }
+
         function openInbox() {
             if (!requireLogin(() => openInbox(), 'Konekte pou wè mesaj ou yo')) return;
             A.stack.push(A.tab);
@@ -8587,13 +8661,15 @@
             document.getElementById('fab').classList.add('hidden');
             document.getElementById('backbtn').classList.remove('hidden');
             document.getElementById('backbtn').classList.add('flex');
-            document.getElementById('toptitle').textContent = 'Mesaj yo';
+            // Gwo tit la viv nan paj la (stil WhatsApp) — pa double l nan bar la.
+            document.getElementById('toptitle').textContent = '';
             const logoEl = document.getElementById('headerLogo');
             if (logoEl) logoEl.style.display = 'none';
             document.getElementById('toptitle').style.display = '';
             const el = document.getElementById('inboxContent');
             if (!el) return;
-            el.innerHTML = '<div class="px-5 pt-6">' + skeletonCards(4) + '</div>';
+            A.inbox = { convs: [], meta: {}, filter: 'all', q: '' };
+            el.innerHTML = '<div class="px-4 pt-2 space-y-2">' + skeletonCards(5) + '</div>';
             loadInboxFromSupabase();
         }
 
@@ -8601,6 +8677,7 @@
             const el = document.getElementById('inboxContent');
             if (!el || !db || !A.user?.uid) return;
             const uid = A.user.uid;
+            if (!A.inbox) A.inbox = { convs: [], meta: {}, filter: 'all', q: '' };
             try {
                 // Fetch all messages I'm part of, newest first
                 const { data, error } = await db.from('messages')
@@ -8609,90 +8686,310 @@
                     .order('created_at', { ascending: false })
                     .limit(500);
                 if (error) throw error;
-                if (!data || data.length === 0) {
-                    el.innerHTML = '<div class="px-5 pt-6"><div class="flex flex-col items-center justify-center py-16 text-center"><span class="material-symbols-outlined text-on-surface-variant mb-3" style="font-size:56px">forum</span><h3 class="font-headline font-bold text-lg text-on-surface mb-1">Pa gen mesaj</h3><p class="font-body text-sm text-on-surface-variant">Konvèsasyon ou yo ap parèt la</p></div></div>';
-                    return;
-                }
 
                 // Group by CONTACT (otherPartyId) — one row per person, like WhatsApp.
                 // All messages across every product between the two users collapse here.
                 // Messages are already ordered newest-first, so the first sighting of
                 // an otherId becomes `lastMsg` (which also pins the most recent product).
                 const convs = new Map();
-                data.forEach(m => {
+                (data || []).forEach(m => {
                     const otherId = m.sender_id === uid ? m.receiver_id : m.sender_id;
                     if (!otherId || otherId === uid) return; // ignore self / orphaned rows
-                    const key = otherId;
-                    if (!convs.has(key)) {
-                        convs.set(key, {
+                    if (!convs.has(otherId)) {
+                        convs.set(otherId, {
                             productId: m.product_id, // most recent product in this thread
                             otherId,
                             lastMsg: m,
                             unread: 0,
                         });
                     }
-                    const c = convs.get(key);
+                    const c = convs.get(otherId);
                     if (!m.read && m.receiver_id === uid) c.unread++;
                 });
 
                 const convList = Array.from(convs.values());
 
-                // Fetch partner names + product info in parallel
+                // Fetch partner names + product info + my conversation meta in parallel
                 const otherIds = [...new Set(convList.map(c => c.otherId))];
                 const prodIds = [...new Set(convList.map(c => c.productId).filter(Boolean))];
-                const [profRes, prodRes] = await Promise.all([
-                    otherIds.length ? db.from('profiles').select('id, display_name, first_name, last_name, avatar_url, verified_seller').in('id', otherIds) : Promise.resolve({ data: [] }),
+                const [profRes, prodRes, metaRes] = await Promise.all([
+                    otherIds.length ? db.from('profiles').select('id, display_name, first_name, last_name, avatar_url, verified_seller, official_seller').in('id', otherIds) : Promise.resolve({ data: [] }),
                     prodIds.length ? db.from('products').select('id, title, price, images, seller_id').in('id', prodIds) : Promise.resolve({ data: [] }),
+                    // Degrade an silans si migrasyon an poko sou pwodiksyon.
+                    db.from('conversation_meta').select('contact_id, pinned, favorite, labels').eq('owner_id', uid)
+                        .then(r => r, () => ({ data: [], error: true })),
                 ]);
                 const profMap = {};
                 (profRes.data || []).forEach(p => { profMap[p.id] = p; });
                 const prodMap = {};
                 (prodRes.data || []).forEach(p => { prodMap[p.id] = p; });
+                A.inbox.meta = {};
+                if (!metaRes.error) {
+                    (metaRes.data || []).forEach(m => {
+                        A.inbox.meta[m.contact_id] = {
+                            pinned: !!m.pinned, favorite: !!m.favorite,
+                            labels: Array.isArray(m.labels) ? m.labels : [],
+                        };
+                    });
+                }
 
-                const itemsHTML = convList.map(c => {
-                    const partner = profMap[c.otherId] || { display_name: null, first_name: null, last_name: null, avatar_url: null };
-                    const partnerName = partner.display_name
+                A.inbox.convs = convList.map(c => {
+                    const partner = profMap[c.otherId] || {};
+                    const name = partner.display_name
                         || [partner.first_name, partner.last_name].filter(Boolean).join(' ').trim()
                         || 'Itilizatè';
                     const prod = prodMap[c.productId] || null;
-                    const img = prod && prod.images && prod.images[0] ? prod.images[0] : null;
-                    const initials = partnerName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'U';
-                    const preview = (() => {
-                        const raw = c.lastMsg.content || '';
-                        if (raw.startsWith('[LOC]')) return '📍 Lokalisasyon pataje';
-                        if (raw.startsWith('[VOICE]')) return '🎙️ Nòt vokal';
-                        return raw.length > 80 ? raw.slice(0, 80) + '…' : raw;
-                    })();
-                    const pidAttr = typeof c.productId === 'string' ? `'${c.productId.replace(/'/g, "\\'")}'` : c.productId;
-                    const partnerNameAttr = jsAttr(partnerName);
-                    const otherIdAttr = `'${c.otherId}'`;
-                    return `
-      <button onclick="openConversation(${pidAttr}, ${otherIdAttr}, '${partnerNameAttr}')"
-        class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-container-lowest active:bg-surface-container-low amb text-left">
-        <div class="w-12 h-12 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center" style="background:linear-gradient(135deg,#00666f,#00818c)">
-          ${partner.avatar_url ? `<img alt="Foto pwofil" src="${esc(partner.avatar_url)}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'font-headline font-bold text-white text-sm\\'>${initials}</span>'"/>` : `<span class="font-headline font-bold text-white text-sm">${initials}</span>`}
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center justify-between gap-2">
-            <p class="font-headline font-bold text-sm text-on-surface truncate">${partnerName}</p>
-            <span class="font-label text-[11px] text-on-surface-variant flex-shrink-0">${timeAgo(c.lastMsg.created_at)}</span>
-          </div>
-          ${prod ? `<p class="font-label text-[11px] text-primary truncate">${esc(prod.title)}</p>` : ''}
-          <div class="flex items-center justify-between gap-2 mt-0.5">
-            <p class="font-body text-xs text-on-surface-variant truncate">${preview}</p>
-            ${c.unread > 0 ? `<span class="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full text-white text-[11px] font-bold flex items-center justify-center" style="background:#98443e;font-family:'Manrope',sans-serif">${c.unread}</span>` : ''}
-          </div>
-        </div>
-      </button>`;
-                }).join('');
+                    const raw = c.lastMsg.content || '';
+                    const preview = raw.startsWith('[LOC]') ? '📍 Lokalisasyon pataje'
+                        : raw.startsWith('[VOICE]') ? '🎙️ Nòt vokal'
+                        : (raw.length > 80 ? raw.slice(0, 80) + '…' : raw);
+                    return {
+                        otherId: c.otherId,
+                        productId: c.productId,
+                        unread: c.unread,
+                        at: c.lastMsg.created_at,
+                        name,
+                        avatar: partner.avatar_url || null,
+                        verified: !!partner.verified_seller,
+                        official: !!partner.official_seller,
+                        prodTitle: prod ? prod.title : null,
+                        preview,
+                    };
+                });
 
-                el.innerHTML = `<div class="px-5 pt-6 space-y-2">${itemsHTML}</div>`;
+                renderInbox();
             } catch(e) {
                 console.warn('[Inbox]', e.message);
                 el.innerHTML = '<div class="px-5 pt-6">' + errorState('Erè nan chaje mesaj yo', 'Nou pa t ka jwenn mesaj ou yo. Eseye ankò.', 'loadInboxFromSupabase()') + '</div>';
             }
         }
         window.loadInboxFromSupabase = loadInboxFromSupabase;
+
+        // Tout kokiy la: gwo tit + rechèch + chip. Rele yon sèl fwa apre chajman;
+        // apre sa se sèlman #inboxChips ak #inboxList ki re-rann, konsa chan
+        // rechèch la pa pèdi fokis la pandan w ap tape.
+        function renderInbox() {
+            const el = document.getElementById('inboxContent');
+            if (!el) return;
+            const title = '<div class="px-4 pb-3"><h2 class="ekv-title text-on-surface">Mesaj yo</h2></div>';
+            // Rechèch ak filtè yo parèt sèlman lè gen konvèsasyon — yon bwat
+            // rechèch sou yon lis vid se dekò, li pa ede pèsonn.
+            if (!A.inbox.convs.length) {
+                el.innerHTML = title + '<div class="px-2">'
+                    + emptyState('forum', 'Pa gen mesaj', 'Konvèsasyon ou yo ap parèt la') + '</div>';
+                return;
+            }
+            el.innerHTML = title + `
+      <div class="px-4 pb-3">
+        <div class="ekv-search">
+          <span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">search</span>
+          <input id="inboxSearch" type="search" autocomplete="off" placeholder="Chèche yon konvèsasyon…"
+            aria-label="Chèche nan konvèsasyon yo" value="${esc(A.inbox.q)}" oninput="inboxSearchInput(this.value)"/>
+        </div>
+      </div>
+      <div class="px-4 pb-2 ekv-chips" id="inboxChips"></div>
+      <div class="px-2 pt-1" id="inboxList"></div>`;
+            renderInboxChips();
+            renderInboxList();
+        }
+
+        function renderInboxChips() {
+            const wrap = document.getElementById('inboxChips');
+            if (!wrap || !A.inbox) return;
+            const convs = A.inbox.convs;
+            const nUnread = convs.filter(c => c.unread > 0).length;
+            const nFav = convs.filter(c => convMeta(c.otherId).favorite).length;
+            const chip = (key, label, count) =>
+                `<button class="ekv-chip${A.inbox.filter === key ? ' on' : ''}" onclick="inboxSetFilter('${key}')">${esc(label)}`
+                + (count ? `<span class="ekv-chip-n">${count}</span>` : '') + '</button>';
+            let html = chip('all', 'Tout', 0) + chip('unread', 'Poko li', nUnread) + chip('fav', 'Favori', nFav);
+            if (inboxCanLabel()) {
+                CONV_LABEL_ORDER.forEach(k => {
+                    const n = convs.filter(c => convMeta(c.otherId).labels.indexOf(k) !== -1).length;
+                    if (n > 0) html += chip('lb:' + k, CONV_LABELS[k], n);
+                });
+            }
+            wrap.innerHTML = html;
+        }
+
+        function inboxSetFilter(f) {
+            if (!A.inbox) return;
+            A.inbox.filter = f;
+            renderInboxChips();
+            renderInboxList();
+        }
+        window.inboxSetFilter = inboxSetFilter;
+
+        function inboxSearchInput(v) {
+            if (!A.inbox) return;
+            A.inbox.q = (v || '').trim().toLowerCase();
+            renderInboxList();
+        }
+        window.inboxSearchInput = inboxSearchInput;
+
+        function renderInboxList() {
+            const list = document.getElementById('inboxList');
+            if (!list || !A.inbox) return;
+            const all = A.inbox.convs;
+            const f = A.inbox.filter, q = A.inbox.q;
+            const rows = all.filter(c => {
+                const m = convMeta(c.otherId);
+                if (f === 'unread' && !c.unread) return false;
+                if (f === 'fav' && !m.favorite) return false;
+                if (f.indexOf('lb:') === 0 && m.labels.indexOf(f.slice(3)) === -1) return false;
+                if (q && (c.name + ' ' + (c.prodTitle || '') + ' ' + c.preview).toLowerCase().indexOf(q) === -1) return false;
+                return true;
+            }).sort((a, b) => {
+                const pa = convMeta(a.otherId).pinned ? 1 : 0, pb = convMeta(b.otherId).pinned ? 1 : 0;
+                if (pa !== pb) return pb - pa;
+                return new Date(b.at) - new Date(a.at);
+            });
+            if (!rows.length) {
+                list.innerHTML = emptyState('filter_alt', 'Anyen pa jwenn',
+                    q ? 'Pa gen konvèsasyon ki matche ak rechèch ou a.' : 'Pa gen konvèsasyon nan filtè sa a.');
+                return;
+            }
+            list.innerHTML = rows.map(convRowHTML).join('');
+        }
+
+        function convRowHTML(c) {
+            const m = convMeta(c.otherId);
+            const initials = c.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'U';
+            const pid = typeof c.productId === 'string' ? `'${c.productId.replace(/'/g, "\\'")}'` : 'null';
+            const nameAttr = jsAttr(c.name);
+            const badge = c.official
+                ? '<span class="material-symbols-outlined fi flex-shrink-0" style="font-size:14px;color:#c08a2e" title="Boutik ofisyèl">verified</span>'
+                : c.verified
+                    ? '<span class="material-symbols-outlined fi flex-shrink-0 text-primary" style="font-size:14px" title="Vandè verifye">verified</span>'
+                    : '';
+            const labelsHTML = m.labels.length
+                ? `<div class="ekv-lbs">${m.labels.filter(k => CONV_LABELS[k]).map(k => `<span class="ekv-lb ekv-lb-${k}">${esc(CONV_LABELS[k])}</span>`).join('')}</div>`
+                : '';
+            return `
+      <div class="ekv-row">
+        <button class="ekv-open" onclick="openConversation(${pid}, '${c.otherId}', '${nameAttr}')">
+          <span class="ekv-av">${c.avatar
+                ? `<img alt="Foto pwofil" src="${esc(c.avatar)}" onerror="this.parentElement.innerHTML='<span class=\\'font-headline font-bold text-white\\' style=\\'font-size:15px\\'>${esc(initials)}</span>'"/>`
+                : `<span class="font-headline font-bold text-white" style="font-size:15px">${esc(initials)}</span>`}</span>
+          <span class="flex-1 min-w-0 block">
+            <span class="flex items-center gap-1.5">
+              <span class="font-headline font-bold text-[15px] text-on-surface truncate">${esc(c.name)}</span>
+              ${badge}
+              ${m.favorite ? '<span class="material-symbols-outlined fi flex-shrink-0" style="font-size:14px;color:#c08a2e">star</span>' : ''}
+              <span class="font-label text-[11px] text-on-surface-variant flex-shrink-0 ml-auto flex items-center gap-1">
+                ${m.pinned ? '<span class="material-symbols-outlined" style="font-size:13px;transform:rotate(45deg)">push_pin</span>' : ''}
+                ${timeAgo(c.at)}
+              </span>
+            </span>
+            ${c.prodTitle ? `<span class="block font-label text-[11px] text-primary truncate mt-0.5">${esc(c.prodTitle)}</span>` : ''}
+            <span class="flex items-center gap-2 mt-0.5">
+              <span class="font-body text-[13px] ${c.unread ? 'text-on-surface font-semibold' : 'text-on-surface-variant'} truncate flex-1">${esc(c.preview)}</span>
+              ${c.unread > 0 ? `<span class="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full text-white text-[11px] font-bold flex items-center justify-center" style="background:#98443e;font-family:'Manrope',sans-serif">${c.unread}</span>` : ''}
+            </span>
+            ${labelsHTML}
+          </span>
+        </button>
+        <button class="ekv-more" aria-label="Opsyon pou konvèsasyon ak ${esc(c.name)}" onclick="openConvMenu('${c.otherId}')">
+          <span class="material-symbols-outlined" style="font-size:20px">more_vert</span>
+        </button>
+      </div>`;
+        }
+
+        // ── Aksyon sou yon konvèsasyon (epingle / favori / etikèt / make li) ──
+        function openConvMenu(otherId) {
+            A._convMenuId = otherId;
+            renderConvMenu();
+            openSheet('convMenuSheet');
+        }
+        window.openConvMenu = openConvMenu;
+
+        function renderConvMenu() {
+            const body = document.getElementById('convMenuBody');
+            const otherId = A._convMenuId;
+            if (!body || !otherId || !A.inbox) return;
+            const c = A.inbox.convs.find(x => x.otherId === otherId);
+            if (!c) return;
+            const m = convMeta(otherId);
+            // Yon sèl ligati pa ikòn, plen ou vid via `.fi` — janm yon non
+            // ligati ki pa egziste (li ta parèt an tèks brit, cf. flash badge).
+            const act = (icon, filled, label, onclick) =>
+                `<button class="ekv-act" onclick="${onclick}">
+           <span class="material-symbols-outlined text-primary${filled ? ' fi' : ''}" style="font-size:22px">${icon}</span>
+           <span class="font-label text-sm font-bold text-on-surface">${esc(label)}</span>
+         </button>`;
+            const labelsHTML = inboxCanLabel()
+                ? `<div style="border-top:1px solid rgba(61,73,73,.12);margin-top:8px;padding-top:12px">
+             <p class="font-label text-[11px] font-bold text-on-surface-variant mb-2" style="text-transform:uppercase;letter-spacing:.06em">Etikèt kliyan</p>
+             <div class="flex flex-wrap gap-2">
+               ${CONV_LABEL_ORDER.map(k => {
+                    const on = m.labels.indexOf(k) !== -1;
+                    return `<button class="ekv-lb ekv-lbbtn ${on ? 'ekv-lb-' + k : 'off'}" onclick="toggleConvLabel('${k}')">${esc(CONV_LABELS[k])}</button>`;
+                }).join('')}
+             </div>
+           </div>`
+                : '';
+            body.innerHTML = `
+      <p class="font-headline font-extrabold text-lg text-on-surface tracking-tight truncate">${esc(c.name)}</p>
+      <p class="font-label text-xs text-on-surface-variant mb-3">${c.unread ? c.unread + ' mesaj ou poko li' : 'Tout mesaj li'}</p>
+      ${act('push_pin', !m.pinned, m.pinned ? 'Retire epengle a' : 'Epengle anlè lis la', 'toggleConvPin()')}
+      ${act('star', !m.favorite, m.favorite ? 'Retire nan favori' : 'Mete nan favori', 'toggleConvFav()')}
+      ${c.unread ? act('mark_chat_read', true, 'Make kòm li', 'convMarkRead()') : ''}
+      ${labelsHTML}`;
+        }
+
+        // Ekri meta a nan baz la. Optimis nan UI a, men si ekriti a echwe
+        // (RLS, migrasyon absan) nou ranje eta a epi nou di l — pa an silans.
+        async function convMetaSet(patch) {
+            const otherId = A._convMenuId;
+            if (!otherId || !A.user?.uid) return;
+            const prev = convMeta(otherId);
+            const next = {
+                pinned: patch.pinned !== undefined ? patch.pinned : prev.pinned,
+                favorite: patch.favorite !== undefined ? patch.favorite : prev.favorite,
+                labels: patch.labels !== undefined ? patch.labels : prev.labels,
+            };
+            A.inbox.meta[otherId] = next;
+            renderConvMenu(); renderInboxChips(); renderInboxList();
+            if (!db) return;
+            const { error } = await db.from('conversation_meta').upsert({
+                owner_id: A.user.uid, contact_id: otherId,
+                pinned: next.pinned, favorite: next.favorite, labels: next.labels,
+                updated_at: new Date().toISOString(),
+            }, { onConflict: 'owner_id,contact_id' });
+            if (error) {
+                console.warn('[ConvMeta]', error.message);
+                A.inbox.meta[otherId] = prev;
+                renderConvMenu(); renderInboxChips(); renderInboxList();
+                toast('Nou pa t ka sove chanjman an');
+            }
+        }
+
+        function toggleConvPin() { convMetaSet({ pinned: !convMeta(A._convMenuId).pinned }); }
+        function toggleConvFav() { convMetaSet({ favorite: !convMeta(A._convMenuId).favorite }); }
+        function toggleConvLabel(k) {
+            const cur = convMeta(A._convMenuId).labels;
+            convMetaSet({ labels: cur.indexOf(k) !== -1 ? cur.filter(x => x !== k) : cur.concat([k]) });
+        }
+        window.toggleConvPin = toggleConvPin;
+        window.toggleConvFav = toggleConvFav;
+        window.toggleConvLabel = toggleConvLabel;
+
+        async function convMarkRead() {
+            const otherId = A._convMenuId;
+            const c = A.inbox && A.inbox.convs.find(x => x.otherId === otherId);
+            if (!c || !c.unread || !A.user?.uid) return;
+            closeSheets();
+            const was = c.unread;
+            c.unread = 0;
+            A.unreadMsgCount = Math.max(0, (A.unreadMsgCount || 0) - was);
+            if (typeof updateMsgBadge === 'function') updateMsgBadge();
+            renderInboxChips(); renderInboxList();
+            if (!db) return;
+            await db.from('messages').update({ read: true })
+                .eq('sender_id', otherId).eq('receiver_id', A.user.uid).eq('read', false);
+            if (typeof refreshUserStats === 'function') refreshUserStats();
+        }
+        window.convMarkRead = convMarkRead;
 
         // Open a conversation from the inbox — works for both buyer and seller
         async function openConversation(productId, otherId, otherName) {
