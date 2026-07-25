@@ -388,6 +388,33 @@
             .ekm-dot::after { animation: none; opacity: 0; }
         }
 
+        /* ── Swiv kòmand: kat anlè, panno detay anba (modèl 2026-07-25) ── */
+        .trk-map { position: relative; height: 44vh; min-height: 260px; background: #e8efee; }
+        body.dark .trk-map { background: #252521; }
+        .trk-map-ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .trk-panel { position: relative; margin-top: -26px; border-radius: 26px 26px 0 0; background: #1c1c19; color: #fcf9f4; padding: 18px 20px calc(env(safe-area-inset-bottom) + 96px); min-height: 56vh; }
+        .trk-grab { width: 38px; height: 4px; border-radius: 999px; background: rgba(252,249,244,.28); margin: 0 auto 16px; }
+        .trk-k { font-family: 'Manrope', sans-serif; font-size: 10.5px; font-weight: 600; color: rgba(252,249,244,.5); letter-spacing: .04em; }
+        .trk-v { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13.5px; font-weight: 700; color: #fcf9f4; margin-top: 2px; }
+        .trk-id { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.32rem; font-weight: 800; letter-spacing: -.01em; }
+        .trk-pill { display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: 999px; background: rgba(252,249,244,.1); font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700; }
+        .trk-steps { display: flex; align-items: center; margin: 20px 0 18px; }
+        .trk-step { width: 22px; height: 22px; border-radius: 999px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; background: rgba(252,249,244,.13); color: rgba(252,249,244,.45); }
+        .trk-step.done { background: #5ad7e6; color: #003b42; }
+        .trk-step.now { background: #fcf9f4; color: #1c1c19; box-shadow: 0 0 0 4px rgba(90,215,230,.25); }
+        .trk-link { flex: 1 1 auto; height: 0; border-top: 2px dotted rgba(252,249,244,.24); margin: 0 4px; }
+        .trk-link.done { border-top-color: #5ad7e6; }
+        .trk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; padding: 16px 0; border-top: 1px solid rgba(252,249,244,.1); border-bottom: 1px solid rgba(252,249,244,.1); }
+        .trk-peer { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px; border-radius: 18px; background: rgba(252,249,244,.07); }
+        .trk-av { width: 42px; height: 42px; border-radius: 999px; flex: 0 0 auto; overflow: hidden; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg,#00666f,#00818c); font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 14px; color: #fff; }
+        .trk-av img { width: 100%; height: 100%; object-fit: cover; }
+        .trk-btn { width: 42px; height: 42px; border-radius: 999px; flex: 0 0 auto; border: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .trk-btn:active { transform: scale(.94); }
+        .trk-back { position: absolute; top: calc(env(safe-area-inset-top) + 12px); left: 14px; z-index: 5; width: 40px; height: 40px; border-radius: 999px; border: 0; background: rgba(252,249,244,.94); display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 12px rgba(28,28,25,.18); cursor: pointer; }
+        body.dark .trk-back { background: rgba(46,46,42,.94); }
+        .trk-zone { position: absolute; left: 14px; right: 14px; bottom: 40px; z-index: 4; display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 16px; background: rgba(252,249,244,.95); box-shadow: 0 6px 20px rgba(28,28,25,.16); }
+        body.dark .trk-zone { background: rgba(46,46,42,.95); }
+
         /* ── Header feed la: bar rechèch + kat glisan (modèl 2026-07-25) ── */
         .ekf-search { display: flex; align-items: center; gap: 10px; background: #fff; border-radius: 999px; padding: 0 6px 0 18px; box-shadow: 0 6px 20px rgba(28,28,25,.07); cursor: pointer; margin-bottom: 16px; }
         body.dark .ekf-search { background: #2e2e2a; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
@@ -404,7 +431,7 @@
         /* Glisman natif: chak slide fè 100% epi snap. Pa gen JS pou drag la. */
         .ekf-track { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; border-radius: 22px; }
         .ekf-track::-webkit-scrollbar { display: none; }
-        .ekf-slide { position: relative; flex: 0 0 100%; scroll-snap-align: center; border-radius: 22px; overflow: hidden; min-height: 168px; display: flex; flex-direction: column; justify-content: center; padding: 20px 46% 20px 20px; background: linear-gradient(135deg,#00666f,#00818c); }
+        .ekf-slide { position: relative; flex: 0 0 100%; scroll-snap-align: center; border-radius: 22px; overflow: hidden; min-height: 178px; display: flex; flex-direction: column; justify-content: center; padding: 20px 46% 30px 20px; background: linear-gradient(135deg,#00666f,#00818c); }
         .ekf-slide-img { position: absolute; top: 0; right: 0; bottom: 0; width: 48%; object-fit: cover; object-position: center; }
         .ekf-slide-fade { position: absolute; top: 0; bottom: 0; right: 42%; width: 22%; pointer-events: none; }
         .ekf-badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: 999px; background: rgba(28,28,25,.82); color: #fcf9f4; font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
@@ -413,7 +440,18 @@
         .ekf-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 9px; margin-top: 14px; padding: 8px 8px 8px 18px; border: 0; border-radius: 999px; background: #1c1c19; color: #fcf9f4; font-family: 'Plus Jakarta Sans', sans-serif; font-size: .8125rem; font-weight: 800; cursor: pointer; }
         .ekf-cta:active { transform: scale(.96); }
         .ekf-cta-a { width: 26px; height: 26px; border-radius: 999px; background: #fcf9f4; color: #1c1c19; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
-        .ekf-dots { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
+        /* Ankòch anba kat la: yon bwat koulè paj la poze sou bò anba a, ak de
+           kwen konkav (radial-gradient) ki fè kat la sanble li vlope pwen yo.
+           Li viv sou .ekf-hero, pa sou chak slide — konsa li rete fiks pandan
+           slide yo ap pase anba l. */
+        .ekf-notch { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 2; background: #fcf9f4; border-radius: 15px 15px 0 0; padding: 9px 17px 3px; }
+        body.dark .ekf-notch { background: #1c1c19; }
+        .ekf-notch::before, .ekf-notch::after { content: ''; position: absolute; bottom: 0; width: 16px; height: 16px; }
+        .ekf-notch::before { left: -16px; background: radial-gradient(circle 16px at 0 0, transparent 16px, #fcf9f4 16px); }
+        .ekf-notch::after { right: -16px; background: radial-gradient(circle 16px at 100% 0, transparent 16px, #fcf9f4 16px); }
+        body.dark .ekf-notch::before { background: radial-gradient(circle 16px at 0 0, transparent 16px, #1c1c19 16px); }
+        body.dark .ekf-notch::after { background: radial-gradient(circle 16px at 100% 0, transparent 16px, #1c1c19 16px); }
+        .ekf-dots { display: flex; justify-content: center; gap: 6px; }
         .ekf-dot { width: 7px; height: 7px; border-radius: 999px; border: 0; padding: 0; background: rgba(61,73,73,.24); transition: width .22s ease, background .22s ease; cursor: pointer; }
         body.dark .ekf-dot { background: rgba(255,255,255,.22); }
         .ekf-dot.on { width: 20px; background: #00666f; }
@@ -1897,7 +1935,8 @@
                  Tout se eleman efemè: yo parèt lè yo egziste, yo ale lè yo fini. -->
             <div class="ekf-hero" id="feedHero">
                 <div class="ekf-track" id="feedHeroTrack"></div>
-                <div class="ekf-dots" id="feedHeroDots"></div>
+                <!-- Ankòch la: pwen yo chita ladan l, kat la vlope otou yo. -->
+                <div class="ekf-notch"><div class="ekf-dots" id="feedHeroDots"></div></div>
             </div>
 
             <!-- Kat byenveni — ranplase ansyen toast nwa a, entegre nan design la -->
@@ -2520,6 +2559,19 @@
 ══════════════════════════════════════════════════════ -->
     <div class="screen pb-32 max-w-lg mx-auto" id="s-followers">
         <div class="pt-24" id="followersContent"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+     SCREEN — SWIV KÒMAND (kat + etap eskwo)
+══════════════════════════════════════════════════════ -->
+    <div class="screen" id="s-tracking">
+        <div class="trk-map" id="trkMap">
+            <div class="trk-map-ph" id="trkMapPh">
+                <span class="material-symbols-outlined" style="font-size:30px;color:#00666f">map</span>
+                <p class="font-label text-[11px] text-on-surface-variant mt-1">Ap chaje kat la…</p>
+            </div>
+        </div>
+        <div class="trk-panel" id="trkPanel"></div>
     </div>
 
     <!-- ══════════════════════════════════════════════════════
@@ -7267,6 +7319,7 @@
     ${escrowActionButtons(o, isSeller)}
     <div class="flex gap-2 mt-2 justify-center">
         ${o.product_id ? `<button onclick="openConversation(${pidAttr}, ${otherAttr}, '${partnerNameSafe}')" class="px-5 py-1.5 rounded-lg bg-surface-container font-label font-bold text-xs active:scale-95"><span class="material-symbols-outlined align-middle" style="font-size:12px">chat</span> Kontakte ${partnerRole.toLowerCase()}</button>` : ''}
+        <button onclick="openTracking('${jsAttr(o.id)}')" class="px-5 py-1.5 rounded-lg font-label font-bold text-xs active:scale-95" style="background:rgba(0,102,111,.1);color:#00666f"><span class="material-symbols-outlined align-middle" style="font-size:12px">travel_explore</span> Swiv</button>
     </div>
 </div>`;
         }
@@ -9172,6 +9225,167 @@
                 if (dragged) { e.preventDefault(); e.stopPropagation(); return; }
                 if (el === _swOpen) { e.preventDefault(); e.stopPropagation(); swClose(el); }
             }, true);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        //  SWIV KÒMAND
+        //  Ekomat pa gen kourye: se ranmasaj nan yon zòn ak OTP. Donk pa gen
+        //  ti pwen k ap kouri sou yon wout — sa ta yon entèfas ki manti. Kat
+        //  la bay kontèks zòn kolèk la, epi vrè swivi a se etap eskwo yo.
+        // ══════════════════════════════════════════════════════════
+        const TRK_STEPS = [
+            { k: 'peman', l: 'Peman', i: 'payments', st: ['awaiting_payment', 'payment_submitted'] },
+            { k: 'eskwo', l: 'Eskwo', i: 'lock', st: ['payment_verified'] },
+            { k: 'pare', l: 'Pare', i: 'inventory_2', st: ['ready_for_pickup'] },
+            { k: 'kolek', l: 'Kolekte', i: 'local_shipping', st: ['picked_up', 'otp_confirmed'] },
+            { k: 'fini', l: 'Fini', i: 'task_alt', st: ['released', 'completed'] },
+        ];
+
+        function trkStepIndex(status) {
+            for (let i = 0; i < TRK_STEPS.length; i++) {
+                if (TRK_STEPS[i].st.indexOf(status) !== -1) return i;
+            }
+            return 0;
+        }
+
+        async function openTracking(orderId) {
+            if (!requireLogin(() => openTracking(orderId), 'Konekte pou swiv kòmand ou')) return;
+            A.stack.push(A.tab);
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+            document.getElementById('s-tracking').classList.add('on');
+            document.getElementById('bottomNav').classList.add('hidden');
+            document.getElementById('fab').classList.add('hidden');
+            document.getElementById('topbar')?.classList.add('hidden');
+            const panel = document.getElementById('trkPanel');
+            if (panel) panel.innerHTML = '<div class="trk-grab"></div>' + skeletonCards(3);
+            if (!db) return;
+            const { data, error } = await db.from('orders')
+                .select('*, seller:profiles!seller_id(display_name, avatar_url), buyer:profiles!buyer_id(display_name)')
+                .eq('id', orderId).single();
+            if (error || !data) {
+                if (panel) panel.innerHTML = '<div class="trk-grab"></div>'
+                    + errorState('Kòmand pa jwenn', 'Nou pa t ka chaje kòmand sa a.', 'goBack()');
+                return;
+            }
+            A._trkOrder = data;
+            renderTracking();
+            initTrackMap();
+        }
+        window.openTracking = openTracking;
+
+        function renderTracking() {
+            const panel = document.getElementById('trkPanel');
+            const o = A._trkOrder;
+            if (!panel || !o) return;
+            const isSeller = o.seller_id === A.user?.uid;
+            const peerName = (isSeller ? o.buyer?.display_name : o.seller?.display_name)
+                || (isSeller ? 'Kliyan' : 'Vandè');
+            const peerId = isSeller ? o.buyer_id : o.seller_id;
+            const peerRole = isSeller ? 'Achtè' : 'Vandè';
+            const av = isSeller ? null : (o.seller?.avatar_url || null);
+            const cur = trkStepIndex(o.status);
+            const dead = o.status === 'cancelled' || o.status === 'refunded';
+            const sm = ORDER_STATUS_MAP[o.status] || ORDER_STATUS_MAP.awaiting_payment;
+            const initials = peerName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'U';
+            const dt = s => s ? new Date(s).toLocaleDateString('fr', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+            const steps = TRK_STEPS.map((s, i) => {
+                const cls = dead ? '' : (i < cur ? ' done' : i === cur ? ' now' : '');
+                const link = i < TRK_STEPS.length - 1
+                    ? `<span class="trk-link${!dead && i < cur ? ' done' : ''}"></span>` : '';
+                return `<span class="trk-step${cls}" title="${esc(s.l)}">
+            <span class="material-symbols-outlined" style="font-size:13px">${i < cur && !dead ? 'check' : s.i}</span>
+          </span>${link}`;
+            }).join('');
+
+            const cell = (k, v) => `<div><p class="trk-k">${esc(k)}</p><p class="trk-v">${esc(v)}</p></div>`;
+
+            panel.innerHTML = `
+      <div class="trk-grab"></div>
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="trk-k">Nimewo kòmand</p>
+          <p class="trk-id">#${esc(String(o.id).slice(0, 8).toUpperCase())}</p>
+        </div>
+        <span class="trk-pill"><span class="material-symbols-outlined" style="font-size:13px">${sm.icon}</span>${esc(sm.label)}</span>
+      </div>
+      <div class="trk-steps">${steps}</div>
+      <div class="trk-grid">
+        ${cell('Kòmande', dt(o.created_at))}
+        ${cell('Kantite', (o.quantity || 1) + (o.quantity > 1 ? ' atik' : ' atik'))}
+        ${cell('Kote pou pran l', o.pickup_location || 'Poko chwazi')}
+        ${cell(isSeller ? 'Ou resevwa' : 'Total', fpc(isSeller ? (o.net_amount || 0) : (o.total_amount || 0)))}
+        ${cell(peerRole, peerName)}
+        ${cell('Pwodwi', o.product_title || '—')}
+      </div>
+      ${o.otp_code && !isSeller && (o.status === 'ready_for_pickup' || o.status === 'picked_up')
+                    ? `<div class="flex items-center gap-3 mt-4 p-3 rounded-2xl" style="background:rgba(90,215,230,.12)">
+             <span class="material-symbols-outlined" style="font-size:20px;color:#5ad7e6">password</span>
+             <div><p class="trk-k">Kòd ou pou pran l</p>
+               <p class="trk-v" style="letter-spacing:.22em;font-size:1.05rem">${esc(o.otp_code)}</p></div>
+           </div>` : ''}
+      <div class="trk-peer">
+        <span class="trk-av">${av ? `<img src="${esc(av)}" alt="" onerror="this.remove()"/>` : esc(initials)}</span>
+        <div class="flex-1 min-w-0">
+          <p class="font-headline font-bold text-sm" style="color:#fcf9f4">${esc(peerName)}</p>
+          <p class="trk-k">${esc(peerRole)}</p>
+        </div>
+        <button class="trk-btn" style="background:#97422b;color:#fff" aria-label="Rele"
+          onclick="toast('Apèl nan app la ap vini apre bild natif la')">
+          <span class="material-symbols-outlined" style="font-size:19px">call</span>
+        </button>
+        <button class="trk-btn" style="background:#fcf9f4;color:#1c1c19" aria-label="Mesaj"
+          onclick="openConversation(${o.product_id ? `'${jsAttr(o.product_id)}'` : 'null'}, '${jsAttr(peerId || '')}', '${jsAttr(peerName)}')">
+          <span class="material-symbols-outlined" style="font-size:19px">chat</span>
+        </button>
+      </div>`;
+        }
+
+        // Kat la bay kontèks: zòn kolèk la, pa yon pozisyon an dirèk. Si
+        // Leaflet pa chaje (koneksyon), plas la rete ak yon mesaj klè.
+        function initTrackMap() {
+            const el = document.getElementById('trkMap');
+            const o = A._trkOrder;
+            if (!el || !o) return;
+            const zone = o.pickup_location || A.pickupZone?.label || 'Pòtoprens';
+            el.querySelectorAll('.trk-back, .trk-zone').forEach(n => n.remove());
+            el.insertAdjacentHTML('beforeend', `
+        <button class="trk-back" onclick="goBack()" aria-label="Retounen">
+          <span class="material-symbols-outlined" style="font-size:21px">arrow_back</span>
+        </button>
+        <div class="trk-zone">
+          <span class="material-symbols-outlined fi text-primary" style="font-size:20px">where_to_vote</span>
+          <div class="flex-1 min-w-0">
+            <p class="font-label text-[10.5px] text-on-surface-variant">Pwen kolèk</p>
+            <p class="font-headline font-bold text-sm text-on-surface truncate">${esc(zone)}</p>
+          </div>
+        </div>`);
+            const ph = document.getElementById('trkMapPh');
+            const done = () => { if (ph) ph.style.display = 'none'; };
+            const build = () => {
+                if (typeof L === 'undefined' || MAP.trk) { done(); return; }
+                try {
+                    MAP.trk = L.map(el, { center: [18.543, -72.338], zoom: 13, zoomControl: false, attributionControl: false });
+                    L.tileLayer('https://{s}-tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png?key=' + LOCATIONIQ_KEY,
+                        { maxZoom: 18, subdomains: 'abc' }).addTo(MAP.trk);
+                    done();
+                } catch (e) { console.warn('[trkMap]', e.message); }
+            };
+            if (!document.getElementById('leaflet-css')) {
+                const c = document.createElement('link');
+                c.id = 'leaflet-css'; c.rel = 'stylesheet';
+                c.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+                document.head.appendChild(c);
+            }
+            if (typeof L !== 'undefined') { build(); return; }
+            const js = document.createElement('script');
+            js.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+            js.onload = build;
+            js.onerror = () => {
+                if (ph) ph.innerHTML = '<span class="material-symbols-outlined" style="font-size:28px;color:#6d7979">wifi_off</span>'
+                    + '<p class="font-label text-[11px] text-on-surface-variant mt-1">Kat la mande koneksyon</p>';
+            };
+            document.head.appendChild(js);
         }
 
         // ══════════════════════════════════════════════════════════
