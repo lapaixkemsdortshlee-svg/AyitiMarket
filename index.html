@@ -4385,6 +4385,21 @@
             pendingVerifUid: null, pendingVerifName: null, idModalSide: "front",
         };
 
+        // ── Kle localStorage PA-KONT ────────────────────────────────
+        // Leson ki repete 3 fwa (monnen Bug 9, mòd sonm, tutoryèl): yon
+        // preferans ki sove sou yon kle GLOBAL koule ant kont sou menm
+        // aparèy la. Tout preferans/eta itilizatè pase la a.
+        // Envite = 'guest'. applyUserPrefs() reidrate apre koneksyon.
+        function _prefKey(base) {
+            return base + '_' + (A.user && A.user.uid ? A.user.uid : 'guest');
+        }
+        function _prefGet(base) {
+            try { return localStorage.getItem(_prefKey(base)); } catch (_) { return null; }
+        }
+        function _prefSet(base, val) {
+            try { localStorage.setItem(_prefKey(base), val); } catch (_) { }
+        }
+
         function fp(n) { return Number(n).toLocaleString("fr"); }
         function sl(ms) { return new Promise(r => setTimeout(r, ms)); }
         // Échappe les données non fiables (noms, titres, URLs vendeur/achtè…)
@@ -4787,6 +4802,7 @@
             // rann, konsa yon lòt kont sou menm aparèy la pa fòse USD sou li.
             if (typeof applyUserCurrency === 'function') applyUserCurrency();
             if (typeof applyUserDarkMode === 'function') applyUserDarkMode();
+            if (typeof applyUserPrefs === 'function') applyUserPrefs();
             if (A.user.role === "admin") setupAdminFab();
             else document.getElementById("fab")?.classList.remove("hidden");
             updateCartBadge();
@@ -5381,7 +5397,7 @@
 
         // ── Filtè feed (pri, nòt, an stòk, triye) — kliyan-kote sou PRODUCTS ──
         A.filters = (function () {
-            try { return JSON.parse(localStorage.getItem('aym_filters') || 'null'); }
+            try { return JSON.parse(_prefGet('aym_filters') || 'null'); }
             catch (_) { return null; }
         })() || { priceMin: null, priceMax: null, minRating: 0, inStock: false, sort: 'popular' };
 
@@ -5445,14 +5461,14 @@
                 priceMax: isNaN(priceMax) ? null : priceMax,
                 minRating, inStock, sort,
             };
-            try { localStorage.setItem('aym_filters', JSON.stringify(A.filters)); } catch (_) { }
+            try { _prefSet('aym_filters', JSON.stringify(A.filters)); } catch (_) { }
             _updateFilterBadge();
             closeSheets();
             if (typeof renderFeed === 'function') renderFeed();
         }
         function resetFeedFilters() {
             A.filters = { priceMin: null, priceMax: null, minRating: 0, inStock: false, sort: 'popular' };
-            try { localStorage.setItem('aym_filters', JSON.stringify(A.filters)); } catch (_) { }
+            try { _prefSet('aym_filters', JSON.stringify(A.filters)); } catch (_) { }
             loadFilterSheet();
             _updateFilterBadge();
         }
@@ -6712,11 +6728,11 @@
         // (pa efase — resi eskwo a, kote vandè a ak odit admin rete entak).
         // Li ka DEMASKE l nenpòt kilè. localStorage + RPC (pa-kont). ──
         function getHiddenOrders() {
-            try { return new Set(JSON.parse(localStorage.getItem('aym_hidden_orders') || '[]')); }
+            try { return new Set(JSON.parse(_prefGet('aym_hidden_orders') || '[]')); }
             catch (_) { return new Set(); }
         }
         function _saveHiddenOrders(s) {
-            try { localStorage.setItem('aym_hidden_orders', JSON.stringify([...s])); } catch (_) {}
+            try { _prefSet('aym_hidden_orders', JSON.stringify([...s])); } catch (_) {}
         }
         async function hideOrderFromHistory(id) {
             const ok = await appConfirm({
@@ -8898,6 +8914,7 @@
             // monnen dènye kont lan kolbore sou pwochen kont ki konekte a.
             if (typeof applyUserCurrency === 'function') applyUserCurrency();
             if (typeof applyUserDarkMode === 'function') applyUserDarkMode();
+            if (typeof applyUserPrefs === 'function') applyUserPrefs();
             document.getElementById("topbar").classList.add("hidden");
             document.getElementById("bottomNav").classList.add("hidden");
             document.getElementById("fab").classList.add("hidden");
@@ -10881,7 +10898,7 @@
 
         // Dènye zòn detekte — sove nan localStorage pou fallback san rezo.
         function _lastGeocode() {
-            try { return JSON.parse(localStorage.getItem('aym_geozone') || 'null'); }
+            try { return JSON.parse(_prefGet('aym_geozone') || 'null'); }
             catch (_) { return null; }
         }
         // Fallback: dènye zòn konnen (label sèlman — kach la pa kenbe GPS,
@@ -10931,7 +10948,7 @@
                 if (!label && city) label = 'Zòn pre ' + city;
                 if (!label) label = `${(+lat).toFixed(4)}, ${(+lng).toFixed(4)}`;
                 const result = { label, road, neighborhood, city, lat, lng, raw: data };
-                try { localStorage.setItem('aym_geozone', JSON.stringify({ label, road, neighborhood, city })); } catch (_) { }
+                try { _prefSet('aym_geozone', JSON.stringify({ label, road, neighborhood, city })); } catch (_) { }
                 return result;
             } catch (_e) {
                 clearTimeout(timer);
@@ -11392,7 +11409,7 @@
             const a = MY_ADDRESSES.find(x => x.id === addrId);
             if (!a) return;
             A.pickupZone = { label: a.address_text || a.label, lat: a.geo_lat, lng: a.geo_lng };
-            try { localStorage.setItem('aym_geozone', JSON.stringify(A.pickupZone)); } catch (_) { }
+            try { _prefSet('aym_geozone', JSON.stringify(A.pickupZone)); } catch (_) { }
             toast('Adrès chwazi: ' + a.label);
             if (typeof renderOrderSheet === 'function' && A.curProd) renderOrderSheet();
         }
@@ -12251,11 +12268,11 @@
         // ══════════════════════════════════════════════════════════
         //  FONCTIONNALITE 3 — LITE MODE
         // ══════════════════════════════════════════════════════════
-        let LITE_MODE = localStorage.getItem('aym_lite') === '1';
+        let LITE_MODE = _prefGet('aym_lite') === '1';
 
         function toggleLiteMode(on) {
             LITE_MODE = on;
-            localStorage.setItem('aym_lite', on ? '1' : '0');
+            _prefSet('aym_lite', on ? '1' : '0');
 
             const bg = document.getElementById('liteToggleBg');
             const status = document.getElementById('liteModeStatus');
@@ -14639,6 +14656,28 @@
         }
         let DARK_MODE = localStorage.getItem('aym_dark_guest') === '1';
 
+        // Idrate TOUT lòt preferans pa-kont yo (son, vibrasyon, silans lannwit,
+        // mòd lejè, filtè feed). Preferans ki li nan moman yo sèvi (notif
+        // prefs, modèl vibrasyon, zòn, kòmand kache) pa bezwen idratasyon:
+        // _prefGet deja pran bon kle a chak fwa.
+        function applyUserPrefs() {
+            try {
+                SOUND_ON = _prefGet('aym_sound') !== '0';
+                VIBRATE_ON = _prefGet('aym_vibrate') !== '0';
+                QUIET_NIGHT = _prefGet('aym_quiet') === '1';
+                const lite = _prefGet('aym_lite') === '1';
+                if (lite !== LITE_MODE && typeof toggleLiteMode === 'function') {
+                    toggleLiteMode(lite);   // aplike vizyèl la tou (re-rann feed la)
+                } else {
+                    LITE_MODE = lite;
+                }
+                let f = null;
+                try { f = JSON.parse(_prefGet('aym_filters') || 'null'); } catch (_) { }
+                A.filters = f || { priceMin: null, priceMax: null, minRating: 0, inStock: false, sort: 'popular' };
+            } catch (_) { /* preferans pa dwe janm kase koneksyon an */ }
+        }
+        window.applyUserPrefs = applyUserPrefs;
+
         // Idrate mòd sonm kont aktyèl la (apre koneksyon oswa dekoneksyon).
         function applyUserDarkMode() {
             let on = false;
@@ -14925,10 +14964,10 @@
         }
 
         // Quiet Night Mode
-        let QUIET_NIGHT = localStorage.getItem('aym_quiet') === '1';
+        let QUIET_NIGHT = _prefGet('aym_quiet') === '1';
         function toggleQuietNight(on) {
             QUIET_NIGHT = on;
-            localStorage.setItem('aym_quiet', on ? '1' : '0');
+            _prefSet('aym_quiet', on ? '1' : '0');
             const bg = document.getElementById('quietBg');
             if (bg) bg.style.background = on ? '#00666f' : '#e5e2dd';
             toast(on ? 'Silans Lannwit aktif (22h–7h)' : 'Silans Lannwit dezaktive');
@@ -14949,13 +14988,13 @@
         }, 300);
 
         // ── Settings: Son, Vibrasyon, Feedback, Pataje, Note ──
-        let SOUND_ON = localStorage.getItem('aym_sound') !== '0';
-        let VIBRATE_ON = localStorage.getItem('aym_vibrate') !== '0';
+        let SOUND_ON = _prefGet('aym_sound') !== '0';
+        let VIBRATE_ON = _prefGet('aym_vibrate') !== '0';
         let feedbackRating = 0;
 
         function toggleSound(on) {
             SOUND_ON = on;
-            localStorage.setItem('aym_sound', on ? '1' : '0');
+            _prefSet('aym_sound', on ? '1' : '0');
             const bg = document.getElementById('soundToggleBg');
             if (bg) bg.style.background = on ? '#00666f' : '#e5e2dd';
             toast(on ? 'Son aktive' : 'Son dezaktive');
@@ -14963,7 +15002,7 @@
 
         function toggleVibration(on) {
             VIBRATE_ON = on;
-            localStorage.setItem('aym_vibrate', on ? '1' : '0');
+            _prefSet('aym_vibrate', on ? '1' : '0');
             const bg = document.getElementById('vibrateToggleBg');
             if (bg) bg.style.background = on ? '#00666f' : '#e5e2dd';
             if (on && navigator.vibrate) navigator.vibrate(50);
@@ -14980,7 +15019,7 @@
         };
         function getNotifPrefs() {
             try {
-                const raw = localStorage.getItem('aym_notif_prefs');
+                const raw = _prefGet('aym_notif_prefs');
                 if (!raw) return { ...DEFAULT_NOTIF_PREFS };
                 return { ...DEFAULT_NOTIF_PREFS, ...JSON.parse(raw) };
             } catch (e) { return { ...DEFAULT_NOTIF_PREFS }; }
@@ -14988,18 +15027,18 @@
         function setNotifPref(type, on) {
             const prefs = getNotifPrefs();
             prefs[type] = !!on;
-            localStorage.setItem('aym_notif_prefs', JSON.stringify(prefs));
+            _prefSet('aym_notif_prefs', JSON.stringify(prefs));
             const bg = document.getElementById('notifTogBg-' + type);
             if (bg) bg.style.background = prefs[type] ? '#00666f' : '#e5e2dd';
         }
         window.setNotifPref = setNotifPref;
 
         function getVibratePattern() {
-            return localStorage.getItem('aym_vibrate_pattern') || 'short';
+            return _prefGet('aym_vibrate_pattern') || 'short';
         }
         function setVibratePattern(key) {
             if (!VIBRATE_PATTERNS[key]) return;
-            localStorage.setItem('aym_vibrate_pattern', key);
+            _prefSet('aym_vibrate_pattern', key);
             ['short','medium','long'].forEach(k => {
                 const btn = document.getElementById('vibPat-' + k);
                 if (btn) {
@@ -15992,7 +16031,7 @@
                 lat: profile.geo_lat ?? null,
                 lng: profile.geo_lng ?? null,
             };
-            try { localStorage.setItem('aym_geozone', JSON.stringify(A.pickupZone)); } catch (_) { }
+            try { _prefSet('aym_geozone', JSON.stringify(A.pickupZone)); } catch (_) { }
             if (typeof _syncPubZoneField === 'function') _syncPubZoneField();
         }
         // Konsantman kondisyon: ekri sa yon nouvo enskripsyon te koche, oswa
