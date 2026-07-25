@@ -324,6 +324,21 @@
         .ekm-xlbls { display: flex; justify-content: space-between; margin-top: 4px; }
         .ekm-xlbls span { font-family: 'Manrope', sans-serif; font-size: 10px; font-weight: 600; color: var(--ekc-lbl); }
 
+        /* ── Badj Boutik Ofisyèl (lò) — pa yon nivo vandè, se yon eta:
+           boutik plateform lan menm. Distenk de badj Verifye teal la. ── */
+        .badge-gold {
+            background: linear-gradient(135deg, #d4af37, #b8860b);
+            color: #fff;
+            box-shadow: 0 1px 4px rgba(184, 134, 11, .35);
+        }
+        body.dark .badge-gold {
+            background: linear-gradient(135deg, #f0cc5a, #c9992a);
+            color: #241d05;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+        }
+        .gold-ink { color: #a67c0a; }
+        body.dark .gold-ink { color: #f0cc5a; }
+
         /* ── Fèy legal (Kondisyon & Konfidansyalite) ── */
         /* Pi wo pase lòt fèy yo (90) pou l kouvri fèy akseptasyon an nèt lè
            w louvri l soti ladan (pa gen sipèpozisyon ankò). */
@@ -5176,7 +5191,9 @@
       </button>
     </div>
     <div class="bg-surface-container-low px-5 pt-5 pb-4 space-y-4">
-      ${p.b === 'Verifye' ? `<div class="flex items-center gap-1"><span class="material-symbols-outlined fi text-primary" style="font-size:14px">verified</span><span class="font-label text-xs font-bold text-primary">Vandè Verifye</span></div>` : ''}
+      ${p.b === 'Ofisyèl'
+            ? `<div class="flex items-center gap-1"><span class="material-symbols-outlined fi gold-ink" style="font-size:14px">workspace_premium</span><span class="font-label text-xs font-bold gold-ink">Boutik Ofisyèl</span></div>`
+            : p.b === 'Verifye' ? `<div class="flex items-center gap-1"><span class="material-symbols-outlined fi text-primary" style="font-size:14px">verified</span><span class="font-label text-xs font-bold text-primary">Vandè Verifye</span></div>` : ''}
       <div>
         <h1 class="font-headline font-extrabold text-[1.6rem] text-on-surface tracking-tight leading-tight">${esc(p.t)}</h1>
         <p class="font-body text-xs text-on-surface-variant mt-0.5">${p.c} · ${p.l}</p>
@@ -5232,7 +5249,9 @@
         <div class="flex-1">
           <div class="flex items-center gap-1.5">
             <p class="font-headline font-bold text-sm text-on-surface">${esc(seller.name)}</p>
-            ${seller.verified ? '<span class="material-symbols-outlined fi text-primary" style="font-size:13px">verified</span>' : ''}
+            ${seller.official
+                ? '<span class="material-symbols-outlined fi gold-ink" style="font-size:13px" title="Boutik Ofisyèl">workspace_premium</span>'
+                : seller.verified ? '<span class="material-symbols-outlined fi text-primary" style="font-size:13px">verified</span>' : ''}
           </div>
           <p class="font-label text-xs text-on-surface-variant">${seller.rating}★ · ${seller.salesCount}+ lavant · ${esc(seller.location)}</p>
         </div>
@@ -5742,7 +5761,9 @@
             const badgeHtml = flashBadge
                 ? flashBadge
                 : (p.b
-                    ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full" style="font-size:9px;background:${p.b === 'Verifye' ? 'rgba(0,102,111,.88)' : p.b === 'Reko IA' ? 'rgba(151,66,43,.88)' : 'rgba(90,215,230,.88)'};color:#fff">${p.b}</span>`
+                    ? (p.b === 'Ofisyèl'
+                        ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full badge-gold" style="font-size:9px">★ ${p.b}</span>`
+                        : `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full" style="font-size:9px;background:${p.b === 'Verifye' ? 'rgba(0,102,111,.88)' : p.b === 'Reko IA' ? 'rgba(151,66,43,.88)' : 'rgba(90,215,230,.88)'};color:#fff">${p.b}</span>`)
                     : '');
             const outOfStock = typeof p.s === 'number' && p.s <= 0;
             const oosOverlay = outOfStock
@@ -6500,7 +6521,7 @@
       </div>
       <div class="flex-1 min-w-0">
         <p class="font-headline font-bold text-sm text-on-surface">${esc(p.t)}</p>
-        <p class="font-label text-xs text-on-surface-variant">${esc(p.sellerName || 'Vandè')} ${p.b ? '· Verifye' : ''}</p>
+        <p class="font-label text-xs text-on-surface-variant">${esc(p.sellerName || 'Vandè')} ${p.b ? '· ' + esc(p.b) : ''}</p>
         <div class="flex items-baseline gap-1.5 mt-1 flex-wrap">
           <p class="font-headline font-extrabold text-xl text-primary">${fp(sub)} HTG</p>
           ${p.oldP && p.oldP > p.p ? `<span class="font-label text-on-surface-variant line-through" style="font-size:.75rem">${fp(p.oldP)}</span><span class="font-label font-bold rounded-full px-1.5" style="font-size:.625rem;background:rgba(151,66,43,.12);color:#97422b;line-height:1.5">-${discountPct(p)}%</span>` : ''}
@@ -13373,7 +13394,7 @@
                 history.replaceState(null, '', location.pathname + location.search);
                 if (!PRODUCTS.find(p => p.id === pid) && db) {
                     const { data } = await db.from('products')
-                        .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
+                        .select('*, seller:profiles!seller_id(id, display_name, verified_seller, official_seller, rating_avg, avatar_url)')
                         .eq('id', pid).eq('status', 'active').maybeSingle();
                     if (data) PRODUCTS.push(_mapProductRow(data));
                 }
@@ -13400,7 +13421,7 @@
                 }
             } catch (_) { /* fallback anba */ }
             let pq = db.from('products')
-                .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
+                .select('*, seller:profiles!seller_id(id, display_name, verified_seller, official_seller, rating_avg, avatar_url)')
                 .eq('status', 'active');
             if (query) pq = pq.or('title.ilike.%' + query + '%,description.ilike.%' + query + '%,category.ilike.%' + query + '%,location.ilike.%' + query + '%');
             if (zone) pq = pq.ilike('location', '%' + zone + '%');
@@ -15381,7 +15402,7 @@
             if (!db || !sellerId) return;
             try {
                 const { data, error } = await db.from('products')
-                    .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
+                    .select('*, seller:profiles!seller_id(id, display_name, verified_seller, official_seller, rating_avg, avatar_url)')
                     .eq('seller_id', sellerId)
                     .eq('status', 'active')
                     .order('created_at', { ascending: false });
@@ -15392,7 +15413,7 @@
                         id: p.id, t: p.title, p: p.price, oldP: p.old_price, c: p.category, l: p.location,
                         desc: p.description, img: imgs.length > 0 ? imgs[0] : null, images: imgs,
                         s: p.stock, v: p.views || 0, r: p.seller?.rating_avg || 0,
-                        b: p.seller?.verified_seller ? 'Verifye' : '', sellerId: p.seller_id,
+                        b: p.seller?.official_seller ? 'Ofisyèl' : (p.seller?.verified_seller ? 'Verifye' : ''), sellerId: p.seller_id,
                         sellerName: p.seller?.display_name || 'Vandè',
                         sellerAvatarUrl: p.seller?.avatar_url || null,
                         sellerVerified: !!p.seller?.verified_seller,
@@ -15468,8 +15489,11 @@
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
               <h2 class="font-headline font-extrabold text-xl text-on-surface tracking-tight truncate">${esc(seller.name)}</h2>
-              ${seller.verified ? '<span class="material-symbols-outlined fi flex-shrink-0" style="font-size:19px;color:#00666f">verified</span>' : ''}
+              ${seller.official
+                ? '<span class="material-symbols-outlined fi flex-shrink-0 gold-ink" style="font-size:19px" title="Boutik Ofisyèl Ekomat">workspace_premium</span>'
+                : seller.verified ? '<span class="material-symbols-outlined fi flex-shrink-0" style="font-size:19px;color:#00666f">verified</span>' : ''}
             </div>
+            ${seller.official ? '<span class="badge-gold font-label font-extrabold px-2 py-0.5 rounded-full inline-block mt-1" style="font-size:9.5px">★ BOUTIK OFISYÈL</span>' : ''}
             <p class="font-label text-xs text-on-surface-variant mt-0.5 flex items-center gap-1"><span class="material-symbols-outlined" style="font-size:13px">location_on</span> ${esc(seller.location)}</p>
           </div>
           ${(seller.specialties && seller.specialties.length) || (seller.badges && seller.badges.length) ? `
@@ -16568,7 +16592,7 @@
             id: p.id, t: p.title, p: p.price, oldP: p.old_price, c: p.category, l: p.location,
             desc: p.description, img: imgs.length > 0 ? imgs[0] : null, images: imgs,
             s: p.stock, v: p.views, r: p.seller?.rating_avg || 0,
-            b: p.seller?.verified_seller ? 'Verifye' : '', sellerId: p.seller_id,
+            b: p.seller?.official_seller ? 'Ofisyèl' : (p.seller?.verified_seller ? 'Verifye' : ''), sellerId: p.seller_id,
             sellerName: p.seller?.display_name || 'Vandè',
             sellerAvatarUrl: p.seller?.avatar_url || null,
             sellerVerified: !!p.seller?.verified_seller,
@@ -16599,7 +16623,7 @@
             A.favs = new Set(ids);
             if (!ids.length) return [];
             const { data } = await db.from('products')
-                .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
+                .select('*, seller:profiles!seller_id(id, display_name, verified_seller, official_seller, rating_avg, avatar_url)')
                 .in('id', ids).eq('status', 'active');
             const mapped = (data || []).map(_mapProductRow);
             mapped.forEach(sp => { if (!PRODUCTS.find(x => x.id === sp.id)) PRODUCTS.push(sp); });
@@ -16615,7 +16639,7 @@
         if (db) {
             try {
                 let q = db.from('products')
-                    .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
+                    .select('*, seller:profiles!seller_id(id, display_name, verified_seller, official_seller, rating_avg, avatar_url)')
                     .eq('status', 'active')
                     .order('created_at', { ascending: false })
                     .limit(filters.limit || 100);
@@ -16685,6 +16709,7 @@
                 avatarUrl: data.avatar_url || null,
                 coverUrl: data.cover_url || null,
                 verified: data.verified_seller || false,
+                official: data.official_seller || false,
                 rating: data.rating_avg || 0,
                 reviewCount: data.review_count || 0,
                 salesCount: data.sales_count || 0,
