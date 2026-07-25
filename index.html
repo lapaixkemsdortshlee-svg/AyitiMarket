@@ -4794,6 +4794,15 @@
         //  BOOT APP — after successful auth
         // ══════════════════════════════════════════════════════════
         function bootApp() {
+            // GARANTI: yon kont konekte PA janm rive nan feed la san wòl.
+            // Se sèl pwen pasaj la, konsa okenn chemen (minitè splash,
+            // minitè sekirite 10s, kach lokal, oswa yon chemen fiti) pa ka
+            // kontounen ekran chwazi pwofil la. Mòd envite pa pase isit.
+            if (A.user && !A.user.role) {
+                A.booted = false;
+                _showRoleScreen();
+                return;
+            }
             document.getElementById("topbar").classList.remove("hidden");
             document.getElementById("bottomNav").classList.remove("hidden");
             document.getElementById("fab").classList.remove("hidden");
@@ -10147,8 +10156,10 @@
                 const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
                 const paidStates = ['payment_verified', 'ready_for_pickup', 'picked_up',
                                     'otp_confirmed', 'released', 'completed', 'delivered'];
+                // Eskli kòmand kont entèn yo pou rete koyeran ak funnel_overview
+                // (san sa: "0 itilizatè" akote plizyè milye HTG lavant tès).
                 const { data, error } = await db.from('orders')
-                    .select('total_amount, status, created_at')
+                    .select('total_amount, status, created_at, buyer:profiles!buyer_id(internal_account)')
                     .in('status', paidStates)
                     .gte('created_at', since);
                 if (error) throw error;
@@ -10157,7 +10168,7 @@
                     const d = new Date(Date.now() - i * 24 * 3600 * 1000);
                     buckets[d.toISOString().slice(0, 10)] = 0;
                 }
-                (data || []).forEach(o => {
+                (data || []).filter(o => !o.buyer?.internal_account).forEach(o => {
                     const k = String(o.created_at || '').slice(0, 10);
                     if (k in buckets) buckets[k] += Number(o.total_amount) || 0;
                 });
@@ -10183,13 +10194,14 @@
                 const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
                 const paidStates = ['payment_verified', 'ready_for_pickup', 'picked_up',
                                     'otp_confirmed', 'released', 'completed', 'delivered'];
+                // Menm règ ki nan graf lavant lan: san kont entèn.
                 const { data, error } = await db.from('orders')
-                    .select('product_id, product_title, total_amount, status, created_at')
+                    .select('product_id, product_title, total_amount, status, created_at, buyer:profiles!buyer_id(internal_account)')
                     .in('status', paidStates)
                     .gte('created_at', since);
                 if (error) throw error;
                 const byProd = new Map();
-                (data || []).forEach(o => {
+                (data || []).filter(o => !o.buyer?.internal_account).forEach(o => {
                     const k = o.product_id || o.product_title || 'unknown';
                     const cur = byProd.get(k) || { title: o.product_title || 'Pwodwi', sales: 0 };
                     cur.sales += Number(o.total_amount) || 0;
@@ -16127,7 +16139,7 @@
                 const safetyTimer = setTimeout(() => {
                     console.warn('[Auth] Safety timeout');
                     hideAuthLoader();
-                    if (!A.booted) { hideSplash(); if (A.user) { A.booted = true; bootApp(); } else { goTo('s-login'); } }
+                    if (!A.booted) { hideSplash(); if (A.user && A.user.role) { A.booted = true; bootApp(); } else if (A.user) { _showRoleScreen(); } else { goTo('s-login'); } }
                 }, 10000);
                 try {
                     const result = await handleAuthSession(session);
@@ -16154,7 +16166,7 @@
                     const safetyTimer = setTimeout(() => {
                         console.warn('[Auth] Safety timeout');
                         hideAuthLoader();
-                        if (!A.booted) { hideSplash(); if (A.user) { A.booted = true; bootApp(); } else { goTo('s-login'); } }
+                        if (!A.booted) { hideSplash(); if (A.user && A.user.role) { A.booted = true; bootApp(); } else if (A.user) { _showRoleScreen(); } else { goTo('s-login'); } }
                     }, 10000);
                     try {
                         const result = await handleAuthSession(session);
