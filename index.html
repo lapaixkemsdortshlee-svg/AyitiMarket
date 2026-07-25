@@ -402,9 +402,20 @@
         .ekv-chip.on { background: #8cf2ff; color: #001f23; }
         body.dark .ekv-chip.on { background: #00666f; color: #d6fbff; }
         .ekv-chip-n { font-size: 11.5px; font-weight: 800; opacity: .8; }
-        .ekv-row { display: flex; align-items: center; gap: 2px; border-radius: 16px; transition: background .15s ease; }
-        .ekv-row:active { background: rgba(0,102,111,.07); }
-        body.dark .ekv-row:active { background: rgba(90,215,230,.09); }
+        /* Glise: de panno aksyon anba liy la. Liy la DWE gen yon fon opak,
+           sinon panno yo ta parèt atravè li. */
+        .ekv-sw { position: relative; overflow: hidden; border-radius: 16px; touch-action: pan-y; }
+        .ekv-sw-l, .ekv-sw-r { position: absolute; top: 0; bottom: 0; display: flex; }
+        .ekv-sw-l { left: 0; }
+        .ekv-sw-r { right: 0; }
+        .ekv-sw-b { width: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; padding: 0; color: #fff; font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .ekv-sw-b:active { filter: brightness(.9); }
+        .ekv-row { position: relative; z-index: 1; display: flex; align-items: center; gap: 2px; border-radius: 16px; background: #fcf9f4; transition: background .15s ease, transform .22s cubic-bezier(.32,.72,0,1); will-change: transform; }
+        body.dark .ekv-row { background: #1c1c19; }
+        .ekv-sw.drag .ekv-row { transition: none; }
+        .ekv-row:active { background: #f2efe9; }
+        body.dark .ekv-row:active { background: #242421; }
+        @media (prefers-reduced-motion: reduce) { .ekv-row { transition: none; } }
         .ekv-open { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 10px 4px 10px 10px; background: none; border: 0; text-align: left; cursor: pointer; }
         .ekv-more { flex: 0 0 auto; width: 34px; height: 34px; margin-right: 4px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 999px; background: none; color: #6d7979; cursor: pointer; }
         .ekv-more:active { background: rgba(0,0,0,.06); }
@@ -8791,6 +8802,7 @@
       <div class="px-2 pt-1" id="inboxList"></div>`;
             renderInboxChips();
             renderInboxList();
+            bindInboxSwipe();
         }
 
         function renderInboxChips() {
@@ -8830,6 +8842,7 @@
         function renderInboxList() {
             const list = document.getElementById('inboxList');
             if (!list || !A.inbox) return;
+            _swOpen = null; // liy yo pral refèt, okenn pa ouvè ankò
             const all = A.inbox.convs;
             const f = A.inbox.filter, q = A.inbox.q;
             const rows = all.filter(c => {
@@ -8868,8 +8881,21 @@
             const labelsHTML = m.labels.length
                 ? `<div class="ekv-lbs">${m.labels.filter(k => CONV_LABELS[k]).map(k => `<span class="ekv-lb ekv-lb-${k}">${esc(CONV_LABELS[k])}</span>`).join('')}</div>`
                 : '';
+            // Panno glise yo. `tabindex=-1`: yo double aksyon ki nan fèy `⋮` la,
+            // ki rete chemen aksesib la (klavye / lektè ekran).
+            const swb = (dir, kind, bg, icon, label) =>
+                `<button class="ekv-sw-b" tabindex="-1" aria-hidden="true" style="background:${bg}"
+           onclick="convSwipeAct('${kind}','${oid}')">
+           <span class="material-symbols-outlined fi" style="font-size:20px">${icon}</span>${esc(label)}</button>`;
+            const left = (c.unread ? swb('l', 'read', '#00818c', 'mark_chat_read', 'Li') : '')
+                + swb('l', 'pin', '#5d6a6a', 'push_pin', m.pinned ? 'Dekwoke' : 'Epengle');
+            const right = swb('r', 'more', '#5d6a6a', 'more_horiz', 'Plis')
+                + swb('r', 'fav', '#c08a2e', 'star', m.favorite ? 'Retire' : 'Favori');
             return `
-      <div class="ekv-row">
+      <div class="ekv-sw" data-lw="${c.unread ? 152 : 76}" data-rw="152" data-dx="0">
+        <div class="ekv-sw-l">${left}</div>
+        <div class="ekv-sw-r">${right}</div>
+        <div class="ekv-row">
         <button class="ekv-open" onclick="openConversation(${pid}, '${oid}', '${nameAttr}')">
           <span class="ekv-av">${c.avatar
                 ? `<img alt="Foto pwofil" src="${esc(c.avatar)}" onerror="this.parentElement.innerHTML='<span class=\\'font-headline font-bold text-white\\' style=\\'font-size:15px\\'>${esc(initials)}</span>'"/>`
@@ -8895,8 +8921,95 @@
         <button class="ekv-more" aria-label="Opsyon pou konvèsasyon ak ${esc(c.name)}" onclick="openConvMenu('${oid}')">
           <span class="material-symbols-outlined" style="font-size:20px">more_vert</span>
         </button>
+        </div>
       </div>`;
         }
+
+        // ── Glise sou yon liy (stil WhatsApp) ──
+        // Adwat → Li + Epengle. Agoch → Plis + Favori. `touch-action: pan-y`
+        // kite navigatè a fè woulman vètikal la; nou pran sèlman orizontal la.
+        let _swOpen = null;
+
+        function swSetX(el, x) {
+            const r = el.querySelector('.ekv-row');
+            if (r) r.style.transform = x ? 'translateX(' + x + 'px)' : '';
+        }
+
+        function swClose(el) {
+            if (!el) return;
+            swSetX(el, 0);
+            el.dataset.dx = '0';
+            if (_swOpen === el) _swOpen = null;
+        }
+
+        function swOpen(el, x) {
+            swSetX(el, x);
+            el.dataset.dx = String(x);
+            _swOpen = el;
+        }
+
+        function bindInboxSwipe() {
+            const list = document.getElementById('inboxList');
+            if (!list) return;
+            let sw = null, x0 = 0, y0 = 0, base = 0, dx = 0, axis = '';
+            list.addEventListener('pointerdown', e => {
+                const el = e.target.closest('.ekv-sw');
+                if (!el || e.target.closest('.ekv-sw-b')) return;
+                if (_swOpen && _swOpen !== el) swClose(_swOpen);
+                sw = el; x0 = e.clientX; y0 = e.clientY; axis = '';
+                base = Number(el.dataset.dx) || 0; dx = base;
+                el.dataset.moved = '';
+                try { el.setPointerCapture(e.pointerId); } catch (_) {}
+            });
+            list.addEventListener('pointermove', e => {
+                if (!sw) return;
+                const mx = e.clientX - x0, my = e.clientY - y0;
+                if (!axis) {
+                    if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
+                    // Ka vètikal la: nou lage nèt pou woulman an rete natirèl.
+                    if (Math.abs(mx) <= Math.abs(my) * 1.3) { sw = null; return; }
+                    axis = 'x';
+                    sw.classList.add('drag');
+                }
+                const lw = Number(sw.dataset.lw) || 0, rw = Number(sw.dataset.rw) || 0;
+                dx = Math.max(-rw, Math.min(lw, base + mx));
+                sw.dataset.moved = '1';
+                swSetX(sw, dx);
+            });
+            const end = () => {
+                if (!sw) return;
+                sw.classList.remove('drag');
+                const lw = Number(sw.dataset.lw) || 0, rw = Number(sw.dataset.rw) || 0;
+                if (dx > lw * 0.4) swOpen(sw, lw);
+                else if (dx < -rw * 0.4) swOpen(sw, -rw);
+                else swClose(sw);
+                sw = null;
+            };
+            list.addEventListener('pointerup', end);
+            list.addEventListener('pointercancel', end);
+            // Yon tap sou yon liy ki ouvè (oswa apre yon glise) fèmen l — li pa
+            // dwe louvri chat la. Faz kapte a pase anvan onclick liy la.
+            list.addEventListener('click', e => {
+                const el = e.target.closest('.ekv-sw');
+                if (!el || e.target.closest('.ekv-sw-b')) return;
+                const dragged = el.dataset.moved === '1';
+                el.dataset.moved = '';
+                // Yon souri voye yon `click` apre yon glise: nou anile l, men nou
+                // PA fèmen liy la (sa ta defèt glise a lamenm).
+                if (dragged) { e.preventDefault(); e.stopPropagation(); return; }
+                if (el === _swOpen) { e.preventDefault(); e.stopPropagation(); swClose(el); }
+            }, true);
+        }
+
+        function convSwipeAct(kind, oid) {
+            swClose(_swOpen);
+            A._convMenuId = oid;
+            if (kind === 'read') convMarkRead();
+            else if (kind === 'pin') toggleConvPin();
+            else if (kind === 'fav') toggleConvFav();
+            else openConvMenu(oid);
+        }
+        window.convSwipeAct = convSwipeAct;
 
         // ── Aksyon sou yon konvèsasyon (epingle / favori / etikèt / make li) ──
         function openConvMenu(otherId) {
