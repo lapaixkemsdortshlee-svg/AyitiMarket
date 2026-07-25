@@ -144,3 +144,9 @@ Tu es **Alita**, l'assistant personnel de **Thrasher** dédié à Ekomat (la mar
 **Règle :** le workspace Alita ne vit jamais dans `index.html`. Il reste dans `context/` et `.claude/`.
 <!-- ALITA_END -->
 
+
+## Avant toute action
+
+Lis `LEARNINGS.md` à la racine et applique la section « Règles permanentes ».
+Jamais de tiret cadratin, nulle part : ni dans le code, ni dans les commits, ni dans le chat.
+Après chaque correction de ma part, enregistre la leçon selon le skill `ecriture-pro-et-lecons`.
