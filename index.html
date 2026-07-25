@@ -431,26 +431,33 @@
         /* Glisman natif: chak slide fè 100% epi snap. Pa gen JS pou drag la. */
         .ekf-track { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; border-radius: 22px; }
         .ekf-track::-webkit-scrollbar { display: none; }
-        .ekf-slide { position: relative; flex: 0 0 100%; scroll-snap-align: center; border-radius: 22px; overflow: hidden; min-height: 178px; display: flex; flex-direction: column; justify-content: center; padding: 20px 46% 30px 20px; background: linear-gradient(135deg,#00666f,#00818c); }
-        .ekf-slide-img { position: absolute; top: 0; right: 0; bottom: 0; width: 48%; object-fit: cover; object-position: center; }
-        .ekf-slide-fade { position: absolute; top: 0; bottom: 0; right: 42%; width: 22%; pointer-events: none; }
-        .ekf-badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: 999px; background: rgba(28,28,25,.82); color: #fcf9f4; font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
-        .ekf-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.22rem; line-height: 1.18; letter-spacing: -.02em; color: #fcf9f4; }
-        .ekf-sub { font-family: 'Manrope', sans-serif; font-size: .78rem; line-height: 1.45; color: rgba(252,249,244,.86); margin-top: 5px; }
-        .ekf-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 9px; margin-top: 14px; padding: 8px 8px 8px 18px; border: 0; border-radius: 999px; background: #1c1c19; color: #fcf9f4; font-family: 'Plus Jakarta Sans', sans-serif; font-size: .8125rem; font-weight: 800; cursor: pointer; }
+        /* Foto landscape kouvri TOUT kat la; tèks la chita sou li. Vwal la
+           (ekf-slide-fade) obligatwa pou lizibilite: sou yon foto swa blan,
+           tèks krèm san vwal disparèt nèt. */
+        .ekf-slide { position: relative; flex: 0 0 100%; scroll-snap-align: center; border-radius: 22px; overflow: hidden; min-height: 178px; display: flex; flex-direction: column; justify-content: center; padding: 20px 34% 30px 20px; background: linear-gradient(135deg,#00666f,#00818c); }
+        .ekf-slide.img { padding-right: 22%; }
+        .ekf-slide-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+        .ekf-slide-fade { position: absolute; inset: 0; pointer-events: none; }
+        .ekf-badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: 999px; background: rgba(252,249,244,.94); color: #00404a; font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
+        .ekf-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.22rem; line-height: 1.18; letter-spacing: -.02em; color: #fcf9f4; text-shadow: 0 1px 10px rgba(0,0,0,.28); }
+        .ekf-sub { font-family: 'Manrope', sans-serif; font-size: .78rem; line-height: 1.45; color: rgba(252,249,244,.92); margin-top: 5px; text-shadow: 0 1px 8px rgba(0,0,0,.3); }
+        .ekf-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 9px; margin-top: 14px; padding: 8px 8px 8px 18px; border: 0; border-radius: 999px; background: #fcf9f4; color: #00404a; font-family: 'Plus Jakarta Sans', sans-serif; font-size: .8125rem; font-weight: 800; cursor: pointer; box-shadow: 0 3px 12px rgba(28,28,25,.18); }
         .ekf-cta:active { transform: scale(.96); }
-        .ekf-cta-a { width: 26px; height: 26px; border-radius: 999px; background: #fcf9f4; color: #1c1c19; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+        .ekf-cta-a { width: 26px; height: 26px; border-radius: 999px; background: #00666f; color: #fcf9f4; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
         /* Ankòch anba kat la: yon bwat koulè paj la poze sou bò anba a, ak de
            kwen konkav (radial-gradient) ki fè kat la sanble li vlope pwen yo.
            Li viv sou .ekf-hero, pa sou chak slide — konsa li rete fiks pandan
            slide yo ap pase anba l. */
         .ekf-notch { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 2; background: #fcf9f4; border-radius: 15px 15px 0 0; padding: 9px 17px 3px; }
         body.dark .ekf-notch { background: #1c1c19; }
-        .ekf-notch::before, .ekf-notch::after { content: ''; position: absolute; bottom: 0; width: 16px; height: 16px; }
-        .ekf-notch::before { left: -16px; background: radial-gradient(circle 16px at 0 0, transparent 16px, #fcf9f4 16px); }
-        .ekf-notch::after { right: -16px; background: radial-gradient(circle 16px at 100% 0, transparent 16px, #fcf9f4 16px); }
-        body.dark .ekf-notch::before { background: radial-gradient(circle 16px at 0 0, transparent 16px, #1c1c19 16px); }
-        body.dark .ekf-notch::after { background: radial-gradient(circle 16px at 100% 0, transparent 16px, #1c1c19 16px); }
+        /* Kwen konkav yo. Yon `transparent 16px, koulè 16px` kite yon ti fil
+           dantle (aliasing) — se « ti akwòch » yo. Yon degrade 0.5px pi dous
+           efase yo, epi +1px lajè/wotè bouche kwen an nèt. */
+        .ekf-notch::before, .ekf-notch::after { content: ''; position: absolute; bottom: -1px; width: 17px; height: 17px; }
+        .ekf-notch::before { left: -16px; background: radial-gradient(circle 16px at 0 0, transparent 15.5px, #fcf9f4 16.5px); }
+        .ekf-notch::after { right: -16px; background: radial-gradient(circle 16px at 100% 0, transparent 15.5px, #fcf9f4 16.5px); }
+        body.dark .ekf-notch::before { background: radial-gradient(circle 16px at 0 0, transparent 15.5px, #1c1c19 16.5px); }
+        body.dark .ekf-notch::after { background: radial-gradient(circle 16px at 100% 0, transparent 15.5px, #1c1c19 16.5px); }
         .ekf-dots { display: flex; justify-content: center; gap: 6px; }
         .ekf-dot { width: 7px; height: 7px; border-radius: 999px; border: 0; padding: 0; background: rgba(61,73,73,.24); transition: width .22s ease, background .22s ease; cursor: pointer; }
         body.dark .ekf-dot { background: rgba(255,255,255,.22); }
@@ -459,7 +466,7 @@
         @media (prefers-reduced-motion: reduce) { .ekf-track { scroll-behavior: auto; } .ekf-dot { transition: none; } }
 
         /* ── Lis konvèsasyon yo (Mesaj yo) — gwo tit, rechèch, chip, etikèt ── */
-        .ekv-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.75rem; line-height: 1.05; letter-spacing: -.03em; }
+        .ekv-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.5rem; line-height: 1.05; letter-spacing: -.03em; }
         .ekv-search { display: flex; align-items: center; gap: 8px; background: #e5e2dd; border-radius: 999px; padding: 0 14px; }
         body.dark .ekv-search { background: #383834; }
         .ekv-search input { flex: 1 1 auto; min-width: 0; background: none; border: 0; outline: none; padding: 11px 0; font-family: 'Manrope', sans-serif; font-size: 14px; color: #1c1c19; }
@@ -480,7 +487,9 @@
         .ekv-sw-r { right: 0; }
         .ekv-sw-b { width: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; padding: 0; color: #fff; font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; }
         .ekv-sw-b:active { filter: brightness(.9); }
-        .ekv-row { position: relative; z-index: 1; display: flex; align-items: center; gap: 2px; border-radius: 16px; background: #fcf9f4; transition: background .15s ease, transform .22s cubic-bezier(.32,.72,0,1); will-change: transform; }
+        /* Resò: `back` easing bay yon ti rebondisman lè liy la fèmen oswa
+           kale. San li, glisman an santi rèd tankou yon volè. */
+        .ekv-row { position: relative; z-index: 1; display: flex; align-items: center; gap: 2px; border-radius: 16px; background: #fcf9f4; transition: background .15s ease, transform .38s cubic-bezier(.22,1.12,.36,1); will-change: transform; }
         body.dark .ekv-row { background: #1c1c19; }
         .ekv-sw.drag .ekv-row { transition: none; }
         .ekv-row:active { background: #f2efe9; }
@@ -3877,20 +3886,8 @@
                 <span class="material-symbols-outlined fi" style="font-size:16px">auto_awesome</span>
                 <span class="font-label text-sm font-bold">Jenere ak IA</span>
             </button>
-            <!-- Imaj + CTA opsyonèl: se sa ki fè anons la parèt kòm yon slide
-                 nan kat glisan an olye yon senp ti bandwòl. -->
-            <div class="flex gap-2">
-                <button onclick="pickHeroImage('ann')" id="annImgBtn"
-                    class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl amb active:scale-[.99]"
-                    style="background:rgba(0,102,111,.08);color:#00666f">
-                    <span class="material-symbols-outlined fi" style="font-size:16px">image</span>
-                    <span class="font-label text-sm font-bold" id="annImgTxt">Ajoute yon imaj</span>
-                </button>
-                <button onclick="clearHeroImage('ann')" id="annImgClr"
-                    class="hidden w-11 rounded-xl flex items-center justify-center ekv-del" aria-label="Retire imaj la">
-                    <span class="material-symbols-outlined" style="font-size:18px">close</span>
-                </button>
-            </div>
+            <!-- Anons = yon MESAJ (tèks). Imaj yo se pou Banyè akèy, ki se yon
+                 lòt paj: de zouti diferan, pa menm fòm. -->
             <div class="flex gap-2">
                 <input id="annCtaLabel" class="si flex-1" placeholder="Tèks bouton (opsyonèl)" maxlength="24"/>
                 <select id="annCtaAction" class="si flex-1">
@@ -3904,23 +3901,19 @@
             <button onclick="submitAnnouncement()" class="w-full py-3 rounded-xl cta font-label font-bold text-sm active:scale-95">
                 Pibliye anons
             </button>
-            <button onclick="openHeroSlides()" class="w-full py-2.5 rounded-xl font-label font-bold text-sm active:opacity-80"
-                style="background:rgba(0,102,111,.08);color:#00666f">
-                Jere banyè kat glisan an
-            </button>
         </div>
         <div id="annList" class="mt-4 space-y-2"></div>
     </div>
 
-    <!-- Banyè kat glisan (admin sèlman) -->
-    <div class="sheet" id="heroSlidesSheet" style="max-height:88vh;overflow-y:auto">
-        <div class="handle"></div>
-        <div class="flex items-center gap-2 mb-4">
-            <button onclick="closeSheets()" aria-label="Fèmen"
-                class="w-8 h-8 -ml-1 rounded-full flex items-center justify-center active:bg-surface-container-low">
-                <span class="material-symbols-outlined text-on-surface" style="font-size:22px">arrow_back</span>
-            </button>
-            <h3 class="font-headline font-extrabold text-lg text-on-surface tracking-tight">Banyè akèy</h3>
+    <!-- ══════════════════════════════════════════════════════
+     SCREEN — BANYÈ AKÈY (admin sèlman) — paj apa, pa yon fèy
+     ki monte sou Anons yo.
+══════════════════════════════════════════════════════ -->
+    <div class="screen pb-32 max-w-lg mx-auto" id="s-banners">
+        <div class="pt-20 px-4" id="bannersContent">
+        <div class="pb-3">
+            <h2 class="ekv-title text-on-surface">Banyè akèy</h2>
+            <p class="font-body text-sm text-on-surface-variant mt-2">Imaj landscape ki kouvri tout kat la nan tèt feed la. Sèvi ak yo pou mete an avan yon òf, yon kanpay, oswa yon boutik ki peye pou sa.</p>
         </div>
         <div class="space-y-3">
             <input id="hsTitle" class="si" placeholder="Tit banyè a…" maxlength="60"/>
@@ -3961,6 +3954,7 @@
             </button>
         </div>
         <div id="hsList" class="mt-4 space-y-2"></div>
+        </div>
     </div>
 
     <!-- ══ FÈY LEGAL — Kondisyon & Konfidansyalite ══ -->
@@ -5301,6 +5295,14 @@
                 A.chatId = null;
                 A.chatOtherId = null;
                 if (typeof refreshUserStats === 'function') refreshUserStats();
+                // Konvèsasyon → Mesaj yo → Feed. openInbox() remete antre a nou
+                // retire a, konsa pil la rete egal.
+                if (A._chatFromInbox) {
+                    A._chatFromInbox = false;
+                    A.stack.pop();
+                    openInbox();
+                    return;
+                }
             }
             // Etikèt kliyan ouvè depi lis mesaj la: nou tounen sou lis la.
             // openInbox() remete antre a nou retire a, konsa pil la rete egal.
@@ -7452,7 +7454,10 @@
             document.getElementById("chatAv").innerHTML = '<span class="font-headline font-bold text-white text-xs">' + (A.chatSellerName.split(' ').map(w=>w[0]).join('').slice(0,2)) + '</span>';
             document.getElementById("chatName").textContent = A.chatSellerName;
             renderChatMsgs(pid);
-            A.stack.push(A.tab);
+            // Si nou soti nan lis Mesaj yo, `goBack` dwe tounen sou lis la, pa
+            // sou tab la. openInbox() te deja anpile yon antre: nou pa double l.
+            A._chatFromInbox = !!document.getElementById('s-inbox')?.classList.contains('on');
+            if (!A._chatFromInbox) A.stack.push(A.tab);
             document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
             document.getElementById("s-chat").classList.add("on");
             document.getElementById("bottomNav").classList.add("hidden");
@@ -7511,26 +7516,40 @@
             if (!A.isAuth) { toast('Ou dwe konekte pou voye mesaj'); return; }
             if (!A.msgs[A.chatId]) A.msgs[A.chatId] = [];
             const tm = new Date().toLocaleTimeString("fr", { hour: "2-digit", minute: "2-digit" });
+            // Destinatè a DWE konnen anvan nou montre mesaj la. Anvan, si li te
+            // nil, boul la te parèt sou ekran an epi ekriti a te tonbe an
+            // silans (yon `console.warn`): moun nan te kwè li voye mesaj la,
+            // epi li te disparèt apre yon rafrechisman.
+            const to = A.chatSellerId || A.chatOtherId || null;
+            if (db && A.user?.uid && (!to || to === A.user.uid)) {
+                toast('Nou pa ka idantifye moun nan — louvri konvèsasyon an depi Mesaj yo');
+                return;
+            }
             A.msgs[A.chatId].push({ s: true, t, tm }); input.value = ""; renderChatMsgs(A.chatId);
             // Send to Supabase messages table
             if (db && A.user?.uid) {
-                if (!A.chatSellerId) {
-                    console.warn('[Chat] chatSellerId pa disponib — mesaj pa sove');
-                    return;
-                }
                 db.from('messages').insert({
                     sender_id: A.user.uid,
-                    receiver_id: A.chatSellerId,
+                    receiver_id: to,
                     product_id: A.chatId,
                     content: t,
                 }).then(({ error }) => {
-                    if (error) console.warn('[Chat] Erè voye mesaj:', error.message);
+                    // Yon ekriti ki echwe pa dwe rete an silans: nou make boul
+                    // la kòm pa voye epi nou di l.
+                    if (error) {
+                        console.warn('[Chat] Erè voye mesaj:', error.message);
+                        const arr = A.msgs[A.chatId] || [];
+                        const last = arr[arr.length - 1];
+                        if (last && last.s === true && last.t === t) last.failed = true;
+                        renderChatMsgs(A.chatId);
+                        toast('Mesaj la pa pati — tcheke koneksyon ou');
+                    }
                 });
                 // Notify the receiver of the new message
-                if (A.chatSellerId && A.chatSellerId !== A.user.uid) {
+                if (to && to !== A.user.uid) {
                     const preview = t.startsWith('[LOC]') ? '📍 Lokalisasyon pataje' : t.startsWith('[VOICE]') ? '🎙️ Nòt vokal' : t.slice(0, 80);
                     db.from('notifications').insert({
-                        user_id: A.chatSellerId,
+                        user_id: to,
                         type: 'chat',
                         icon: 'chat',
                         title: 'Nouvo mesaj',
@@ -7643,6 +7662,7 @@
             items.push({ i: "admin_panel_settings", l: "Panel Admin", s: "Verifikasyon, kòmand, itilizatè", a: "navTo('admin')" });
             items.push({ i: "forum", l: "Mesaj yo", s: (A.unreadMsgCount || 0) > 0 ? (A.unreadMsgCount + ' nouvo mesaj') : 'Tout konvèsasyon', a: "openInbox()" });
             items.push({ i: "campaign", l: "Anons yo", s: "Jere anons platfòm", a: "openSheet('announceSheet')" });
+            items.push({ i: "wallpaper", l: "Banyè Akèy", s: "Imaj kat glisan an", a: "openHeroSlides()" });
             items.push({ i: "settings", l: "Paramèt", s: "Son, notifikasyon, pataj", a: "openSheet('settingsSheet')" });
         } else {
             if (u.role === 'buyer' || (u.role !== 'seller')) {
@@ -8997,16 +9017,9 @@
         function renderInbox() {
             const el = document.getElementById('inboxContent');
             if (!el) return;
-            const title = '<div class="px-4 pb-3"><h2 class="ekv-title text-on-surface">Mesaj yo</h2></div>';
-            // Rechèch ak filtè yo parèt sèlman lè gen konvèsasyon — yon bwat
-            // rechèch sou yon lis vid se dekò, li pa ede pèsonn.
-            if (!A.inbox.convs.length) {
-                // Yon ti souf anplis anba tit la: san li blòk vid la kole twò
-                // wo, jis anba « Mesaj yo ».
-                el.innerHTML = title + '<div class="px-2" style="padding-top:34px">'
-                    + emptyState('forum', 'Pa gen mesaj', 'Konvèsasyon ou yo ap parèt la') + '</div>';
-                return;
-            }
+            const title = '<div class="px-4 pb-2"><h2 class="ekv-title text-on-surface">Mesaj yo</h2></div>';
+            // Bar rechèch la ak filtè yo rete la MENM san mesaj: paj la kenbe
+            // menm fòm nan, se sèlman lis la ki vid.
             el.innerHTML = title + `
       <div class="px-4 pb-3">
         <div class="ekv-search">
@@ -9063,6 +9076,11 @@
             if (!list || !A.inbox) return;
             _swOpen = null; // liy yo pral refèt, okenn pa ouvè ankò
             const all = A.inbox.convs;
+            if (!all.length) {
+                list.innerHTML = '<div style="padding-top:26px">'
+                    + emptyState('forum', 'Pa gen mesaj', 'Konvèsasyon ou yo ap parèt la') + '</div>';
+                return;
+            }
             const f = A.inbox.filter, q = A.inbox.q;
             const rows = all.filter(c => {
                 const m = convMeta(c.otherId);
@@ -9198,7 +9216,12 @@
                     sw.classList.add('drag');
                 }
                 const lw = Number(sw.dataset.lw) || 0, rw = Number(sw.dataset.rw) || 0;
-                dx = Math.max(-rw, Math.min(lw, base + mx));
+                // Rezistans kawotchou: pase limit la, dwèt la kontinye men liy
+                // la vanse de mwens an mwens. Se sa ki bay sansasyon souplès.
+                const raw = base + mx;
+                dx = raw > lw ? lw + (raw - lw) * 0.32
+                    : raw < -rw ? -rw + (raw + rw) * 0.32
+                        : raw;
                 sw.dataset.moved = '1';
                 swSetX(sw, dx);
             });
@@ -14212,7 +14235,7 @@
 
         // ─ Imaj banyè: menm bucket `Avatar` ki deja piblik, sou prefiks uid
         //   admin an — konsa nou pa bezwen ni nouvo bucket ni nouvo policy. ─
-        const HERO_IMG = { ann: null, hs: null };
+        const HERO_IMG = { hs: null };
 
         function pickHeroImage(kind) {
             const input = document.createElement('input');
@@ -14230,13 +14253,13 @@
                     .upload(path, up, { upsert: true, contentType: up.type || 'image/jpeg' });
                 if (error) {
                     console.warn('[hero img]', error.message);
-                    if (btn) btn.textContent = 'Ajoute yon imaj';
+                    if (btn) btn.textContent = 'Chwazi imaj la';
                     toast('Nou pa t ka voye imaj la');
                     return;
                 }
                 const { data } = db.storage.from('Avatar').getPublicUrl(path);
                 HERO_IMG[kind] = data?.publicUrl || null;
-                if (btn) btn.textContent = HERO_IMG[kind] ? 'Imaj chwazi ✓' : 'Ajoute yon imaj';
+                if (btn) btn.textContent = HERO_IMG[kind] ? 'Imaj chwazi ✓' : 'Chwazi imaj la';
                 document.getElementById(kind + 'ImgClr')?.classList.remove('hidden');
             };
             input.click();
@@ -14246,7 +14269,7 @@
         function clearHeroImage(kind) {
             HERO_IMG[kind] = null;
             const btn = document.getElementById(kind + 'ImgTxt');
-            if (btn) btn.textContent = kind === 'hs' ? 'Chwazi imaj la' : 'Ajoute yon imaj';
+            if (btn) btn.textContent = 'Chwazi imaj la';
             document.getElementById(kind + 'ImgClr')?.classList.add('hidden');
         }
         window.clearHeroImage = clearHeroImage;
@@ -14262,7 +14285,7 @@
             const { error } = await db.from('announcements').insert({
                 admin_id: A.user.uid, title, body, audience, active: true,
                 generated_by_ai: false,
-                image_url: HERO_IMG.ann, cta_label: ctaLabel,
+                cta_label: ctaLabel,
                 cta_action: ctaLabel ? ctaAction : null,
             });
             if (error) { toast('Erè: ' + error.message); return; }
@@ -14270,7 +14293,6 @@
             document.getElementById('annTitle').value = '';
             document.getElementById('annBody').value = '';
             document.getElementById('annCtaLabel').value = '';
-            clearHeroImage('ann');
             loadAnnouncements();
             // Broadcast to all matching users as notifications
             const roleFilter = audience === 'buyers' ? 'buyer' : audience === 'sellers' ? 'seller' : null;
@@ -14298,7 +14320,18 @@
         // ─ Admin: banyè kat glisan (hero_slides) ──────────────────
         function openHeroSlides() {
             if (A.user?.role !== 'admin') { toast('Admin sèlman'); return; }
-            openSheet('heroSlidesSheet');
+            closeSheets();
+            A.stack.push(A.tab);
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+            document.getElementById('s-banners').classList.add('on');
+            document.getElementById('bottomNav').classList.add('hidden');
+            document.getElementById('fab').classList.add('hidden');
+            document.getElementById('backbtn').classList.remove('hidden');
+            document.getElementById('backbtn').classList.add('flex');
+            document.getElementById('toptitle').textContent = '';
+            const logoEl = document.getElementById('headerLogo');
+            if (logoEl) logoEl.style.display = 'none';
+            document.getElementById('toptitle').style.display = '';
             loadHeroSlides();
         }
         window.openHeroSlides = openHeroSlides;
@@ -14464,8 +14497,37 @@
                     : '';
             }
             track.onscroll = heroSyncDots;
+            heroAutoplay(shown.length);
         }
         window.renderFeedHero = renderFeedHero;
+
+        // Defilman otomatik 4 s an bouk. Li kanpe DEPI moun nan manyen kat la
+        // epi li repran 6 s apre: san sa, kat la ta chape anba dwèt la pandan
+        // yon moun ap li oswa ap vize bouton an.
+        let _heroTimer = null, _heroResume = null;
+
+        function heroAutoplay(n) {
+            clearInterval(_heroTimer); _heroTimer = null;
+            clearTimeout(_heroResume); _heroResume = null;
+            if (n < 2) return;
+            const track = document.getElementById('feedHeroTrack');
+            if (!track) return;
+            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            const tick = () => {
+                if (!document.getElementById('s-feed')?.classList.contains('on')) return;
+                if (document.hidden) return;
+                const i = Math.round(track.scrollLeft / (track.clientWidth + 10));
+                heroGoTo((i + 1) % n);
+            };
+            _heroTimer = setInterval(tick, 4000);
+            const pause = () => {
+                clearInterval(_heroTimer); _heroTimer = null;
+                clearTimeout(_heroResume);
+                _heroResume = setTimeout(() => { _heroTimer = setInterval(tick, 4000); }, 6000);
+            };
+            track.onpointerdown = pause;
+            track.addEventListener('touchstart', pause, { passive: true });
+        }
 
         // Aksyon CTA yo se yon lis fèmen: yon chan tèks admin pa dwe janm
         // vin yon `onclick` ki egzekite nenpòt bagay.
@@ -14482,12 +14544,13 @@
 
         function heroSlideHTML(s, i) {
             const bg = HERO_BG[i % HERO_BG.length];
+            const tint = i % 3 === 1 ? '151,66,43' : '0,64,74';
             const img = s.img
                 ? `<img class="ekf-slide-img" src="${esc(s.img)}" alt="" onerror="this.remove()"/>
-           <span class="ekf-slide-fade" style="background:linear-gradient(90deg,${i % 3 === 1 ? '#97422b' : '#00666f'},transparent)"></span>`
+           <span class="ekf-slide-fade" style="background:linear-gradient(100deg,rgba(${tint},.94) 6%,rgba(${tint},.72) 42%,rgba(${tint},.12) 74%,rgba(${tint},0) 100%)"></span>`
                 : `<span class="material-symbols-outlined" style="position:absolute;right:-6px;bottom:-14px;font-size:132px;opacity:.13;color:#fcf9f4;font-variation-settings:'FILL' 1">storefront</span>`;
             return `
-      <div class="ekf-slide" style="background:${bg};${s.img ? '' : 'padding-right:30%'}">
+      <div class="ekf-slide${s.img ? ' img' : ''}" style="background:${bg}">
         ${img}
         <span class="ekf-badge"><span class="material-symbols-outlined fi" style="font-size:13px">${s.badgeIcon}</span>${esc(s.badge)}</span>
         <p class="ekf-title">${esc(s.title)}</p>
@@ -15283,10 +15346,28 @@
         let _geoAcTimer = null;   // debounce typing
         let _geoAcAt = 0;         // throttle network calls
         let _geoResults = [];     // last autocomplete payload
+        let _geoAbort = null;     // demann otokonplè k ap kouri kounye a
+
+        // Spinner pilote pa yon KONTÈ, pa pa yon seri on/off gaye. Anvan, yon
+        // sèl chemen ki soti bonè (chan vide, kota, throttle) te kite l ap vire
+        // pou tout tan. Ak yon kontè, li fèmen otomatikman depi tout demann yo
+        // fini, kèlkeswa chemen an.
+        let _geoBusy = 0;
 
         function _geoSpin(on) {
+            _geoBusy = on ? _geoBusy + 1 : Math.max(0, _geoBusy - 1);
+            _geoSpinPaint();
+        }
+
+        function _geoSpinPaint() {
             const s = document.getElementById('geoSearchSpin');
-            if (s) s.classList.toggle('hidden', !on);
+            if (s) s.classList.toggle('hidden', _geoBusy <= 0);
+        }
+
+        // Chan vide oswa rechèch abandone: pa gen anyen k ap chaje, kout pwen.
+        function _geoSpinReset() {
+            _geoBusy = 0;
+            _geoSpinPaint();
         }
 
         // Aplike yon rezilta jeyokòd: deplase kat la + mete yon pin.
@@ -15334,8 +15415,14 @@
             q = (q || '').trim();
             const box = document.getElementById('geoSuggestions');
             if (!box) return;
-            if (q.length < 3) { box.classList.add('hidden'); box.innerHTML = ''; return; }
-            if (mapQuotaLeft() <= 0) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+            // Chak sòti bonè dwe kanpe spinner la: se la bug la te ye.
+            if (q.length < 3) {
+                clearTimeout(_geoAcTimer);
+                if (_geoAbort) { try { _geoAbort.abort(); } catch (_) { } _geoAbort = null; }
+                _geoSpinReset();
+                box.classList.add('hidden'); box.innerHTML = ''; return;
+            }
+            if (mapQuotaLeft() <= 0) { _geoSpinReset(); box.classList.add('hidden'); box.innerHTML = ''; return; }
             clearTimeout(_geoAcTimer);
             _geoAcTimer = setTimeout(async () => {
                 const now = Date.now();
@@ -15347,19 +15434,22 @@
                     + '&q=' + encodeURIComponent(q)
                     + '&countrycodes=ht&limit=5&accept-language=fr';
                 const ctrl = new AbortController();
+                _geoAbort = ctrl;
                 const timer = setTimeout(() => ctrl.abort(), 8000);
                 try {
                     const res = await fetch(url, { signal: ctrl.signal });
-                    clearTimeout(timer);
-                    _geoSpin(false);
                     if (res.status === 401) { toast('Konfigirasyon zòn pa konplè'); return; }
                     if (res.status === 429) { toast('Twòp demann — tann kèk segond'); return; }
                     if (!res.ok) { box.classList.add('hidden'); return; }
                     _renderGeoSuggestions(await res.json());
                 } catch (_e) {
-                    clearTimeout(timer);
-                    _geoSpin(false);
                     box.classList.add('hidden');
+                } finally {
+                    // `finally`: menm si yon `return` anwo pran devan, spinner
+                    // la fèmen. Se sa ki manke te lage l ap vire.
+                    clearTimeout(timer);
+                    if (_geoAbort === ctrl) _geoAbort = null;
+                    _geoSpin(false);
                 }
             }, 350);
         }
@@ -15388,8 +15478,6 @@
             const timer = setTimeout(() => ctrl.abort(), 8000);
             try {
                 const res = await fetch(url, { signal: ctrl.signal });
-                clearTimeout(timer);
-                _geoSpin(false);
                 if (res.status === 401) { toast('Konfigirasyon zòn pa konplè'); return; }
                 if (res.status === 429) { toast('Twòp demann — tann kèk segond'); return; }
                 if (!res.ok) { toast('Pa jwenn adrès sa a'); return; }
@@ -15399,9 +15487,10 @@
                 _applyGeoPick(+r.lat, +r.lon, r.display_name);
                 toast('Adrès jwenn');
             } catch (_e) {
+                toast('Erè rezo — eseye ankò');
+            } finally {
                 clearTimeout(timer);
                 _geoSpin(false);
-                toast('Erè rezo — eseye ankò');
             }
         }
 
@@ -15808,9 +15897,9 @@
                     product_id: A.chatId,
                     content: dbContent,
                 }).then(({ error }) => { if (error) console.warn('[Chat loc]', error.message); });
-                if (A.chatSellerId && A.chatSellerId !== A.user.uid) {
+                if (to && to !== A.user.uid) {
                     db.from('notifications').insert({
-                        user_id: A.chatSellerId,
+                        user_id: to,
                         type: 'chat',
                         icon: 'location_on',
                         title: 'Lokalisasyon pataje',
@@ -18231,7 +18320,7 @@
             if (nameEl) nameEl.textContent = 'Byenveni, ' + first + '!';
             card.classList.remove('hidden');
             clearTimeout(window._welcomeTimer);
-            if (autoHide) window._welcomeTimer = setTimeout(hideWelcomeCard, 7000);
+            if (autoHide) window._welcomeTimer = setTimeout(hideWelcomeCard, 14000);
         }
         function hideWelcomeCard() {
             var card = document.getElementById('welcomeCard');
@@ -18351,7 +18440,7 @@
             });
             _tour = { steps: [], i: 0, onResize: null };
             clearTimeout(window._welcomeTimer);
-            window._welcomeTimer = setTimeout(hideWelcomeCard, 5000);
+            window._welcomeTimer = setTimeout(hideWelcomeCard, 14000);
         }
     </script>
 </body>
