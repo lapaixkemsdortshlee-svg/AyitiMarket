@@ -324,6 +324,21 @@
         .ekm-xlbls { display: flex; justify-content: space-between; margin-top: 4px; }
         .ekm-xlbls span { font-family: 'Manrope', sans-serif; font-size: 10px; font-weight: 600; color: var(--ekc-lbl); }
 
+        /* ── Badj Boutik Ofisyèl (lò) — pa yon nivo vandè, se yon eta:
+           boutik plateform lan menm. Distenk de badj Verifye teal la. ── */
+        .badge-gold {
+            background: linear-gradient(135deg, #d4af37, #b8860b);
+            color: #fff;
+            box-shadow: 0 1px 4px rgba(184, 134, 11, .35);
+        }
+        body.dark .badge-gold {
+            background: linear-gradient(135deg, #f0cc5a, #c9992a);
+            color: #241d05;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+        }
+        .gold-ink { color: #a67c0a; }
+        body.dark .gold-ink { color: #f0cc5a; }
+
         /* ── Fèy legal (Kondisyon & Konfidansyalite) ── */
         /* Pi wo pase lòt fèy yo (90) pou l kouvri fèy akseptasyon an nèt lè
            w louvri l soti ladan (pa gen sipèpozisyon ankò). */
@@ -4385,6 +4400,21 @@
             pendingVerifUid: null, pendingVerifName: null, idModalSide: "front",
         };
 
+        // ── Kle localStorage PA-KONT ────────────────────────────────
+        // Leson ki repete 3 fwa (monnen Bug 9, mòd sonm, tutoryèl): yon
+        // preferans ki sove sou yon kle GLOBAL koule ant kont sou menm
+        // aparèy la. Tout preferans/eta itilizatè pase la a.
+        // Envite = 'guest'. applyUserPrefs() reidrate apre koneksyon.
+        function _prefKey(base) {
+            return base + '_' + (A.user && A.user.uid ? A.user.uid : 'guest');
+        }
+        function _prefGet(base) {
+            try { return localStorage.getItem(_prefKey(base)); } catch (_) { return null; }
+        }
+        function _prefSet(base, val) {
+            try { localStorage.setItem(_prefKey(base), val); } catch (_) { }
+        }
+
         function fp(n) { return Number(n).toLocaleString("fr"); }
         function sl(ms) { return new Promise(r => setTimeout(r, ms)); }
         // Échappe les données non fiables (noms, titres, URLs vendeur/achtè…)
@@ -4787,6 +4817,7 @@
             // rann, konsa yon lòt kont sou menm aparèy la pa fòse USD sou li.
             if (typeof applyUserCurrency === 'function') applyUserCurrency();
             if (typeof applyUserDarkMode === 'function') applyUserDarkMode();
+            if (typeof applyUserPrefs === 'function') applyUserPrefs();
             if (A.user.role === "admin") setupAdminFab();
             else document.getElementById("fab")?.classList.remove("hidden");
             updateCartBadge();
@@ -5160,7 +5191,9 @@
       </button>
     </div>
     <div class="bg-surface-container-low px-5 pt-5 pb-4 space-y-4">
-      ${p.b === 'Verifye' ? `<div class="flex items-center gap-1"><span class="material-symbols-outlined fi text-primary" style="font-size:14px">verified</span><span class="font-label text-xs font-bold text-primary">Vandè Verifye</span></div>` : ''}
+      ${p.b === 'Ofisyèl'
+            ? `<div class="flex items-center gap-1"><span class="material-symbols-outlined fi gold-ink" style="font-size:14px">workspace_premium</span><span class="font-label text-xs font-bold gold-ink">Boutik Ofisyèl</span></div>`
+            : p.b === 'Verifye' ? `<div class="flex items-center gap-1"><span class="material-symbols-outlined fi text-primary" style="font-size:14px">verified</span><span class="font-label text-xs font-bold text-primary">Vandè Verifye</span></div>` : ''}
       <div>
         <h1 class="font-headline font-extrabold text-[1.6rem] text-on-surface tracking-tight leading-tight">${esc(p.t)}</h1>
         <p class="font-body text-xs text-on-surface-variant mt-0.5">${p.c} · ${p.l}</p>
@@ -5216,7 +5249,9 @@
         <div class="flex-1">
           <div class="flex items-center gap-1.5">
             <p class="font-headline font-bold text-sm text-on-surface">${esc(seller.name)}</p>
-            ${seller.verified ? '<span class="material-symbols-outlined fi text-primary" style="font-size:13px">verified</span>' : ''}
+            ${seller.official
+                ? '<span class="material-symbols-outlined fi gold-ink" style="font-size:13px" title="Boutik Ofisyèl">workspace_premium</span>'
+                : seller.verified ? '<span class="material-symbols-outlined fi text-primary" style="font-size:13px">verified</span>' : ''}
           </div>
           <p class="font-label text-xs text-on-surface-variant">${seller.rating}★ · ${seller.salesCount}+ lavant · ${esc(seller.location)}</p>
         </div>
@@ -5381,7 +5416,7 @@
 
         // ── Filtè feed (pri, nòt, an stòk, triye) — kliyan-kote sou PRODUCTS ──
         A.filters = (function () {
-            try { return JSON.parse(localStorage.getItem('aym_filters') || 'null'); }
+            try { return JSON.parse(_prefGet('aym_filters') || 'null'); }
             catch (_) { return null; }
         })() || { priceMin: null, priceMax: null, minRating: 0, inStock: false, sort: 'popular' };
 
@@ -5445,14 +5480,14 @@
                 priceMax: isNaN(priceMax) ? null : priceMax,
                 minRating, inStock, sort,
             };
-            try { localStorage.setItem('aym_filters', JSON.stringify(A.filters)); } catch (_) { }
+            try { _prefSet('aym_filters', JSON.stringify(A.filters)); } catch (_) { }
             _updateFilterBadge();
             closeSheets();
             if (typeof renderFeed === 'function') renderFeed();
         }
         function resetFeedFilters() {
             A.filters = { priceMin: null, priceMax: null, minRating: 0, inStock: false, sort: 'popular' };
-            try { localStorage.setItem('aym_filters', JSON.stringify(A.filters)); } catch (_) { }
+            try { _prefSet('aym_filters', JSON.stringify(A.filters)); } catch (_) { }
             loadFilterSheet();
             _updateFilterBadge();
         }
@@ -5726,7 +5761,9 @@
             const badgeHtml = flashBadge
                 ? flashBadge
                 : (p.b
-                    ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full" style="font-size:9px;background:${p.b === 'Verifye' ? 'rgba(0,102,111,.88)' : p.b === 'Reko IA' ? 'rgba(151,66,43,.88)' : 'rgba(90,215,230,.88)'};color:#fff">${p.b}</span>`
+                    ? (p.b === 'Ofisyèl'
+                        ? `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full badge-gold" style="font-size:9px">★ ${p.b}</span>`
+                        : `<span class="absolute top-2.5 left-2.5 font-label font-extrabold px-2 py-0.5 rounded-full" style="font-size:9px;background:${p.b === 'Verifye' ? 'rgba(0,102,111,.88)' : p.b === 'Reko IA' ? 'rgba(151,66,43,.88)' : 'rgba(90,215,230,.88)'};color:#fff">${p.b}</span>`)
                     : '');
             const outOfStock = typeof p.s === 'number' && p.s <= 0;
             const oosOverlay = outOfStock
@@ -6484,7 +6521,7 @@
       </div>
       <div class="flex-1 min-w-0">
         <p class="font-headline font-bold text-sm text-on-surface">${esc(p.t)}</p>
-        <p class="font-label text-xs text-on-surface-variant">${esc(p.sellerName || 'Vandè')} ${p.b ? '· Verifye' : ''}</p>
+        <p class="font-label text-xs text-on-surface-variant">${esc(p.sellerName || 'Vandè')} ${p.b ? '· ' + esc(p.b) : ''}</p>
         <div class="flex items-baseline gap-1.5 mt-1 flex-wrap">
           <p class="font-headline font-extrabold text-xl text-primary">${fp(sub)} HTG</p>
           ${p.oldP && p.oldP > p.p ? `<span class="font-label text-on-surface-variant line-through" style="font-size:.75rem">${fp(p.oldP)}</span><span class="font-label font-bold rounded-full px-1.5" style="font-size:.625rem;background:rgba(151,66,43,.12);color:#97422b;line-height:1.5">-${discountPct(p)}%</span>` : ''}
@@ -6712,11 +6749,11 @@
         // (pa efase — resi eskwo a, kote vandè a ak odit admin rete entak).
         // Li ka DEMASKE l nenpòt kilè. localStorage + RPC (pa-kont). ──
         function getHiddenOrders() {
-            try { return new Set(JSON.parse(localStorage.getItem('aym_hidden_orders') || '[]')); }
+            try { return new Set(JSON.parse(_prefGet('aym_hidden_orders') || '[]')); }
             catch (_) { return new Set(); }
         }
         function _saveHiddenOrders(s) {
-            try { localStorage.setItem('aym_hidden_orders', JSON.stringify([...s])); } catch (_) {}
+            try { _prefSet('aym_hidden_orders', JSON.stringify([...s])); } catch (_) {}
         }
         async function hideOrderFromHistory(id) {
             const ok = await appConfirm({
@@ -8898,6 +8935,7 @@
             // monnen dènye kont lan kolbore sou pwochen kont ki konekte a.
             if (typeof applyUserCurrency === 'function') applyUserCurrency();
             if (typeof applyUserDarkMode === 'function') applyUserDarkMode();
+            if (typeof applyUserPrefs === 'function') applyUserPrefs();
             document.getElementById("topbar").classList.add("hidden");
             document.getElementById("bottomNav").classList.add("hidden");
             document.getElementById("fab").classList.add("hidden");
@@ -10881,7 +10919,7 @@
 
         // Dènye zòn detekte — sove nan localStorage pou fallback san rezo.
         function _lastGeocode() {
-            try { return JSON.parse(localStorage.getItem('aym_geozone') || 'null'); }
+            try { return JSON.parse(_prefGet('aym_geozone') || 'null'); }
             catch (_) { return null; }
         }
         // Fallback: dènye zòn konnen (label sèlman — kach la pa kenbe GPS,
@@ -10931,7 +10969,7 @@
                 if (!label && city) label = 'Zòn pre ' + city;
                 if (!label) label = `${(+lat).toFixed(4)}, ${(+lng).toFixed(4)}`;
                 const result = { label, road, neighborhood, city, lat, lng, raw: data };
-                try { localStorage.setItem('aym_geozone', JSON.stringify({ label, road, neighborhood, city })); } catch (_) { }
+                try { _prefSet('aym_geozone', JSON.stringify({ label, road, neighborhood, city })); } catch (_) { }
                 return result;
             } catch (_e) {
                 clearTimeout(timer);
@@ -11392,7 +11430,7 @@
             const a = MY_ADDRESSES.find(x => x.id === addrId);
             if (!a) return;
             A.pickupZone = { label: a.address_text || a.label, lat: a.geo_lat, lng: a.geo_lng };
-            try { localStorage.setItem('aym_geozone', JSON.stringify(A.pickupZone)); } catch (_) { }
+            try { _prefSet('aym_geozone', JSON.stringify(A.pickupZone)); } catch (_) { }
             toast('Adrès chwazi: ' + a.label);
             if (typeof renderOrderSheet === 'function' && A.curProd) renderOrderSheet();
         }
@@ -12251,11 +12289,11 @@
         // ══════════════════════════════════════════════════════════
         //  FONCTIONNALITE 3 — LITE MODE
         // ══════════════════════════════════════════════════════════
-        let LITE_MODE = localStorage.getItem('aym_lite') === '1';
+        let LITE_MODE = _prefGet('aym_lite') === '1';
 
         function toggleLiteMode(on) {
             LITE_MODE = on;
-            localStorage.setItem('aym_lite', on ? '1' : '0');
+            _prefSet('aym_lite', on ? '1' : '0');
 
             const bg = document.getElementById('liteToggleBg');
             const status = document.getElementById('liteModeStatus');
@@ -13356,7 +13394,7 @@
                 history.replaceState(null, '', location.pathname + location.search);
                 if (!PRODUCTS.find(p => p.id === pid) && db) {
                     const { data } = await db.from('products')
-                        .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
+                        .select('*, seller:profiles!seller_id(id, display_name, verified_seller, official_seller, rating_avg, avatar_url)')
                         .eq('id', pid).eq('status', 'active').maybeSingle();
                     if (data) PRODUCTS.push(_mapProductRow(data));
                 }
@@ -13383,7 +13421,7 @@
                 }
             } catch (_) { /* fallback anba */ }
             let pq = db.from('products')
-                .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
+                .select('*, seller:profiles!seller_id(id, display_name, verified_seller, official_seller, rating_avg, avatar_url)')
                 .eq('status', 'active');
             if (query) pq = pq.or('title.ilike.%' + query + '%,description.ilike.%' + query + '%,category.ilike.%' + query + '%,location.ilike.%' + query + '%');
             if (zone) pq = pq.ilike('location', '%' + zone + '%');
@@ -14639,6 +14677,28 @@
         }
         let DARK_MODE = localStorage.getItem('aym_dark_guest') === '1';
 
+        // Idrate TOUT lòt preferans pa-kont yo (son, vibrasyon, silans lannwit,
+        // mòd lejè, filtè feed). Preferans ki li nan moman yo sèvi (notif
+        // prefs, modèl vibrasyon, zòn, kòmand kache) pa bezwen idratasyon:
+        // _prefGet deja pran bon kle a chak fwa.
+        function applyUserPrefs() {
+            try {
+                SOUND_ON = _prefGet('aym_sound') !== '0';
+                VIBRATE_ON = _prefGet('aym_vibrate') !== '0';
+                QUIET_NIGHT = _prefGet('aym_quiet') === '1';
+                const lite = _prefGet('aym_lite') === '1';
+                if (lite !== LITE_MODE && typeof toggleLiteMode === 'function') {
+                    toggleLiteMode(lite);   // aplike vizyèl la tou (re-rann feed la)
+                } else {
+                    LITE_MODE = lite;
+                }
+                let f = null;
+                try { f = JSON.parse(_prefGet('aym_filters') || 'null'); } catch (_) { }
+                A.filters = f || { priceMin: null, priceMax: null, minRating: 0, inStock: false, sort: 'popular' };
+            } catch (_) { /* preferans pa dwe janm kase koneksyon an */ }
+        }
+        window.applyUserPrefs = applyUserPrefs;
+
         // Idrate mòd sonm kont aktyèl la (apre koneksyon oswa dekoneksyon).
         function applyUserDarkMode() {
             let on = false;
@@ -14925,10 +14985,10 @@
         }
 
         // Quiet Night Mode
-        let QUIET_NIGHT = localStorage.getItem('aym_quiet') === '1';
+        let QUIET_NIGHT = _prefGet('aym_quiet') === '1';
         function toggleQuietNight(on) {
             QUIET_NIGHT = on;
-            localStorage.setItem('aym_quiet', on ? '1' : '0');
+            _prefSet('aym_quiet', on ? '1' : '0');
             const bg = document.getElementById('quietBg');
             if (bg) bg.style.background = on ? '#00666f' : '#e5e2dd';
             toast(on ? 'Silans Lannwit aktif (22h–7h)' : 'Silans Lannwit dezaktive');
@@ -14949,13 +15009,13 @@
         }, 300);
 
         // ── Settings: Son, Vibrasyon, Feedback, Pataje, Note ──
-        let SOUND_ON = localStorage.getItem('aym_sound') !== '0';
-        let VIBRATE_ON = localStorage.getItem('aym_vibrate') !== '0';
+        let SOUND_ON = _prefGet('aym_sound') !== '0';
+        let VIBRATE_ON = _prefGet('aym_vibrate') !== '0';
         let feedbackRating = 0;
 
         function toggleSound(on) {
             SOUND_ON = on;
-            localStorage.setItem('aym_sound', on ? '1' : '0');
+            _prefSet('aym_sound', on ? '1' : '0');
             const bg = document.getElementById('soundToggleBg');
             if (bg) bg.style.background = on ? '#00666f' : '#e5e2dd';
             toast(on ? 'Son aktive' : 'Son dezaktive');
@@ -14963,7 +15023,7 @@
 
         function toggleVibration(on) {
             VIBRATE_ON = on;
-            localStorage.setItem('aym_vibrate', on ? '1' : '0');
+            _prefSet('aym_vibrate', on ? '1' : '0');
             const bg = document.getElementById('vibrateToggleBg');
             if (bg) bg.style.background = on ? '#00666f' : '#e5e2dd';
             if (on && navigator.vibrate) navigator.vibrate(50);
@@ -14980,7 +15040,7 @@
         };
         function getNotifPrefs() {
             try {
-                const raw = localStorage.getItem('aym_notif_prefs');
+                const raw = _prefGet('aym_notif_prefs');
                 if (!raw) return { ...DEFAULT_NOTIF_PREFS };
                 return { ...DEFAULT_NOTIF_PREFS, ...JSON.parse(raw) };
             } catch (e) { return { ...DEFAULT_NOTIF_PREFS }; }
@@ -14988,18 +15048,18 @@
         function setNotifPref(type, on) {
             const prefs = getNotifPrefs();
             prefs[type] = !!on;
-            localStorage.setItem('aym_notif_prefs', JSON.stringify(prefs));
+            _prefSet('aym_notif_prefs', JSON.stringify(prefs));
             const bg = document.getElementById('notifTogBg-' + type);
             if (bg) bg.style.background = prefs[type] ? '#00666f' : '#e5e2dd';
         }
         window.setNotifPref = setNotifPref;
 
         function getVibratePattern() {
-            return localStorage.getItem('aym_vibrate_pattern') || 'short';
+            return _prefGet('aym_vibrate_pattern') || 'short';
         }
         function setVibratePattern(key) {
             if (!VIBRATE_PATTERNS[key]) return;
-            localStorage.setItem('aym_vibrate_pattern', key);
+            _prefSet('aym_vibrate_pattern', key);
             ['short','medium','long'].forEach(k => {
                 const btn = document.getElementById('vibPat-' + k);
                 if (btn) {
@@ -15342,7 +15402,7 @@
             if (!db || !sellerId) return;
             try {
                 const { data, error } = await db.from('products')
-                    .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
+                    .select('*, seller:profiles!seller_id(id, display_name, verified_seller, official_seller, rating_avg, avatar_url)')
                     .eq('seller_id', sellerId)
                     .eq('status', 'active')
                     .order('created_at', { ascending: false });
@@ -15353,7 +15413,7 @@
                         id: p.id, t: p.title, p: p.price, oldP: p.old_price, c: p.category, l: p.location,
                         desc: p.description, img: imgs.length > 0 ? imgs[0] : null, images: imgs,
                         s: p.stock, v: p.views || 0, r: p.seller?.rating_avg || 0,
-                        b: p.seller?.verified_seller ? 'Verifye' : '', sellerId: p.seller_id,
+                        b: p.seller?.official_seller ? 'Ofisyèl' : (p.seller?.verified_seller ? 'Verifye' : ''), sellerId: p.seller_id,
                         sellerName: p.seller?.display_name || 'Vandè',
                         sellerAvatarUrl: p.seller?.avatar_url || null,
                         sellerVerified: !!p.seller?.verified_seller,
@@ -15429,8 +15489,11 @@
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
               <h2 class="font-headline font-extrabold text-xl text-on-surface tracking-tight truncate">${esc(seller.name)}</h2>
-              ${seller.verified ? '<span class="material-symbols-outlined fi flex-shrink-0" style="font-size:19px;color:#00666f">verified</span>' : ''}
+              ${seller.official
+                ? '<span class="material-symbols-outlined fi flex-shrink-0 gold-ink" style="font-size:19px" title="Boutik Ofisyèl Ekomat">workspace_premium</span>'
+                : seller.verified ? '<span class="material-symbols-outlined fi flex-shrink-0" style="font-size:19px;color:#00666f">verified</span>' : ''}
             </div>
+            ${seller.official ? '<span class="badge-gold font-label font-extrabold px-2 py-0.5 rounded-full inline-block mt-1" style="font-size:9.5px">★ BOUTIK OFISYÈL</span>' : ''}
             <p class="font-label text-xs text-on-surface-variant mt-0.5 flex items-center gap-1"><span class="material-symbols-outlined" style="font-size:13px">location_on</span> ${esc(seller.location)}</p>
           </div>
           ${(seller.specialties && seller.specialties.length) || (seller.badges && seller.badges.length) ? `
@@ -15992,7 +16055,7 @@
                 lat: profile.geo_lat ?? null,
                 lng: profile.geo_lng ?? null,
             };
-            try { localStorage.setItem('aym_geozone', JSON.stringify(A.pickupZone)); } catch (_) { }
+            try { _prefSet('aym_geozone', JSON.stringify(A.pickupZone)); } catch (_) { }
             if (typeof _syncPubZoneField === 'function') _syncPubZoneField();
         }
         // Konsantman kondisyon: ekri sa yon nouvo enskripsyon te koche, oswa
@@ -16529,7 +16592,7 @@
             id: p.id, t: p.title, p: p.price, oldP: p.old_price, c: p.category, l: p.location,
             desc: p.description, img: imgs.length > 0 ? imgs[0] : null, images: imgs,
             s: p.stock, v: p.views, r: p.seller?.rating_avg || 0,
-            b: p.seller?.verified_seller ? 'Verifye' : '', sellerId: p.seller_id,
+            b: p.seller?.official_seller ? 'Ofisyèl' : (p.seller?.verified_seller ? 'Verifye' : ''), sellerId: p.seller_id,
             sellerName: p.seller?.display_name || 'Vandè',
             sellerAvatarUrl: p.seller?.avatar_url || null,
             sellerVerified: !!p.seller?.verified_seller,
@@ -16560,7 +16623,7 @@
             A.favs = new Set(ids);
             if (!ids.length) return [];
             const { data } = await db.from('products')
-                .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
+                .select('*, seller:profiles!seller_id(id, display_name, verified_seller, official_seller, rating_avg, avatar_url)')
                 .in('id', ids).eq('status', 'active');
             const mapped = (data || []).map(_mapProductRow);
             mapped.forEach(sp => { if (!PRODUCTS.find(x => x.id === sp.id)) PRODUCTS.push(sp); });
@@ -16576,7 +16639,7 @@
         if (db) {
             try {
                 let q = db.from('products')
-                    .select('*, seller:profiles!seller_id(id, display_name, verified_seller, rating_avg, avatar_url)')
+                    .select('*, seller:profiles!seller_id(id, display_name, verified_seller, official_seller, rating_avg, avatar_url)')
                     .eq('status', 'active')
                     .order('created_at', { ascending: false })
                     .limit(filters.limit || 100);
@@ -16646,6 +16709,7 @@
                 avatarUrl: data.avatar_url || null,
                 coverUrl: data.cover_url || null,
                 verified: data.verified_seller || false,
+                official: data.official_seller || false,
                 rating: data.rating_avg || 0,
                 reviewCount: data.review_count || 0,
                 salesCount: data.sales_count || 0,
