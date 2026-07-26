@@ -1,7 +1,7 @@
-# send-email — Supabase Edge Function
+# send-email : Supabase Edge Function
 
 Voye yon imèl tranzaksyonèl bay yon itilizatè chak fwa yon ranje kreye
-nan tab `public.notifications`. Sèvi ak [Resend](https://resend.com) —
+nan tab `public.notifications`. Sèvi ak [Resend](https://resend.com) -
 plan gratis bay 100 imèl/jou.
 
 ## 1. Kreye yon kont Resend + verifye domèn ou
@@ -48,7 +48,7 @@ Supabase Studio → **Database → Webhooks → Create**:
 | URL | `https://<projet>.supabase.co/functions/v1/send-email` |
 | Header `x-webhook-secret` | menm valè ak sekrè a |
 
-> Ou ka gen 2 webhooks sou menm tab la — youn pou push, youn pou imèl.
+> Ou ka gen 2 webhooks sou menm tab la, youn pou push, youn pou imèl.
 
 ## 5. Teste
 
@@ -65,12 +65,12 @@ supabase functions logs send-email --tail
 ## Eta gracieux
 
 Si `RESEND_API_KEY` oswa `EMAIL_FROM` pa mete, fonksyon an retounen
-`{ ok: true, skipped: "..." }` — okenn erè 5xx, okenn blokay pou flow
+`{ ok: true, skipped: "..." }`, okenn erè 5xx, okenn blokay pou flow
 notifikasyon an. Ou ka deplwaye fonksyon an depi kounye a san konfigire
 Resend, epi konplete sa pi devan.
 
 ## Sekirite
 
-- `RESEND_API_KEY` pa gen pou prezan kòd kliyan an — sove l sèlman kòm
+- `RESEND_API_KEY` pa gen pou prezan kòd kliyan an, sove l sèlman kòm
   Supabase secret.
 - `WEBHOOK_SECRET` pwoteje fonksyon an kont apèl piblik.

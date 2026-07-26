@@ -1,8 +1,8 @@
-// Jeneratè paj datterisaj (landing pages) Kreyòl pou SEO — Ekomat.
+// Jeneratè paj datterisaj (landing pages) Kreyòl pou SEO : Ekomat.
 //
 // Pouki: index.html se yon SPA yon sèl fichye ki pa gen kontni endèksab pou
 // chak kategori/vil. Paj estatik sa yo bay Google (ak asistan AI) kontni
-// reyèl an Kreyòl, ak lyen ki mennen nan app la. Yo se fichye estatik —
+// reyèl an Kreyòl, ak lyen ki mennen nan app la. Yo se fichye estatik -
 // Vercel sèvi yo anvan rewrite catch-all la (menm jan ak onboarding.html).
 //
 // Kouri: node scripts/gen-landing.mjs
@@ -29,7 +29,7 @@ const PAGES = [
         slug: 'elektwonik',
         kind: 'kategori',
         h1: 'Achte Elektwonik an Ayiti',
-        title: 'Achte Elektwonik an Ayiti — Telefòn, Akseswa | Ekomat',
+        title: 'Achte Elektwonik an Ayiti : Telefòn, Akseswa | Ekomat',
         desc: 'Achte telefòn, aparèy elektwonik ak akseswa an Ayiti sou Ekomat. '
             + 'Peman MonCash pwoteje ak eskwo, vandè verifye, livrezon lokal.',
         intro: 'Ap chèche yon telefòn Digicel oswa Natcom, yon chajè, yon oto-radio '
@@ -47,15 +47,15 @@ const PAGES = [
         slug: 'mod',
         kind: 'kategori',
         h1: 'Achte Rad ak Mòd an Ayiti',
-        title: 'Rad ak Mòd an Ayiti — Achte an liy | Ekomat',
+        title: 'Rad ak Mòd an Ayiti : Achte an liy | Ekomat',
         desc: 'Achte rad, soulye ak atik mòd an Ayiti sou Ekomat. Vandè verifye, '
             + 'peman MonCash ak eskwo, livrezon nan zòn ou.',
-        intro: 'Rad fanm, rad gason, soulye, sak — dekouvri dènye mòd la nan men '
+        intro: 'Rad fanm, rad gason, soulye, sak, dekouvri dènye mòd la nan men '
             + 'vandè ayisyen verifye. Sou Ekomat ou pale dirèk ak vandè a, ou wè '
             + 'foto reyèl pwodwi a, epi ou peye ak eskwo ki pwoteje lajan w jiskaske '
             + 'komann ou rive.',
         points: [
-            ['Foto reyèl', 'Vandè yo mete plizyè foto — ou wè kondisyon reyèl atik la.'],
+            ['Foto reyèl', 'Vandè yo mete plizyè foto, ou wè kondisyon reyèl atik la.'],
             ['Eskwo sou MonCash', 'Lajan w pa lage bay vandè a anvan ou resevwa komann ou.'],
             ['Livrezon lokal', 'Chwazi yon pwen kolèk tou pre w oswa fè livrezon.'],
         ],
@@ -65,10 +65,10 @@ const PAGES = [
         slug: 'bote',
         kind: 'kategori',
         h1: 'Pwodwi Bote ak Kosmetik an Ayiti',
-        title: 'Bote & Kosmetik an Ayiti — Achte an liy | Ekomat',
+        title: 'Bote & Kosmetik an Ayiti : Achte an liy | Ekomat',
         desc: 'Achte pwodwi bote, swen po ak kosmetik an Ayiti sou Ekomat. '
             + 'Vandè verifye, peman MonCash pwoteje ak eskwo.',
-        intro: 'Swen po, makiyaj, pafen, pwodwi cheve — jwenn pwodwi bote ki '
+        intro: 'Swen po, makiyaj, pafen, pwodwi cheve, jwenn pwodwi bote ki '
             + 'otantik nan men vandè verifye an Ayiti. Ekomat pwoteje chak '
             + 'acha ak eskwo: ou konfime ou resevwa pwodwi a anvan lajan an libere.',
         points: [
@@ -81,15 +81,15 @@ const PAGES = [
     {
         slug: 'atizana',
         kind: 'kategori',
-        h1: 'Atizana Ayisyen — Achte Dirèk nan men Atizan yo',
-        title: 'Atizana Ayisyen an Ayiti — Achte an liy | Ekomat',
-        desc: 'Achte atizana ayisyen — travay bwa, fè, tablo, dekorasyon — dirèk nan '
+        h1: 'Atizana Ayisyen : Achte Dirèk nan men Atizan yo',
+        title: 'Atizana Ayisyen an Ayiti : Achte an liy | Ekomat',
+        desc: 'Achte atizana ayisyen, travay bwa, fè, tablo, dekorasyon, dirèk nan '
             + 'men atizan verifye. Peman MonCash pwoteje ak eskwo sou Ekomat.',
         intro: 'Sipòte atizan ayisyen yo dirèkteman. Tablo, travay an fè dekoupe, '
-            + 'objè an bwa, dekorasyon fèt men — achte atizana otantik sou Ekomat '
+            + 'objè an bwa, dekorasyon fèt men, achte atizana otantik sou Ekomat '
             + 'ak konfyans, paske eskwo a pwoteje lajan w jiskaske ou resevwa zèv la.',
         points: [
-            ['Dirèk nan men atizan', 'San entèmedyè — pi bon pri pou ou, plis pou atizan an.'],
+            ['Dirèk nan men atizan', 'San entèmedyè, pi bon pri pou ou, plis pou atizan an.'],
             ['Eskwo sou MonCash', 'Lajan w pwoteje jiskaske ou resevwa epi konfime.'],
             ['Livrezon nan tout peyi a', 'Soti Pòtoprens rive Okap, chwazi jan livrezon w.'],
         ],
@@ -102,12 +102,12 @@ const PAGES = [
         title: 'Achte & Vann an liy nan Pòtoprens | Ekomat',
         desc: 'Achte ak vann an liy nan Pòtoprens ak zòn metwopolitèn nan '
             + '(Pétion-Ville, Delmas, Tabarre, Carrefour). Eskwo MonCash, vandè verifye.',
-        intro: 'Nan Pòtoprens ak tout zòn metwopolitèn nan — Pétion-Ville, Delmas, '
-            + 'Tabarre, Carrefour, Kwadèbouke — Ekomat konekte achtè ak vandè '
+        intro: 'Nan Pòtoprens ak tout zòn metwopolitèn nan : Pétion-Ville, Delmas, '
+            + 'Tabarre, Carrefour, Kwadèbouke : Ekomat konekte achtè ak vandè '
             + 'verifye. Chwazi yon pwen kolèk tou pre w, pale ak vandè a nan chat, '
             + 'epi peye ak eskwo ki pwoteje lajan w.',
         points: [
-            ['Pwen kolèk pre w', 'GPS klase pwen kolèk yo pa distans — pi pre a an premye.'],
+            ['Pwen kolèk pre w', 'GPS klase pwen kolèk yo pa distans, pi pre a an premye.'],
             ['Eskwo sou MonCash', 'Lajan w bloke jiskaske ou konfime resepsyon ak OTP.'],
             ['Vandè verifye', 'Achte ak konfyans nan men vandè ki pase verifikasyon.'],
         ],
@@ -245,8 +245,8 @@ function page(p) {
     <h2>Kijan sa mache</h2>
     <div class="grid">
       <div class="card"><h3>1. Chwazi</h3><p>Jwenn pwodwi a epi pale ak vandè verifye a nan chat.</p></div>
-      <div class="card"><h3>2. Peye ak eskwo</h3><p>Voye peman MonCash — lajan w rete bloke, an sekirite.</p></div>
-      <div class="card"><h3>3. Konfime</h3><p>Resevwa komann ou, bay kòd OTP a — epi lajan libere.</p></div>
+      <div class="card"><h3>2. Peye ak eskwo</h3><p>Voye peman MonCash, lajan w rete bloke, an sekirite.</p></div>
+      <div class="card"><h3>3. Konfime</h3><p>Resevwa komann ou, bay kòd OTP a, epi lajan libere.</p></div>
     </div>
   </section>
 
@@ -257,7 +257,7 @@ function page(p) {
 </div>
 
 <footer><div class="wrap">
-  Ekomat — Marketplace mobil Ayisyen an. Achte ak vann an tout sekirite ak eskwo. ·
+  Ekomat : Marketplace mobil Ayisyen an. Achte ak vann an tout sekirite ak eskwo. ·
   <a href="/">Louvri app la</a>
 </div></footer>
 </body>

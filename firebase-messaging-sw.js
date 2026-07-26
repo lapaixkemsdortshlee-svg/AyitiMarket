@@ -1,8 +1,8 @@
-// Firebase Cloud Messaging — Service Worker pou background push.
+// Firebase Cloud Messaging : Service Worker pou background push.
 //
 // Fichye sa a dwe SOU RACINE site la (egz. https://ekomat/firebase-
 // messaging-sw.js) paske se sa Firebase ap chèche pa defo. Yo ka kowegzite
-// ak sw.js (PWA cache) san pwoblèm — yo nan scope diferan.
+// ak sw.js (PWA cache) san pwoblèm, yo nan scope diferan.
 //
 // VLE FIREBASE_CONFIG yo DWE menm valè ak index.html. Lè li vid, service
 // worker la ap aktif men li pa fè anyen.

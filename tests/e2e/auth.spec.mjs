@@ -1,13 +1,13 @@
 // Tès END-TO-END otantifye sou app la (deplwaye OSWA sèvi lokalman kont
-// vrè Supabase la — gade README anba). Yo kouri SÈLMAN lè idantifyan yo
-// bay (AYM_E2E_URL / AYM_E2E_EMAIL / AYM_E2E_PASSWORD), otreman yo skip —
+// vrè Supabase la, gade README anba). Yo kouri SÈLMAN lè idantifyan yo
+// bay (AYM_E2E_URL / AYM_E2E_EMAIL / AYM_E2E_PASSWORD), otreman yo skip -
 // konsa `npm test` lokal ak CI smoke a pa kase.
 //
 // Kouri: npx playwright test --config playwright.e2e.config.mjs
 //
 // NÒT: paske index.html gen URL + kle anon Supabase la ekri ladan l,
 // nou ka sèvi l lokalman (python3 -m http.server) epi mete
-// AYM_E2E_URL=http://127.0.0.1:5173 — konsa QA a frape vrè backend la
+// AYM_E2E_URL=http://127.0.0.1:5173, konsa QA a frape vrè backend la
 // san pase pa Vercel (evite rate-limit 429).
 
 import { test, expect } from '@playwright/test';
@@ -26,17 +26,17 @@ const SDK_PATH = process.env.AYM_E2E_SDK_PATH;
 const ready = Boolean(URL && ((EMAIL && PASSWORD) || (SESSION && SB_REF)));
 
 test.skip(!ready,
-    'E2E idantifyan absan — bay AYM_E2E_URL + (AYM_E2E_EMAIL/PASSWORD) oswa (AYM_E2E_SESSION + AYM_E2E_SB_REF). Gade .env.example.');
+    'E2E idantifyan absan, bay AYM_E2E_URL + (AYM_E2E_EMAIL/PASSWORD) oswa (AYM_E2E_SESSION + AYM_E2E_SB_REF). Gade .env.example.');
 
 // Menm règ dezaktive ak tests/a11y.spec.mjs pou konsistans (baseline
 // fòm ki poko gen label). Vize: diminye lis sa a piti piti.
 const A11Y_DISABLE = ['aria-hidden-focus', 'color-contrast', 'label', 'select-name'];
 
-// Erè ki se bri anviwònman (CDN bloke lokalman, rezo proxy) — pa erè app.
+// Erè ki se bri anviwònman (CDN bloke lokalman, rezo proxy), pa erè app.
 const NOISE = [/tailwind/i, /cdn\./i, /Failed to load resource/i, /net::ERR_/i, /unpkg/i];
 const isNoise = (m) => NOISE.some(re => re.test(m));
 
-// Konekte yon achtè — swa via UI a (email/modpas), swa via yon sesyon
+// Konekte yon achtè, swa via UI a (email/modpas), swa via yon sesyon
 // enjekte (AYM_E2E_SESSION).
 async function login(page, email, password) {
     // Sèvi SDK supabase-js lokalman si CDN jsdelivr bloke (sandbox).
@@ -62,7 +62,7 @@ async function login(page, email, password) {
     // Splash la fè yon animasyon anvan li kite plas pou login lan.
     await expect(page.locator('#authEmail')).toBeVisible({ timeout: 25_000 });
 
-    // Fòm nan louvri an mòd "Kreye Kont" pa default — bascule an "Konekte".
+    // Fòm nan louvri an mòd "Kreye Kont" pa default, bascule an "Konekte".
     const btn = page.locator('#emailSignUpBtn');
     if ((await btn.textContent())?.trim() !== 'Konekte') {
         await page.locator('#authToggleLink').click();
@@ -107,13 +107,13 @@ test('achtè ka konekte ak email/modpas', async ({ page }) => {
 });
 
 // axe-core sou nouvo ekran otantifye yo (feed / komand / pwofil / pibliye).
-// Itilize navTo() global la pou chanje ekran — chak `#s-<tab>` se yon
+// Itilize navTo() global la pou chanje ekran, chak `#s-<tab>` se yon
 // vue distenk.
 test('axe: ekran otantifye yo pa gen vyolasyon kritik', async ({ page }) => {
     await login(page, EMAIL, PASSWORD);
     for (const tab of ['feed', 'order', 'profile', 'pub']) {
         await page.evaluate((t) => window.navTo && window.navTo(t), tab);
-        // Kèk ekran ka pa aktive dapre wòl/eta — sote yo olye pou echwe.
+        // Kèk ekran ka pa aktive dapre wòl/eta, sote yo olye pou echwe.
         try {
             await expect(page.locator('#s-' + tab)).toHaveClass(/on/, { timeout: 3000 });
         } catch {

@@ -1,4 +1,4 @@
-# Ekomat (ex-AyitiMarket) — Palèt mak / Brand palette
+# Ekomat (ex-AyitiMarket) : Palèt mak / Brand palette
 
 Source de vérité des couleurs : `index.html` (tokens Tailwind inline, lignes 56-73 ; dark mode `--dm-*`, lignes 771-786 ; logo/drapeau, lignes 1341-1345 & 1408). Ce fichier documente les codes ; il ne remplace pas la config.
 
@@ -8,16 +8,16 @@ Version visuelle (swatches cliquables, copie au clic) :
 
 ---
 
-## 1. Mak prensipal la — les 4 couleurs signature
+## 1. Mak prensipal la, les 4 couleurs signature
 
 Pour toute brand identity (logo, kat vizit, social, print), **utilise seulement ces 4**.
 
 | Koulè | Rôle | HEX | RGB | HSL | Tailwind |
 |---|---|---|---|---|---|
-| **Teal** | Prensipal — bouton, CTA, lyen, « mat » + anse logo a | `#00666F` | `rgb(0, 102, 111)` | `hsl(185, 100%, 22%)` | `primary` |
-| **Brick** | Segondè — badge panye/mesaj | `#98443E` | `rgb(152, 68, 62)` | `hsl(4, 42%, 42%)` | `secondary` |
-| **Rust** | Aksan — « eko » + boul « e » logo a, admin, ti detay | `#97422B` | `rgb(151, 66, 43)` | `hsl(13, 56%, 38%)` | `tertiary` |
-| **Cream** | Sifas — fon aplikasyon an | `#FCF9F4` | `rgb(252, 249, 244)` | `hsl(37, 57%, 97%)` | `surface` |
+| **Teal** | Prensipal, bouton, CTA, lyen, « mat » + anse logo a | `#00666F` | `rgb(0, 102, 111)` | `hsl(185, 100%, 22%)` | `primary` |
+| **Brick** | Segondè, badge panye/mesaj | `#98443E` | `rgb(152, 68, 62)` | `hsl(4, 42%, 42%)` | `secondary` |
+| **Rust** | Aksan : « eko » + boul « e » logo a, admin, ti detay | `#97422B` | `rgb(151, 66, 43)` | `hsl(13, 56%, 38%)` | `tertiary` |
+| **Cream** | Sifas, fon aplikasyon an | `#FCF9F4` | `rgb(252, 249, 244)` | `hsl(37, 57%, 97%)` | `surface` |
 
 Règ (rebrand Ekomat 2026-07-11) : **eko** toujou rust `#97422B`, **mat** toujou teal `#00666F`. Sou fon fonse, « mat » vin `#5AD7E6`.
 

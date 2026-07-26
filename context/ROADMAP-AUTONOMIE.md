@@ -9,7 +9,7 @@
 
 ---
 
-## Chantier 1 — Autonomie planifiée (routines) 🥇
+## Chantier 1 : Autonomie planifiée (routines) 🥇
 
 **But :** Alita travaille même quand aucune session n'est ouverte, et ne dérange Thrasher que s'il y a quelque chose à dire.
 **Coût :** zéro. L'infra (triggers planifiés + notifications push) existe déjà.
@@ -18,7 +18,7 @@
 ### Étapes
 
 - [x] **1.1 (Thrasher)** Vérifier que les notifications push de l'app Claude sont activées sur ton téléphone (sinon les routines parleront dans le vide).
-- [x] **1.2 (Alita)** Créer la routine **« Morning brief »** : quotidienne, `0 12 * * *` UTC (7h00 Haïti), session fraîche, prompt autonome qui exécute l'esprit de `/morning` (veille IA/e-commerce/Haïti filtrée par CONTEXT.md) + état rapide du projet (PRs ouvertes, dernier déploiement). Notification **push + email** (passé de push-seul à push+email le 2026-07-09 : les briefs tiraient bien à 7h mais la push du matin se perdait côté téléphone — l'email est le filet fiable).
+- [x] **1.2 (Alita)** Créer la routine **« Morning brief »** : quotidienne, `0 12 * * *` UTC (7h00 Haïti), session fraîche, prompt autonome qui exécute l'esprit de `/morning` (veille IA/e-commerce/Haïti filtrée par CONTEXT.md) + état rapide du projet (PRs ouvertes, dernier déploiement). Notification **push + email** (passé de push-seul à push+email le 2026-07-09 : les briefs tiraient bien à 7h mais la push du matin se perdait côté téléphone, l'email est le filet fiable).
 - [x] **1.3 (Alita)** Créer la routine **« Santé hebdo »** : lundi `0 13 * * 1` UTC (8h00 Haïti), session fraîche : advisors Supabase (sécurité + perf), `error_overview()`, `escrow_attention_orders()`, KPIs `funnel_overview()`. Rapport synthétique + notification.
 - [x] **1.4 (Alita)** Créer la routine **« Sentinelle »** : quotidienne `0 22 * * *` UTC (17h00 Haïti) : vérifier `error_logs` récents et commandes escrow en attente anormale. **Silencieuse si RAS** (pas de notification), alerte seulement si problème.
 - [x] **1.5 (Alita)** Tester chaque routine avec un déclenchement manuel (`fire_trigger`) et vérifier que la notification arrive chez Thrasher. ✅ Notification de test reçue et confirmée par Thrasher le 2026-07-05.
@@ -29,7 +29,7 @@ Une semaine complète où : le brief du matin arrive seul, le rapport du lundi a
 
 ---
 
-## Chantier 2 — Boucle de déploiement Supabase 🥈
+## Chantier 2 : Boucle de déploiement Supabase 🥈
 
 **But :** une migration mergée sur `main` = une migration déployée en prod. Fin du « à déployer côté Thrasher au SQL Editor ».
 **Approche :** GitHub Action + Supabase CLI (`supabase db push`). Le MCP Supabase reste en lecture seule (sain).
@@ -42,7 +42,7 @@ Une semaine complète où : le brief du matin arrive seul, le rapport du lundi a
 - [x] **2.3 (Thrasher)** Ajouter 2 **GitHub Secrets** (repo → Settings → Secrets and variables → Actions) : `SUPABASE_ACCESS_TOKEN` et `SUPABASE_DB_PASSWORD`. (Le project ref `htxfwxldzaocuwezzbom` n'est pas secret, il ira dans le workflow.)
 - [x] **2.4 (Alita)** Créer le dossier `supabase/migrations/` + workflow `.github/workflows/db-migrate.yml` : sur push vers `main` touchant `supabase/migrations/**` → `supabase link --project-ref htxfwxldzaocuwezzbom` puis `supabase db push`. Concurrency group pour éviter deux déploiements simultanés.
 - [x] **2.5 (Alita)** Établir la **baseline** : marquer l'état actuel de la prod comme point de départ de l'historique de migrations CLI (pour que `db push` n'essaie jamais de rejouer les anciennes migrations). Vérifier avec `supabase migration list`.
-- [x] **2.6 (Alita)** Test de bout en bout : une migration no-op (`select 1;` commentée) mergée sur `main` → l'Action passe → vérifier via MCP (`list_migrations`) qu'elle est enregistrée en prod. ✅ Vérifié le 2026-07-05 : `20260705050000 (pipeline_test)` enregistrée en prod (après correction du secret `SUPABASE_DB_PASSWORD` — 1er run rouge : mauvais mot de passe DB, corrigé par reset + update du secret, re-run vert).
+- [x] **2.6 (Alita)** Test de bout en bout : une migration no-op (`select 1;` commentée) mergée sur `main` → l'Action passe → vérifier via MCP (`list_migrations`) qu'elle est enregistrée en prod. ✅ Vérifié le 2026-07-05 : `20260705050000 (pipeline_test)` enregistrée en prod (après correction du secret `SUPABASE_DB_PASSWORD` : 1er run rouge : mauvais mot de passe DB, corrigé par reset + update du secret, re-run vert).
 - [x] **2.7 (Alita)** Documenter la nouvelle règle dans `CLAUDE.md` : toute nouvelle migration va dans `supabase/migrations/<timestamp>_nom.sql` (plus jamais de fichier ad hoc), idempotente, et les changements destructifs (DROP, DELETE) exigent une revue explicite de Thrasher avant merge.
 
 ### Vérification du chantier
@@ -53,7 +53,7 @@ Un token Supabase vit dans les secrets GitHub. Risque contenu : secrets GitHub c
 
 ---
 
-## Chantier 3 — Mémoire qui capitalise 🥉
+## Chantier 3 : Mémoire qui capitalise 🥉
 
 **But :** Alita arrête de redécouvrir les mêmes leçons. Les apprentissages durables survivent aux sessions, au-delà de HISTORY.md.
 **Outil :** agentmemory (déjà installé : `remember` / `recall` / `handoff`).
@@ -77,7 +77,7 @@ Une session future où Alita cite une leçon retrouvée via `recall` au lieu de 
 
 ---
 
-## Chantier 4 — Canal de communication sortant 🏅
+## Chantier 4 : Canal de communication sortant 🏅
 
 **But :** les alertes et briefs atteignent Thrasher là où il vit (téléphone), pas seulement dans une session.
 **Position sparring :** commencer GRATUIT. Push (chantier 1) + email couvrent 90 % du besoin. WhatsApp est le canal naturel d'Haïti mais l'API Business coûte de l'argent (Twilio/360dialog via Zapier) : on ne paie que si le besoin est prouvé.
@@ -98,7 +98,7 @@ Une alerte sentinelle réelle reçue par Thrasher hors session, sur au moins un 
 
 | Chantier | État | Dernière mise à jour |
 |---|---|---|
-| 1. Routines | ✅ TERMINÉ — briefs tirent seuls, notifs push+email confirmées ; bilan de bruit validé par Thrasher (rythme parfait, horaires bons) | 2026-07-23 |
-| 2. Déploiement Supabase | ✅ TERMINÉ — pipeline validé de bout en bout (migration test en prod via le workflow) | 2026-07-05 |
-| 3. Mémoire | ✅ TERMINÉ — 7 leçons semées, discipline câblée, recall vérifié (2026-07-09) | 2026-07-09 |
+| 1. Routines | ✅ TERMINÉ, briefs tirent seuls, notifs push+email confirmées ; bilan de bruit validé par Thrasher (rythme parfait, horaires bons) | 2026-07-23 |
+| 2. Déploiement Supabase | ✅ TERMINÉ, pipeline validé de bout en bout (migration test en prod via le workflow) | 2026-07-05 |
+| 3. Mémoire | ✅ TERMINÉ : 7 leçons semées, discipline câblée, recall vérifié (2026-07-09) | 2026-07-09 |
 | 4. Canal sortant | ✅ Décidé : push + email, WhatsApp écarté (revoir dans 1 mois si besoin) | 2026-07-05 |

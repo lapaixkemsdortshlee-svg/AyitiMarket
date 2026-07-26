@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aym-v76';
+const CACHE_NAME = 'aym-v81';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -9,6 +9,7 @@ const STATIC_ASSETS = [
   '/favicon.png',
   '/brand/logo-ekomat.png',
   '/brand/splash-icon-teal.png',
+  '/brand/moncash.png',
 ];
 
 // External CDN resources to cache
@@ -49,7 +50,7 @@ self.addEventListener('fetch', event => {
 
   // HTML shell (navigation, /, *.html): NETWORK-FIRST so un nouveau
   // déploiement arrive tout de suite sur l'appareil (fallback cache hors
-  // ligne). Avant, le cache-first servait un index.html périmé — les
+  // ligne). Avant, le cache-first servait un index.html périmé, les
   // correctifs ne "prenaient" pas tant que le cache ne bustait pas.
   if (url.origin === self.location.origin &&
       (request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html'))) {
