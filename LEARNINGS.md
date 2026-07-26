@@ -18,6 +18,12 @@ Leçons arrivées à 3 occurrences ou plus. Lues systématiquement, elles primen
 
 Les plus récentes en premier.
 
+### 2026-07-26 | ui | Le mauvais paramètre, trois fois de suite
+- **Erreur** : la découpe sous la carte du feed a été refusée trois fois. À chaque refus j'ai retouché la courbure (points de contrôle du Bézier, hauteur, largeur du viewBox) alors que le vrai défaut était ailleurs : le SVG faisait toute la largeur de la carte et posait une bande de 7 px sur l'intégralité du bord bas, ce qui écrasait les coins arrondis. Ce n'était pas la courbe qui clochait, c'était son emprise.
+- **Correction** : une seule colline en largeur fixe, centrée, dont la base coïncide avec le bord bas et dont les deux bouts s'éteignent à zéro. Les coins restent intacts, et les tangentes horizontales aux raccords suppriment les accroches par construction, pas par retouche.
+- **Règle** : quand trois réglages successifs d'un même paramètre échouent, ce n'est plus le réglage qui est faux, c'est le paramètre. Redécrire le problème avant de retoucher une quatrième valeur.
+- **Occurrences** : 1
+
 ### 2026-07-25 | ui | Correctif sur la mauvaise couche
 - **Erreur** : le spinner de recherche d'adresse tournait sans fin. J'ai réécrit sa logique JS (compteur, `finally`, abort), livré, et il tournait toujours.
 - **Correction** : la cause était dans la cascade CSS, pas dans le JS. `.hidden` vient de `assets/tw.css` chargé avant le bloc `<style>` inline ; à spécificité égale `.material-symbols-outlined` gagnait et annulait `display:none`.
