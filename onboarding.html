@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Ekomat — Onboarding</title>
+<title>Ekomat : Onboarding</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
@@ -43,7 +43,7 @@ const C = {
 };
 
 /* ══════════════════════════════
-   ILLUSTRATION 1 — Eskwo
+   ILLUSTRATION 1 : Eskwo
 ══════════════════════════════ */
 function Illus1() {
   return (
@@ -107,7 +107,7 @@ function Illus1() {
 }
 
 /* ══════════════════════════════
-   ILLUSTRATION 2 — Chat
+   ILLUSTRATION 2 : Chat
 ══════════════════════════════ */
 function Illus2() {
   const bars = [3,9,14,5,11,7,16,4,12,6,13,5];
@@ -129,11 +129,11 @@ function Illus2() {
         <text x="168" y="72" fontSize="8" fill="white" fontWeight="600">Marie Laguerre</text>
         <circle cx="216" cy="68" r="4" fill="#4ade80"/>
 
-        {/* Bubble — sent */}
+        {/* Bubble, sent */}
         <rect x="148" y="92" width="68" height="20" rx="10" fill={C.teal}/>
         <text x="182" y="106" textAnchor="middle" fontSize="7" fill="white">Bonjou! 👋 Disponib?</text>
 
-        {/* Bubble — received */}
+        {/* Bubble, received */}
         <rect x="120" y="120" width="60" height="20" rx="10" fill={C.subtle}/>
         <text x="150" y="134" textAnchor="middle" fontSize="7" fill={C.charcoal}>Wi, ki pri a?</text>
 
@@ -186,7 +186,7 @@ function Illus2() {
 }
 
 /* ══════════════════════════════
-   ILLUSTRATION 3 — Verify
+   ILLUSTRATION 3 : Verify
 ══════════════════════════════ */
 function Illus3() {
   return (
@@ -272,7 +272,7 @@ function Illus3() {
 }
 
 /* ══════════════════════════════
-   ILLUSTRATION 4 — Flash
+   ILLUSTRATION 4 : Flash
 ══════════════════════════════ */
 function Illus4({timeLeft}) {
   const pct = (timeLeft%3600)/3600;
@@ -329,14 +329,14 @@ function Illus4({timeLeft}) {
       {/* Urgency strip */}
       <g className="pulse" style={{transformOrigin:'170px 162px'}}>
         <rect x="106" y="153" width="128" height="20" rx="10" fill={C.orangeL} stroke={C.orange} strokeWidth=".8"/>
-        <text x="170" y="167" textAnchor="middle" fontSize="9" fill={C.orange} fontWeight="700">⚡ Ofri Limite — Depèch ou!</text>
+        <text x="170" y="167" textAnchor="middle" fontSize="9" fill={C.orange} fontWeight="700">⚡ Ofri Limite : Depèch ou!</text>
       </g>
     </svg>
   );
 }
 
 /* ══════════════════════════════
-   ILLUSTRATION 5 — GPS Pickup
+   ILLUSTRATION 5 : GPS Pickup
 ══════════════════════════════ */
 function Illus5() {
   const pins = [
@@ -404,7 +404,7 @@ const SCREENS = [
   {
     id:0, tag:'Peman Sikiri',
     title:'Eskwo ki\nProteje Ou',
-    body:'Lajan an bloke jis livrezon fèt. Ou bay kòd OTP 6 chif nan pwen kolèk — epi sèlman lè sa a MonCash libere fon yo. Pa gen fwod, pa gen pèt.',
+    body:'Lajan an bloke jis livrezon fèt. Ou bay kòd OTP 6 chif nan pwen kolèk, epi sèlman lè sa a MonCash libere fon yo. Pa gen fwod, pa gen pèt.',
     cta:'Kontinye',
     bg:C.teal, dark:true,
     tagBg:'rgba(255,255,255,.18)', tagC:'white',
@@ -426,7 +426,7 @@ const SCREENS = [
   {
     id:2, tag:'Konfyans',
     title:'Vandè Verifye\navèk Badge',
-    body:'Chak vandè soumèt foto ID ak selfie. Admin revize manyèlman — badge "Verifye" garanti ou konnen ak kilès ou fè biznis.',
+    body:'Chak vandè soumèt foto ID ak selfie. Admin revize manyèlman, badge "Verifye" garanti ou konnen ak kilès ou fè biznis.',
     cta:'Kontinye',
     bg:'#1a2a2b', dark:true,
     tagBg:'rgba(0,125,135,.32)', tagC:'#6ee7ea',
@@ -437,7 +437,7 @@ const SCREENS = [
   {
     id:3, tag:'Flash Deals',
     title:'Pwomosyon\nLimite Reyèl',
-    body:'Countdown desann an tan reyèl. Ou wè konbyen stòk rete ak konbyen tan ki genyen — presyon pozitif pou achte vit!',
+    body:'Countdown desann an tan reyèl. Ou wè konbyen stòk rete ak konbyen tan ki genyen, presyon pozitif pou achte vit!',
     cta:'Kontinye', hasTimer:true,
     bg:C.cream, dark:false,
     tagBg:C.orangeL, tagC:C.orange,
@@ -448,7 +448,7 @@ const SCREENS = [
   {
     id:4, tag:'Pwen Kolèk',
     title:'GPS Klase\npa Distans',
-    body:'Pwen kolèk fiks — Digicel, Epikri, MonCash. GPS aktive? App la mete pi pre a an premye ak distans an kilomèt afiche.',
+    body:'Pwen kolèk fiks : Digicel, Epikri, MonCash. GPS aktive? App la mete pi pre a an premye ak distans an kilomèt afiche.',
     cta:'Kòmanse', isLast:true,
     bg:C.teal, dark:true,
     tagBg:'rgba(255,255,255,.18)', tagC:'white',
@@ -459,7 +459,7 @@ const SCREENS = [
 ];
 
 /* ══════════════════════════════
-   MAIN APP — Native full-screen onboarding
+   MAIN APP : Native full-screen onboarding
 ══════════════════════════════ */
 function App() {
   const [cur, setCur]      = useState(()=>{ try{return parseInt(localStorage.getItem('aym_ob')||'0');}catch{return 0;} });
@@ -540,7 +540,7 @@ function App() {
         </button>
       )}
 
-      {/* Illustration — fills the upper region. SVG has a fixed viewBox
+      {/* Illustration, fills the upper region. SVG has a fixed viewBox
           and preserves aspect ratio on its own, so we just give it a
           flex cell that can shrink (minHeight:0) and clip nothing. */}
       <div style={{

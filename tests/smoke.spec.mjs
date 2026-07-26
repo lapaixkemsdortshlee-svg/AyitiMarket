@@ -4,7 +4,7 @@
 //   3. UI prensipal la (splash / login / feed) parèt
 //   4. Service worker fichye yo sèvi (pa 404)
 //
-// Yo *pa* eseye konekte oswa fè kòmand — sa ta mande Supabase + auth.
+// Yo *pa* eseye konekte oswa fè kòmand, sa ta mande Supabase + auth.
 // Pou tès end-to-end pi pwofon, kreye yon `tests/e2e/*.spec.mjs`
 // separe pi devan.
 
@@ -23,7 +23,7 @@ const KNOWN_NOISE = [
     /fonts\.googleapis/i,
     /manifest\.json/i,
     /preload/i,
-    // Erè rezo (proxy sandbox, CDN bloke, etc.) — pa erè JS
+    // Erè rezo (proxy sandbox, CDN bloke, etc.), pa erè JS
     /failed to load resource/i,
     /net::err_/i,
     /ERR_TUNNEL_CONNECTION_FAILED/i,

@@ -11,12 +11,20 @@ Dernière consolidation : (jamais)
 Leçons arrivées à 3 occurrences ou plus. Lues systématiquement, elles priment sur tout le reste.
 
 - Jamais de tiret cadratin, quel que soit le support.
+- Une preuve répond à la question qu'elle pose, jamais à celle d'à côté. « Je ne l'ai pas introduit » et « ce n'est pas réel » sont deux affirmations distinctes, et la première ne soutient jamais la seconde. Avant de qualifier un signalement de faux positif, aller lire le signalement lui-même.
+- Sur un gros diff touchant `index.html`, CodeQL réétiquette ses alertes baseline en « new alerts » (PR #99, #151, #152, #246 ; son résumé dit « code changes were too large »). Ce label est trompeur, le contenu ne l'est pas. Deux vérifications distinctes et obligatoires : (1) est-ce que je l'ai introduit ? rejouer la transformation sur la version précédente et differ, les lignes restantes doivent être exactement les changements voulus ; (2) est-ce réel ? ouvrir les annotations et juger chaque règle sur le code visé. Sur #246 la réponse était non à la première et OUI à la seconde, dix sites échappaient l'apostrophe sans l'antislash.
 
 ---
 
 ## Entrées actives
 
 Les plus récentes en premier.
+
+### 2026-07-26 | ui | Le mauvais paramètre, trois fois de suite
+- **Erreur** : la découpe sous la carte du feed a été refusée trois fois. À chaque refus j'ai retouché la courbure (points de contrôle du Bézier, hauteur, largeur du viewBox) alors que le vrai défaut était ailleurs : le SVG faisait toute la largeur de la carte et posait une bande de 7 px sur l'intégralité du bord bas, ce qui écrasait les coins arrondis. Ce n'était pas la courbe qui clochait, c'était son emprise.
+- **Correction** : une seule colline en largeur fixe, centrée, dont la base coïncide avec le bord bas et dont les deux bouts s'éteignent à zéro. Les coins restent intacts, et les tangentes horizontales aux raccords suppriment les accroches par construction, pas par retouche.
+- **Règle** : quand trois réglages successifs d'un même paramètre échouent, ce n'est plus le réglage qui est faux, c'est le paramètre. Redécrire le problème avant de retoucher une quatrième valeur.
+- **Occurrences** : 1
 
 ### 2026-07-25 | ui | Correctif sur la mauvaise couche
 - **Erreur** : le spinner de recherche d'adresse tournait sans fin. J'ai réécrit sa logique JS (compteur, `finally`, abort), livré, et il tournait toujours.

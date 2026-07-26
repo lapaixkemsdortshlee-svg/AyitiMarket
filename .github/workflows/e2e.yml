@@ -8,7 +8,7 @@ name: E2E (deployed)
 # Deklanche:
 #   - workflow_dispatch : manyèl (opsyonèlman ak yon URL)
 #   - deployment_status : otomatik apre CHAK deplwaman Vercel ki reyisi
-#     (preview oswa pwod) — konsa flux sansib yo teste sou vrè kòd la a
+#     (preview oswa pwod), konsa flux sansib yo teste sou vrè kòd la a
 #     chak PR. target_url la se URL deplwaman an; AYM_BYPASS_TOKEN pase
 #     checkpoint Vercel la.
 

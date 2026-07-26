@@ -1,5 +1,5 @@
 // Konfigirasyon Tailwind pou konpile CSS estatik la (assets/tw.css).
-// MENM valè ak ansyen blòk `tailwind.config` inline nan index.html —
+// MENM valè ak ansyen blòk `tailwind.config` inline nan index.html -
 // si w chanje yon koulè/font isit la, rebati: npm run build:css
 module.exports = {
   content: ['./index.html'],

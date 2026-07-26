@@ -1,4 +1,4 @@
-// Tès END-TO-END nivo API sou vrè backend Supabase la — li kondwi tout
+// Tès END-TO-END nivo API sou vrè backend Supabase la, li kondwi tout
 // machin nan eta escrow ak vrè jeton wòl yo (achtè / vandè / admin),
 // epi li netwaye dèyè l. Sa valide advance_order_status + gad PR #94
 // (idempotans + vèwou eta final) san depann de navigatè a.

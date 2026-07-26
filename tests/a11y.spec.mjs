@@ -1,24 +1,24 @@
-// Tès aksesiblite — kouri axe-core sou paj la apre li chaje. Asire
+// Tès aksesiblite, kouri axe-core sou paj la apre li chaje. Asire
 // pa gen vyolasyon kritik ni grav. Pa fè echèk sou nivo "moderate" /
-// "minor" — yo souvan "false positives" oswa nuans desibèl ki pa bloke
+// "minor", yo souvan "false positives" oswa nuans desibèl ki pa bloke
 // itilizatè.
 
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-// Regle dezaktive kounye a + rezon — yo dwe diminye lè nou amelyore
+// Regle dezaktive kounye a + rezon, yo dwe diminye lè nou amelyore
 // a11y. Vize: vid (zero `disableRules`).
 //
 // `label` + `select-name` kouvri yon baseline de chan ki te ekziste
-// anvan pas a11y a — Axe konte 19+4 enstans. PR sa a entwodui
+// anvan pas a11y a : Axe konte 19+4 enstans. PR sa a entwodui
 // enfrastrikti a11y (focus-visible, skip-link, lang="ht", aria-labels
 // kle); PR ki vini yo dwe atake chak fòm ki rete pou yo ka retire de
 // regle sa yo isit la.
 const DISABLE_RULES = [
-    // Tailwind utility "sr-only peer" cache yon input — Axe pa wè li,
+    // Tailwind utility "sr-only peer" cache yon input : Axe pa wè li,
     // men li gen yon eleman pou klike pa-deyò.
     'aria-hidden-focus',
-    // Tailwind CDN bay koulè dinamik — sandbox CI sandbox ka pa wè yo.
+    // Tailwind CDN bay koulè dinamik, sandbox CI sandbox ka pa wè yo.
     'color-contrast',
     // TODO(a11y): ajoute <label for=…> oswa aria-label sou tout
     // <input>/<select> nan fòm yo (~23 enstans).

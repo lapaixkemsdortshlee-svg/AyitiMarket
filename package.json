@@ -2,7 +2,7 @@
   "name": "ekomat-tests",
   "version": "0.0.0",
   "private": true,
-  "description": "Dev-only manifest for Playwright smoke tests. The app itself stays a single static index.html — no build, no runtime dependency.",
+  "description": "Dev-only manifest for Playwright smoke tests. The app itself stays a single static index.html, no build, no runtime dependency.",
   "scripts": {
     "test": "playwright test",
     "test:ui": "playwright test --ui",

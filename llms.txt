@@ -2,11 +2,11 @@
 
 > Ekomat se marketplace mobil Ayisyen an: yon plas kote moun an Ayiti
 > achte ak vann an tout sekirite. Chak tranzaksyon pwoteje ak yon sistèm
-> eskwo sou MonCash — lajan achtè a rete bloke jiskaske li konfime li
+> eskwo sou MonCash, lajan achtè a rete bloke jiskaske li konfime li
 > resevwa komann nan ak yon kòd OTP. Vandè yo verifye (ID + selfie).
 >
 > Ekomat is the Haitian mobile marketplace: people in Haiti buy and
-> sell safely. Every transaction is protected by MonCash escrow — the
+> sell safely. Every transaction is protected by MonCash escrow, the
 > buyer's money is held until they confirm delivery with an OTP code.
 > Sellers are identity-verified.
 
@@ -44,4 +44,4 @@ Cap-Haïtien (Okap), Les Cayes.
 - Peman: MonCash (Digicel). Lajan pwoteje ak eskwo.
 - Lang: Kreyòl ayisyen (interface).
 - Sekirite: vandè verifye (ID + selfie), kòd OTP pou livrezon, sistèm litij.
-- App mobil (PWA) — ou ka enstale l sou telefòn ou.
+- App mobil (PWA), ou ka enstale l sou telefòn ou.
