@@ -447,10 +447,16 @@
         .ekf-slide.img { padding-right: 22%; }
         .ekf-slide-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
         .ekf-slide-fade { position: absolute; inset: 0; pointer-events: none; }
-        .ekf-badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: 999px; background: rgba(252,249,244,.94); color: #00404a; font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
-        .ekf-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.22rem; line-height: 1.18; letter-spacing: -.02em; color: #fcf9f4; text-shadow: 0 1px 10px rgba(0,0,0,.28); }
-        .ekf-sub { font-family: 'Manrope', sans-serif; font-size: .78rem; line-height: 1.45; color: rgba(252,249,244,.92); margin-top: 5px; text-shadow: 0 1px 8px rgba(0,0,0,.3); }
-        .ekf-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 9px; margin-top: 14px; padding: 8px 8px 8px 18px; border: 0; border-radius: 999px; background: #fcf9f4; color: #00404a; font-family: 'Plus Jakarta Sans', sans-serif; font-size: .8125rem; font-weight: 800; cursor: pointer; box-shadow: 0 3px 12px rgba(28,28,25,.18); }
+        /* Bug: imaj la ak vwal la se eleman `absolute`, kontni an se eleman
+           nan flux la. San `position`, navigatè a penn absoli yo APRE yo, epi
+           imaj la kouvri tout tèks la. Chak eleman tèks dwe pozisyone. */
+        .ekf-badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: 999px; background: rgba(252,249,244,.94); color: #00404a; font-family: 'Manrope', sans-serif; font-size: 11px; font-weight: 700; margin-bottom: 10px; position: relative; z-index: 1; }
+        /* Tèks la pa dwe kouri sou tout kat la: `max-width` fè l tounen liy
+           bonè epi kite imaj la respire, `line-clamp` anpeche yon tèks long
+           anfle wotè kat la. Admin nan wè koupi a nan apèsi a epi rakousi. */
+        .ekf-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.22rem; line-height: 1.18; letter-spacing: -.02em; color: #fcf9f4; text-shadow: 0 1px 10px rgba(0,0,0,.28); position: relative; z-index: 1; max-width: 20ch; text-wrap: balance; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .ekf-sub { font-family: 'Manrope', sans-serif; font-size: .78rem; line-height: 1.45; color: rgba(252,249,244,.92); margin-top: 5px; text-shadow: 0 1px 8px rgba(0,0,0,.3); position: relative; z-index: 1; max-width: 32ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .ekf-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 9px; margin-top: 14px; padding: 8px 8px 8px 18px; border: 0; border-radius: 999px; background: #fcf9f4; color: #00404a; font-family: 'Plus Jakarta Sans', sans-serif; font-size: .8125rem; font-weight: 800; cursor: pointer; box-shadow: 0 3px 12px rgba(28,28,25,.18); position: relative; z-index: 1; }
         .ekf-cta:active { transform: scale(.96); }
         .ekf-cta-a { width: 26px; height: 26px; border-radius: 999px; background: #00666f; color: #fcf9f4; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
         /* Vag anba kat la (modèl Thrasher 2026-07-26). Li viv sou .ekf-hero,
@@ -469,6 +475,20 @@
         .ekf-dot.on { width: 20px; background: #00666f; }
         body.dark .ekf-dot.on { background: #5ad7e6; }
         @media (prefers-reduced-motion: reduce) { .ekf-track { scroll-behavior: auto; } .ekf-dot { transition: none; } }
+        /* Chwazi koulè degrade banyè a (fèy admin). */
+        .ekh-sw { width: 46px; height: 32px; border-radius: 10px; border: 2px solid transparent; box-shadow: inset 0 0 0 1px rgba(28,28,25,.09); padding: 0; flex: 0 0 auto; cursor: pointer; }
+        .ekh-sw.on { border-color: #00666f; }
+        body.dark .ekh-sw.on { border-color: #5ad7e6; }
+        /* Bouton CTA ki deja konekte ak yon paj nan app la. */
+        .ekh-chip { display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(0,102,111,.22); background: rgba(0,102,111,.07); color: #00666f; font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .ekh-chip.on { background: #00666f; color: #fcf9f4; border-color: #00666f; }
+        body.dark .ekh-chip { border-color: rgba(90,215,230,.28); background: rgba(90,215,230,.1); color: #5ad7e6; }
+        body.dark .ekh-chip.on { background: #5ad7e6; color: #00404a; }
+        /* Repè zòn yo sou apèsi a: menm de liy ki nan zouti tès la. Yo viv sou
+           konteni apèsi a, pa sou slide la, konsa feed la pa janm wè yo. */
+        #hsPreview.guides::before, #hsPreview.guides::after { content: ''; position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed rgba(252,249,244,.8); z-index: 3; pointer-events: none; }
+        #hsPreview.guides::before { left: 42%; }
+        #hsPreview.guides::after { left: 74%; }
 
         /* ── Lis konvèsasyon yo (Mesaj yo), gwo tit, rechèch, chip, etikèt ── */
         .ekv-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.5rem; line-height: 1.05; letter-spacing: -.03em; }
@@ -3924,6 +3944,8 @@
                     <option value="sell">Ale pibliye</option>
                     <option value="orders">Ale nan kòmand yo</option>
                     <option value="search">Louvri rechèch</option>
+                    <option value="promo">Ale nan kòd pwomo</option>
+                    <option value="shops">Ale nan boutik yo</option>
                     <option value="profile">Ale nan pwofil</option>
                 </select>
             </div>
@@ -3934,27 +3956,61 @@
         <div id="annList" class="mt-4 space-y-2"></div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════
-     SCREEN : BANYÈ AKÈY (admin sèlman), paj apa, pa yon fèy
-     ki monte sou Anons yo.
-══════════════════════════════════════════════════════ -->
-    <div class="screen pb-32 max-w-lg mx-auto" id="s-banners">
-        <div class="pt-20 px-4" id="bannersContent">
-        <div class="pb-3">
-            <h2 class="ekv-title text-on-surface">Banyè akèy</h2>
-            <p class="font-body text-sm text-on-surface-variant mt-2">Imaj landscape ki kouvri tout kat la nan tèt feed la. Sèvi ak yo pou mete an avan yon òf, yon kanpay, oswa yon boutik ki peye pou sa.</p>
+    <!-- ══ ADMIN BANYÈ AKÈY SHEET ══
+     Fèy, pa paj: menm plas ak Anons ak Feedback nan bouton flotan an.
+     Apèsi a sèvi ak MENM fonksyon rann lan ak feed la (heroSlideHTML), konsa
+     sa admin nan wè se egzakteman sa moun yo pral wè. -->
+    <div class="sheet" id="heroSheet">
+        <button onclick="closeSheets()" aria-label="Fèmen banyè yo"
+            class="w-8 h-8 -ml-1 mb-1 rounded-full flex items-center justify-center active:bg-surface-container-low transition-colors">
+            <span class="material-symbols-outlined text-on-surface" style="font-size:22px">arrow_back</span>
+        </button>
+        <div class="text-center mb-4">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 amb" style="background:rgba(0,102,111,.08)">
+                <span class="material-symbols-outlined fi text-primary" style="font-size:26px">wallpaper</span>
+            </div>
+            <h3 class="font-headline font-extrabold text-xl text-on-surface tracking-tight">Banyè Akèy</h3>
+            <p class="font-body text-sm text-on-surface-variant mt-1">Teste banyè a anvan ou pibliye li</p>
         </div>
+
+        <div class="flex items-center justify-between mb-2">
+            <p class="font-label text-[11px] font-bold text-on-surface-variant" style="text-transform:uppercase;letter-spacing:.06em">Apèsi an dirèk</p>
+            <button type="button" onclick="toggleHeroGuides()" id="hsGuideBtn" class="ekh-chip">Repè zòn</button>
+        </div>
+        <div class="ekf-hero" id="hsPreview" style="margin-bottom:6px">
+            <div class="ekf-track" id="hsPreviewTrack"></div>
+            <svg class="ekf-wave" viewBox="0 0 172 31" aria-hidden="true">
+                <path d="M0,31 L0,30 C34,30 52,5 86,5 C120,5 138,30 172,30 L172,31 Z"/>
+            </svg>
+        </div>
+        <p class="font-body text-[11px] text-on-surface-variant mb-4" id="hsGuideHint" style="display:none">
+            Agoch premye liy la: tèks la chita, moun pa wè imaj la. Adwat dezyèm liy la: imaj la klè, se la pou sijè a ye.
+        </p>
+
         <div class="space-y-3">
-            <input id="hsTitle" class="si" placeholder="Tit banyè a…" maxlength="60"/>
-            <input id="hsSub" class="si" placeholder="Sou-tit (opsyonèl)" maxlength="90"/>
+            <input id="hsTitle" class="si" placeholder="Tit banyè a…" maxlength="60" oninput="renderHeroPreview()"/>
+            <input id="hsSub" class="si" placeholder="Sou-tit (opsyonèl)" maxlength="90" oninput="renderHeroPreview()"/>
             <div class="flex gap-2">
-                <input id="hsBadge" class="si flex-1" placeholder="Pastiy (egz. Òf limite)" maxlength="24"/>
+                <input id="hsBadge" class="si flex-1" placeholder="Pastiy (egz. Òf limite)" maxlength="24" oninput="renderHeroPreview()"/>
                 <select id="hsAudience" class="si flex-1">
                     <option value="all">Tout moun</option>
                     <option value="buyers">Achtè yo sèlman</option>
                     <option value="sellers">Vandè yo sèlman</option>
                 </select>
             </div>
+
+            <p class="font-label text-[11px] font-bold text-on-surface-variant" style="text-transform:uppercase;letter-spacing:.06em">Koulè degrade</p>
+            <div class="flex gap-2" id="hsThemes">
+                <button type="button" onclick="pickHeroTheme('auto')" data-th="auto" class="ekh-sw on" aria-label="Otomatik"
+                    style="background:linear-gradient(135deg,#00666f,#97422b)"></button>
+                <button type="button" onclick="pickHeroTheme('teal')" data-th="teal" class="ekh-sw" aria-label="Teal"
+                    style="background:linear-gradient(135deg,#00666f,#00818c)"></button>
+                <button type="button" onclick="pickHeroTheme('deep')" data-th="deep" class="ekh-sw" aria-label="Teal fonse"
+                    style="background:linear-gradient(135deg,#00404a,#00666f)"></button>
+                <button type="button" onclick="pickHeroTheme('rust')" data-th="rust" class="ekh-sw" aria-label="Wouj tè"
+                    style="background:linear-gradient(135deg,#97422b,#b1573a)"></button>
+            </div>
+
             <div class="flex gap-2">
                 <button onclick="pickHeroImage('hs')" id="hsImgBtn"
                     class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl amb active:scale-[.99]"
@@ -3967,13 +4023,26 @@
                     <span class="material-symbols-outlined" style="font-size:18px">close</span>
                 </button>
             </div>
+            <p class="font-label text-[11px] font-bold text-on-surface-variant" style="text-transform:uppercase;letter-spacing:.06em">Bouton pare</p>
+            <div class="flex gap-2" id="hsCtaChips" style="flex-wrap:wrap">
+                <button type="button" class="ekh-chip" onclick="pickHeroCta(this,'Achte kounye a','shop')">Achte kounye a</button>
+                <button type="button" class="ekh-chip" onclick="pickHeroCta(this,'Wè kòmand mwen','orders')">Wè kòmand mwen</button>
+                <button type="button" class="ekh-chip" onclick="pickHeroCta(this,'Kòmanse vann','sell')">Kòmanse vann</button>
+                <button type="button" class="ekh-chip" onclick="pickHeroCta(this,'Jwenn kòd mwen','promo')">Jwenn kòd mwen</button>
+                <button type="button" class="ekh-chip" onclick="pickHeroCta(this,'Wè boutik yo','shops')">Wè boutik yo</button>
+                <button type="button" class="ekh-chip" onclick="pickHeroCta(this,'Chèche yon bagay','search')">Chèche yon bagay</button>
+                <button type="button" class="ekh-chip" onclick="pickHeroCta(this,'Wè pwofil mwen','profile')">Wè pwofil mwen</button>
+            </div>
             <div class="flex gap-2">
-                <input id="hsCtaLabel" class="si flex-1" placeholder="Tèks bouton (opsyonèl)" maxlength="24"/>
-                <select id="hsCtaAction" class="si flex-1">
+                <input id="hsCtaLabel" class="si flex-1" placeholder="Tèks bouton (opsyonèl)" maxlength="24"
+                    oninput="onHeroCtaLabel()"/>
+                <select id="hsCtaAction" class="si flex-1" onchange="onHeroCtaPick()">
                     <option value="shop">Ale nan pwodwi yo</option>
                     <option value="sell">Ale pibliye</option>
                     <option value="orders">Ale nan kòmand yo</option>
                     <option value="search">Louvri rechèch</option>
+                    <option value="promo">Ale nan kòd pwomo</option>
+                    <option value="shops">Ale nan boutik yo</option>
                     <option value="profile">Ale nan pwofil</option>
                 </select>
             </div>
@@ -3983,7 +4052,6 @@
             </button>
         </div>
         <div id="hsList" class="mt-4 space-y-2"></div>
-        </div>
     </div>
 
     <!-- ══ FÈY LEGAL : Kondisyon & Konfidansyalite ══ -->
@@ -7697,7 +7765,7 @@
             items.push({ i: "admin_panel_settings", l: "Panel Admin", s: "Verifikasyon, kòmand, itilizatè", a: "navTo('admin')" });
             items.push({ i: "forum", l: "Mesaj yo", s: (A.unreadMsgCount || 0) > 0 ? (A.unreadMsgCount + ' nouvo mesaj') : 'Tout konvèsasyon', a: "openInbox()" });
             items.push({ i: "campaign", l: "Anons yo", s: "Jere anons platfòm", a: "openSheet('announceSheet')" });
-            items.push({ i: "wallpaper", l: "Banyè Akèy", s: "Imaj kat glisan an", a: "openHeroSlides()" });
+            items.push({ i: "wallpaper", l: "Banyè Akèy", s: "Imaj kat glisan an", a: "openHeroSheet()" });
             items.push({ i: "settings", l: "Paramèt", s: "Son, notifikasyon, pataj", a: "openSheet('settingsSheet')" });
         } else {
             if (u.role === 'buyer' || (u.role !== 'seller')) {
@@ -12041,6 +12109,14 @@
                         style="background:#97422b;color:#fff" aria-label="Feedback">
                         <span class="material-symbols-outlined fi" style="font-size:20px">rate_review</span>
                     </button>
+                </div>
+                <div class="flex items-center gap-2" style="animation:fabIn .26s ease">
+                    <span class="font-label text-xs font-bold text-on-surface px-2 py-1 rounded-full bg-surface-container-lowest amb">Banyè</span>
+                    <button onclick="fabSpeedDial(false);openHeroSheet()"
+                        class="w-11 h-11 rounded-full flex items-center justify-center active:scale-90 amb"
+                        style="background:#00404a;color:#fff" aria-label="Banyè akèy">
+                        <span class="material-symbols-outlined fi" style="font-size:20px">wallpaper</span>
+                    </button>
                 </div>`;
         }
         window.setupAdminFab = setupAdminFab;
@@ -14342,6 +14418,7 @@
                 HERO_IMG[kind] = data?.publicUrl || null;
                 if (btn) btn.textContent = HERO_IMG[kind] ? 'Imaj chwazi ✓' : 'Chwazi imaj la';
                 document.getElementById(kind + 'ImgClr')?.classList.remove('hidden');
+                if (kind === 'hs') renderHeroPreview();
             };
             input.click();
         }
@@ -14352,6 +14429,7 @@
             const btn = document.getElementById(kind + 'ImgTxt');
             if (btn) btn.textContent = 'Chwazi imaj la';
             document.getElementById(kind + 'ImgClr')?.classList.add('hidden');
+            if (kind === 'hs') renderHeroPreview();
         }
         window.clearHeroImage = clearHeroImage;
 
@@ -14399,23 +14477,103 @@
         window.submitAnnouncement = submitAnnouncement;
 
         // ─ Admin: banyè kat glisan (hero_slides) ──────────────────
-        function openHeroSlides() {
+        // Koulè degrade a: `auto` kite pozisyon an nan kawousèl la deside
+        // (konpòtman istorik la), lòt yo fikse l pou admin nan konnen davans
+        // ki koulè banyè a ap genyen.
+        const HERO_THEMES = {
+            teal: { bg: 'linear-gradient(135deg,#00666f,#00818c)', tint: '0,64,74' },
+            deep: { bg: 'linear-gradient(135deg,#00404a,#00666f)', tint: '0,64,74' },
+            rust: { bg: 'linear-gradient(135deg,#97422b,#b1573a)', tint: '151,66,43' },
+        };
+        let HERO_THEME = 'auto';
+
+        function pickHeroTheme(key) {
+            HERO_THEME = HERO_THEMES[key] ? key : 'auto';
+            document.querySelectorAll('#hsThemes .ekh-sw').forEach(b => {
+                b.classList.toggle('on', b.dataset.th === HERO_THEME);
+            });
+            renderHeroPreview();
+        }
+        window.pickHeroTheme = pickHeroTheme;
+
+        function openHeroSheet() {
             if (A.user?.role !== 'admin') { toast('Admin sèlman'); return; }
-            closeSheets();
-            A.stack.push(A.tab);
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
-            document.getElementById('s-banners').classList.add('on');
-            document.getElementById('bottomNav').classList.add('hidden');
-            document.getElementById('fab').classList.add('hidden');
-            document.getElementById('backbtn').classList.remove('hidden');
-            document.getElementById('backbtn').classList.add('flex');
-            document.getElementById('toptitle').textContent = '';
-            const logoEl = document.getElementById('headerLogo');
-            if (logoEl) logoEl.style.display = 'none';
-            document.getElementById('toptitle').style.display = '';
+            openSheet('heroSheet');
+            renderHeroPreview();
             loadHeroSlides();
         }
-        window.openHeroSlides = openHeroSlides;
+        window.openHeroSheet = openHeroSheet;
+
+        // Apèsi a pase pa menm `heroSlideHTML` ke feed la. Bouton an pa fè
+        // anyen isit la: se yon apèsi, pa yon navigasyon.
+        function renderHeroPreview() {
+            const track = document.getElementById('hsPreviewTrack');
+            if (!track) return;
+            const label = document.getElementById('hsCtaLabel')?.value.trim();
+            track.innerHTML = heroSlideHTML({
+                badge: document.getElementById('hsBadge')?.value.trim() || 'Ekomat',
+                badgeIcon: 'local_offer',
+                title: document.getElementById('hsTitle')?.value.trim() || 'Tit banyè a',
+                sub: document.getElementById('hsSub')?.value.trim() || null,
+                img: HERO_IMG.hs,
+                theme: HERO_THEME,
+                cta: label ? { label, action: 'void 0' } : null,
+            }, 1);
+        }
+        window.renderHeroPreview = renderHeroPreview;
+
+        // Aksyon an swiv sa ki ekri sou bouton an: si admin nan tape
+        // « Jwenn kòd mwen », destinasyon an vin kòd pwomo a pou kont li.
+        // Se yon SIJESYON: depi admin nan chwazi yon bagay li menm, nou pa
+        // touche l ankò. Baz done a toujou resevwa yon kle nan lis fèmen an.
+        const HERO_CTA_HINTS = [
+            [/(kòd|kod|zanmi|envit|parenaj|kredi|rabè|rabe)/i, 'promo'],
+            [/(vann|pibliye|vandè|vande|boutik mwen)/i, 'sell'],
+            [/(kòmand|komand|swiv)/i, 'orders'],
+            [/(chèche|cheche|rechèch|rechech)/i, 'search'],
+            [/(boutik|magazen|machann)/i, 'shops'],
+            [/(pwofil|kont mwen)/i, 'profile'],
+        ];
+        let HERO_CTA_TOUCHED = false;
+
+        function onHeroCtaPick() { HERO_CTA_TOUCHED = true; }
+        window.onHeroCtaPick = onHeroCtaPick;
+
+        // Bouton pare: tèks la ak destinasyon an vin ansanm, konsa yon bouton
+        // pa ka janm pwente sou yon paj ki pa koresponn ak sa ki ekri sou li.
+        function pickHeroCta(el, label, action) {
+            const input = document.getElementById('hsCtaLabel');
+            const sel = document.getElementById('hsCtaAction');
+            if (input) input.value = label;
+            if (sel) sel.value = action;
+            HERO_CTA_TOUCHED = true;
+            document.querySelectorAll('#hsCtaChips .ekh-chip').forEach(c => c.classList.toggle('on', c === el));
+            renderHeroPreview();
+        }
+        window.pickHeroCta = pickHeroCta;
+
+        function toggleHeroGuides() {
+            const box = document.getElementById('hsPreview');
+            const on = box.classList.toggle('guides');
+            document.getElementById('hsGuideBtn')?.classList.toggle('on', on);
+            const hint = document.getElementById('hsGuideHint');
+            if (hint) hint.style.display = on ? '' : 'none';
+        }
+        window.toggleHeroGuides = toggleHeroGuides;
+
+        function onHeroCtaLabel() {
+            const sel = document.getElementById('hsCtaAction');
+            const label = document.getElementById('hsCtaLabel')?.value.trim() || '';
+            document.querySelectorAll('#hsCtaChips .ekh-chip').forEach(c => {
+                if (c.textContent.trim() !== label) c.classList.remove('on');
+            });
+            if (sel && !HERO_CTA_TOUCHED && label) {
+                const hit = HERO_CTA_HINTS.find(([re]) => re.test(label));
+                sel.value = hit ? hit[1] : 'shop';
+            }
+            renderHeroPreview();
+        }
+        window.onHeroCtaLabel = onHeroCtaLabel;
 
         async function loadHeroSlides() {
             const el = document.getElementById('hsList');
@@ -14446,6 +14604,7 @@
                 subtitle: document.getElementById('hsSub')?.value.trim() || null,
                 badge: document.getElementById('hsBadge')?.value.trim() || null,
                 image_url: HERO_IMG.hs,
+                theme: HERO_THEME,
                 cta_label: ctaLabel,
                 cta_action: ctaLabel ? (document.getElementById('hsCtaAction')?.value || 'shop') : null,
                 audience: document.getElementById('hsAudience')?.value || 'all',
@@ -14456,7 +14615,10 @@
             ['hsTitle', 'hsSub', 'hsBadge', 'hsCtaLabel', 'hsEnds'].forEach(id => {
                 const e = document.getElementById(id); if (e) e.value = '';
             });
+            HERO_CTA_TOUCHED = false;
+            document.querySelectorAll('#hsCtaChips .ekh-chip').forEach(c => c.classList.remove('on'));
             clearHeroImage('hs');
+            pickHeroTheme('auto');
             toast('Banyè anrejistre');
             loadHeroSlides();
             if (typeof renderFeedHero === 'function') renderFeedHero();
@@ -14551,7 +14713,7 @@
 
                 (hsRes.data || []).filter(inWindow).forEach(s => slides.push({
                     badge: s.badge || 'Ekomat', badgeIcon: 'local_offer',
-                    title: s.title, sub: s.subtitle, img: s.image_url,
+                    title: s.title, sub: s.subtitle, img: s.image_url, theme: s.theme,
                     cta: s.cta_label ? { label: s.cta_label, action: heroAction(s.cta_action) } : null,
                 }));
 
@@ -14619,13 +14781,16 @@
                 orders: "navTo('order')",
                 profile: "navTo('profile')",
                 search: "openSheet('searchSheet')",
+                promo: 'openReferralSheet()',
+                shops: 'openShopsScreen()',
             };
             return map[key] || 'scrollToFeedGrid()';
         }
 
         function heroSlideHTML(s, i) {
-            const bg = HERO_BG[i % HERO_BG.length];
-            const tint = i % 3 === 1 ? '151,66,43' : '0,64,74';
+            const th = HERO_THEMES[s.theme];
+            const bg = th ? th.bg : HERO_BG[i % HERO_BG.length];
+            const tint = th ? th.tint : (i % 3 === 1 ? '151,66,43' : '0,64,74');
             const img = s.img
                 ? `<img class="ekf-slide-img" src="${esc(s.img)}" alt="" onerror="this.remove()"/>
            <span class="ekf-slide-fade" style="background:linear-gradient(100deg,rgba(${tint},.94) 6%,rgba(${tint},.72) 42%,rgba(${tint},.12) 74%,rgba(${tint},0) 100%)"></span>`
