@@ -11,7 +11,8 @@ Dernière consolidation : (jamais)
 Leçons arrivées à 3 occurrences ou plus. Lues systématiquement, elles priment sur tout le reste.
 
 - Jamais de tiret cadratin, quel que soit le support.
-- Sur un gros diff touchant `index.html`, les « new alerts » CodeQL sont des alertes baseline réattribuées, pas des vulnérabilités introduites (PR #99, #151, #152, #246 ; son propre résumé dit « code changes were too large »). Ne jamais conclure au faux positif sans preuve : rejouer la transformation sur la version précédente du fichier, differ contre la nouvelle, et vérifier que les lignes restantes sont exactement les changements voulus. Documenter la preuve en commentaire de PR, puis merger.
+- Une preuve répond à la question qu'elle pose, jamais à celle d'à côté. « Je ne l'ai pas introduit » et « ce n'est pas réel » sont deux affirmations distinctes, et la première ne soutient jamais la seconde. Avant de qualifier un signalement de faux positif, aller lire le signalement lui-même.
+- Sur un gros diff touchant `index.html`, CodeQL réétiquette ses alertes baseline en « new alerts » (PR #99, #151, #152, #246 ; son résumé dit « code changes were too large »). Ce label est trompeur, le contenu ne l'est pas. Deux vérifications distinctes et obligatoires : (1) est-ce que je l'ai introduit ? rejouer la transformation sur la version précédente et differ, les lignes restantes doivent être exactement les changements voulus ; (2) est-ce réel ? ouvrir les annotations et juger chaque règle sur le code visé. Sur #246 la réponse était non à la première et OUI à la seconde, dix sites échappaient l'apostrophe sans l'antislash.
 
 ---
 
