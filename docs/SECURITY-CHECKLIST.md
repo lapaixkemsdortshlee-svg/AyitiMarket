@@ -1,10 +1,10 @@
-# Chèkliz sekirite — sa ou bezwen klike nan UI
+# Chèkliz sekirite, sa ou bezwen klike nan UI
 
 PR sa a deplwaye tout sa ki ka fèt nan kòd la (CSP, HSTS, CodeQL,
 Dependabot, axe tests, SECURITY.md). Sa ki rete egzije aksyon
 manyèl nan dashboards. Suiv lis sa a nan lòd.
 
-## 1. GitHub — Repository Settings
+## 1. GitHub : Repository Settings
 
 ### A. Mete repo a prive
 **GitHub** → repo `AyitiMarket` → **Settings** → **General** →
@@ -48,10 +48,10 @@ desann tout an ba → **Danger Zone** → **Change repository visibility**
 **vercel.com → Account Settings → Security → Two-Factor Auth**
 
 ### B. Env vars verifye
-**Project Settings → Environment Variables** — tcheke ke `SUPABASE_URL`,
+**Project Settings → Environment Variables**, tcheke ke `SUPABASE_URL`,
 `SUPABASE_ANON_KEY` (oswa lòt yo si w ajoute) byen sove.
 
-### C. Domèn ou — HSTS preload
+### C. Domèn ou : HSTS preload
 Apre HSTS aktif yon mwa, soumèt sou
 [hstspreload.org](https://hstspreload.org/) pou ajoute domèn ou
 nan lis preload navigatè yo.
@@ -62,7 +62,7 @@ nan lis preload navigatè yo.
 **Account → Security → Two-Factor Authentication**
 
 ### B. Revize RLS sou tab kliyan yo
-**SQL Editor** — kouri:
+**SQL Editor**, kouri:
 ```sql
 select schemaname, tablename, rowsecurity
 from pg_tables
@@ -134,10 +134,10 @@ Mete sa nan kalendriye ou.
 
 ## 8. Sa pou siveye chak semèn
 
-- GitHub → **Security overview** — Dependabot/CodeQL alèt
-- Supabase → **Logs & Analytics → Edge Functions** — gade fonksyon ki
+- GitHub → **Security overview** : Dependabot/CodeQL alèt
+- Supabase → **Logs & Analytics → Edge Functions**, gade fonksyon ki
   echwe / 429
-- Vercel → **Deployments** — tcheke deplwaman ki fail
+- Vercel → **Deployments**, tcheke deplwaman ki fail
 - Sentry oswa lòt zouti monitoring (TODO: ajoute youn)
 
 ## Si ou panse gen yon kontak

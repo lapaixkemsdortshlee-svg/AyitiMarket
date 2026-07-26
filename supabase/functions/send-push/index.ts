@@ -13,7 +13,7 @@
 //      li fè POST sou:
 //        https://fcm.googleapis.com/v1/projects/{projectId}/messages:send
 //   4. Si FCM retounen 404 (UNREGISTERED) oswa 400 (INVALID_ARGUMENT)
-//      pou yon token, fonksyon an efase ranje a — token mò.
+//      pou yon token, fonksyon an efase ranje a, token mò.
 //
 // SECRETS POU KONFIGIRE (`supabase secrets set …`):
 //   FCM_SERVICE_ACCOUNT_JSON   →  kontni JSON service-account Firebase la
@@ -22,7 +22,7 @@
 // DEPLWAYE:
 //   supabase functions deploy send-push --no-verify-jwt
 //
-// (Webhook la pa voye yon JWT Supabase — nou itilize WEBHOOK_SECRET la pito.)
+// (Webhook la pa voye yon JWT Supabase, nou itilize WEBHOOK_SECRET la pito.)
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { SignJWT, importPKCS8 } from "https://deno.land/x/jose@v5.9.6/index.ts";
@@ -101,7 +101,7 @@ async function logEdgeError(fn: string, message: string, context: Record<string,
             message: String(message).slice(0, 1000),
             context: { fn, ...context },
         });
-    } catch (_) { /* swallow — logging must never break the function */ }
+    } catch (_) { /* swallow, logging must never break the function */ }
 }
 
 Deno.serve(async (req: Request) => {

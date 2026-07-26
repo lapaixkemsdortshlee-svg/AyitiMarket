@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════
---  AyitiMarket — Seed Data (Premier produit reel)
+--  AyitiMarket : Seed Data (Premier produit reel)
 --  Execute AFTER schema.sql + rls-policies.sql
 --
 --  NOTE: Remplace le seller_id par le UUID reel d'un

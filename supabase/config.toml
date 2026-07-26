@@ -1,4 +1,4 @@
 # Config minimale pour le CLI Supabase (utilisée par le workflow
-# .github/workflows/db-migrate.yml — supabase link / db push).
+# .github/workflows/db-migrate.yml, supabase link / db push).
 # Les autres sections gardent les valeurs par défaut du CLI.
 project_id = "ayitimarket"

@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════
---  AyitiMarket — Row Level Security (RLS) Policies
+--  AyitiMarket : Row Level Security (RLS) Policies
 --  Execute AFTER schema.sql in: Supabase > SQL Editor
 -- ══════════════════════════════════════════════════════════
 

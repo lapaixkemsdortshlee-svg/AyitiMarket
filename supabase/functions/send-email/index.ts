@@ -6,7 +6,7 @@
 // rich (pwodwi, total, zòn kolèk, OTP, etc.).
 //
 // SECRETS POU KONFIGIRE:
-//   RESEND_API_KEY   →  re_xxx — soti nan resend.com
+//   RESEND_API_KEY   →  re_xxx, soti nan resend.com
 //   EMAIL_FROM       →  egz. "Ekomat <noreply@ekomat.example>"
 //   WEBHOOK_SECRET   →  menm sekrè ki itilize ak send-push
 //
@@ -14,7 +14,7 @@
 //   supabase functions deploy send-email --no-verify-jwt
 //
 // Eta gracieux: si Resend pa konfigire, fonksyon retounen
-// { ok:true, skipped:"..." } — pa kraze flux la.
+// { ok:true, skipped:"..." }, pa kraze flux la.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -45,7 +45,7 @@ async function logEdgeError(fn: string, message: string, context: Record<string,
             message: String(message).slice(0, 1000),
             context: { fn, ...context },
         });
-    } catch (_) { /* swallow — logging must never break the function */ }
+    } catch (_) { /* swallow, logging must never break the function */ }
 }
 
 const fmtHTG = (n: unknown) => {
@@ -83,7 +83,7 @@ function shellHtml(opts: {
 </body></html>`;
 }
 
-// Kat enfòmasyon kòmand — itilize nan plizyè modèl.
+// Kat enfòmasyon kòmand, itilize nan plizyè modèl.
 function orderCardHtml(o: Record<string, any>, opts: { showOtp?: boolean } = {}): string {
     const otpRow = opts.showOtp && o.otp_code
         ? `<tr><td style="padding:6px 0;color:#6d7979;font-size:13px">Kòd OTP</td>
@@ -97,9 +97,9 @@ function orderCardHtml(o: Record<string, any>, opts: { showOtp?: boolean } = {})
     <tr><td style="padding:4px 0;color:#6d7979">Total</td>
         <td style="padding:4px 0;text-align:right;font-weight:700">${fmtHTG(o.total_amount)}</td></tr>
     <tr><td style="padding:4px 0;color:#6d7979">Zòn kolèk</td>
-        <td style="padding:4px 0;text-align:right">${o.pickup_location || "—"}</td></tr>
+        <td style="padding:4px 0;text-align:right">${o.pickup_location || "-"}</td></tr>
     <tr><td style="padding:4px 0;color:#6d7979">Vandè</td>
-        <td style="padding:4px 0;text-align:right">${o.seller_name || "—"}</td></tr>
+        <td style="padding:4px 0;text-align:right">${o.seller_name || "-"}</td></tr>
     <tr><td style="padding:4px 0;color:#6d7979">ID kòmand</td>
         <td style="padding:4px 0;text-align:right;font-family:monospace;font-size:11px">${String(o.id || "").slice(0, 8)}</td></tr>
     ${otpRow}
@@ -119,11 +119,11 @@ function renderOrderTemplate(
 
     if (kind === "order_placed") {
         return {
-            subject: `[Ekomat] Resi kòmand — ${product}`,
+            subject: `[Ekomat] Resi kòmand : ${product}`,
             html: shellHtml({
                 color: "#97422b",
                 eyebrow: "Resi kòmand",
-                title: `Kòmand ou kreye — ${product}`,
+                title: `Kòmand ou kreye : ${product}`,
                 bodyHtml: `<p style="margin:0 0 12px;font-size:15px;line-height:1.55">
                     Mèsi! Kòmand ou anrejistre. Voye <strong>${total}</strong> MonCash
                     bay Ekomat pou eskwo kòmanse. Apre admin verifye peman an,
@@ -135,8 +135,8 @@ function renderOrderTemplate(
     if (kind === "payment_verified") {
         return {
             subject: recipientIsBuyer
-                ? `[Ekomat] Peman ou konfime — ${product}`
-                : `[Ekomat] Peman kliyan an konfime — ${product}`,
+                ? `[Ekomat] Peman ou konfime : ${product}`
+                : `[Ekomat] Peman kliyan an konfime : ${product}`,
             html: shellHtml({
                 color: "#1e40af",
                 eyebrow: "Eskwo aktive",
@@ -151,7 +151,7 @@ function renderOrderTemplate(
     }
     if (kind === "ready_for_pickup") {
         return {
-            subject: `[Ekomat] Pwodwi ou pare pou kolèk — ${product}`,
+            subject: `[Ekomat] Pwodwi ou pare pou kolèk : ${product}`,
             html: shellHtml({
                 color: "#00666f",
                 eyebrow: "Pare pou kolèk",
@@ -166,7 +166,7 @@ function renderOrderTemplate(
     }
     if (kind === "otp_confirmed") {
         return {
-            subject: `[Ekomat] Livrezon konfime — ${product}`,
+            subject: `[Ekomat] Livrezon konfime : ${product}`,
             html: shellHtml({
                 color: "#065f46",
                 eyebrow: "Livrezon konfime",
@@ -182,8 +182,8 @@ function renderOrderTemplate(
     if (kind === "released") {
         return {
             subject: recipientIsBuyer
-                ? `[Ekomat] Tranzaksyon fèmen — ${product}`
-                : `[Ekomat] Lajan libere — ${total}`,
+                ? `[Ekomat] Tranzaksyon fèmen : ${product}`
+                : `[Ekomat] Lajan libere : ${total}`,
             html: shellHtml({
                 color: "#065f46",
                 eyebrow: recipientIsBuyer ? "Tranzaksyon fèmen" : "Lajan libere",
@@ -198,7 +198,7 @@ function renderOrderTemplate(
     }
     if (kind === "cancelled") {
         return {
-            subject: `[Ekomat] Kòmand anile — ${product}`,
+            subject: `[Ekomat] Kòmand anile : ${product}`,
             html: shellHtml({
                 color: "#991b1b",
                 eyebrow: "Kòmand anile",
@@ -211,7 +211,7 @@ function renderOrderTemplate(
     }
     if (kind === "refunded") {
         return {
-            subject: `[Ekomat] Kòmand ranbouse — ${product}`,
+            subject: `[Ekomat] Kòmand ranbouse : ${product}`,
             html: shellHtml({
                 color: "#97422b",
                 eyebrow: "Ranbouseman",
@@ -224,7 +224,7 @@ function renderOrderTemplate(
     }
     if (kind === "dispute") {
         return {
-            subject: `[Ekomat] Litij ouvri — ${product}`,
+            subject: `[Ekomat] Litij ouvri : ${product}`,
             html: shellHtml({
                 color: "#991b1b",
                 eyebrow: "Litij",
@@ -314,7 +314,7 @@ Deno.serve(async (req: Request) => {
     }
     if (!email) return json({ ok: true, skipped: "recipient has no email" });
 
-    // Bati imèl la — modèl rich si nou gen yon order_id
+    // Bati imèl la, modèl rich si nou gen yon order_id
     let subject = "", html = "";
     const data = (record.data ?? {}) as Record<string, any>;
     const orderId = data.order_id;

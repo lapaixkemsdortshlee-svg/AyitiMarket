@@ -1,10 +1,10 @@
-// Tès UI san backend — yo egzèse sa ki rann + lojik kliyan sèlman
+// Tès UI san backend, yo egzèse sa ki rann + lojik kliyan sèlman
 // (pa gen Supabase / auth). Konplete smoke.spec.mjs (chajman paj) ak
 // a11y.spec.mjs (aksesiblite) ak kèk garanti sou:
 //   1. Meta / PWA (SEO + enstalasyon)
 //   2. Manifest + ikòn yo sèvi
 //   3. Fòm otantifikasyon an prezan (pòt antre kritik la)
-//   4. Lojik toggleAuthMode() (login <-> signup) — pi rich kòm konpòtman
+//   4. Lojik toggleAuthMode() (login <-> signup), pi rich kòm konpòtman
 //   5. Fichye antre + asset kle yo sèvi (pa 404)
 
 import { test, expect } from '@playwright/test';

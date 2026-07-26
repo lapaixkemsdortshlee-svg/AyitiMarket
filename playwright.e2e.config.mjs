@@ -1,4 +1,4 @@
-// Playwright konfigirasyon — tès END-TO-END sou yon app ki deplwaye
+// Playwright konfigirasyon, tès END-TO-END sou yon app ki deplwaye
 // (Vercel preview oswa pwodiksyon). Kontrèman ak playwright.config.mjs
 // (ki sèvi index.html statik lokalman), sa a frape yon URL reyèl epi li
 // bezwen idantifyan (login).
@@ -50,5 +50,5 @@ export default defineConfig({
             },
         },
     ],
-    // Pa gen webServer — tès yo frape URL deplwaye a dirèkteman.
+    // Pa gen webServer, tès yo frape URL deplwaye a dirèkteman.
 });

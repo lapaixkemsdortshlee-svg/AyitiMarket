@@ -1,7 +1,7 @@
 # Audit chemin-critique vers le pilote
 
 > Critère de succès (décision Thrasher, 2026-07-12) : **une transaction réelle
-> de bout en bout réussie** — commande → escrow → paiement → livraison → OTP →
+> de bout en bout réussie**, commande → escrow → paiement → livraison → OTP →
 > libération des fonds → avis. Pas de démo, pas d'acquisition de masse. Premier
 > test = pilote fermé, 2-3 vrais vendeurs contrôlés.
 >
@@ -37,7 +37,7 @@ transaction aboutisse au pilote.
 | 6. Vérification vendeur | 🟢 + 🟡 | Voie CIN/Paspò → validation admin manuelle = **fonctionne** (1 approuvée, 1 rejetée en réel). OTP SMS : **0 téléphone vérifié** → provider SMS non configuré (voir action ci-dessous). |
 
 **Bonus 🟢** : les avis exigent un vrai achat (RLS `reviews_insert_buyer` avec
-`EXISTS` sur une commande livrée) — pas de faux avis. Observabilité escrow
+`EXISTS` sur une commande livrée), pas de faux avis. Observabilité escrow
 présente (`escrow_overview`, `escrow_attention_orders`, `escrow_dispatch_alerts`,
 `escrow_alert_log`, `admin_actions`). Catalogue : 4 profils, 1 vendeur, 1 produit
 actif = normal (comptes de test, pré-pilote).
@@ -55,7 +55,7 @@ Le client officiel n'écrit jamais `orders` en direct (tout via RPC SECDEF), don
 le correctif est sûr.
 
 **Correctif** : migration `supabase/migrations/20260717140000_harden_orders_update_rls.sql`
-— retire les policies UPDATE participants, garde un override admin, nettoie une
+- retire les policies UPDATE participants, garde un override admin, nettoie une
 policy SELECT dupliquée. À revoir + merger (changement RLS).
 
 ## Actions restantes

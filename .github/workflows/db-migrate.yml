@@ -7,7 +7,7 @@
 #
 # Baseline: la prod n'a jamais été gérée par le CLI, donc sa table
 # supabase_migrations.schema_migrations démarre vide. Comme supabase/migrations/
-# ne contient QUE des fichiers nouveaux, `db push` n'applique que ceux-là —
+# ne contient QUE des fichiers nouveaux, `db push` n'applique que ceux-là -
 # aucun rejeu de l'historique possible.
 #
 # Secrets requis (déjà posés par Thrasher): SUPABASE_ACCESS_TOKEN,

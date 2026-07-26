@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════
---  AyitiMarket — Supabase Database Schema
+--  AyitiMarket : Supabase Database Schema
 --  Execute this in: Supabase Dashboard > SQL Editor > New Query
 -- ══════════════════════════════════════════════════════════
 
