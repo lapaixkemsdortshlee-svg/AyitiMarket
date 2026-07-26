@@ -7512,7 +7512,7 @@
             const msgs = A.msgs[pid] || [];
             const p = PRODUCTS.find(x => x.id === pid);
             if (!p) { document.getElementById("chatMsgs").innerHTML = ''; return; }
-            const pidAttr = typeof p.id === 'string' ? `'${String(p.id).replace(/'/g, "\\'")}'` : p.id;
+            const pidAttr = typeof p.id === 'string' ? `'${jsAttr(p.id)}'` : p.id;
             const imgSrc = p.img || (p.images && p.images[0]) || null;
             const thumb = imgSrc
                 ? `<img src="${esc(imgSrc)}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=window.prodPlaceholder?prodPlaceholder(${JSON.stringify({e:p.e,ec:p.ec}).replace(/"/g,'&quot;')},40):''"/>`
@@ -7946,10 +7946,10 @@
             const groupsHtml = groups.map(g => {
                 grandTotal += g.total;
                 const sellerInitials = (g.sellerName || 'B').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-                const sidAttr = String(g.sellerId).replace(/'/g, "\\'");
+                const sidAttr = jsAttr(g.sellerId);
 
                 const itemsHtml = g.items.map(({ p, qty, sub }) => {
-                    const pidAttr = typeof p.id === 'string' ? `'${String(p.id).replace(/'/g, "\\'")}'` : p.id;
+                    const pidAttr = typeof p.id === 'string' ? `'${jsAttr(p.id)}'` : p.id;
                     const hasDiscount = p.oldP && p.oldP > p.p;
                     const priceLine = hasDiscount
                         ? '<span class="font-headline font-extrabold text-sm text-primary">' + fp(p.p) + ' HTG</span><span class="font-label text-[11px] text-on-surface-variant line-through">' + fp(p.oldP) + '</span>'
@@ -8510,7 +8510,7 @@
             const totalStock = myProducts.reduce((s, p) => s + (p.s || 0), 0);
 
             const cardHtml = myProducts.map(p => {
-                const pidAttr = `'${String(p.id).replace(/'/g, "\\'")}'`;
+                const pidAttr = `'${jsAttr(p.id)}'`;
                 const imgSrc = p.img || (p.images && p.images[0]);
                 const imgEl = imgSrc
                     ? `<img src="${esc(imgSrc)}" alt="" onerror="this.onerror=null;this.style.display='none'" class="w-full h-full object-cover"/>`
@@ -10201,9 +10201,9 @@
       <span class="font-label text-[11px] font-bold px-2 py-1 rounded-full ${v.status === 'pending' ? 'pill-pending' : v.status === 'approved' ? 'pill-approved' : 'pill-rejected'}">${v.status === 'pending' ? 'An Atant' : v.status === 'approved' ? 'Apwouve' : 'Rejte'}</span>
     </div>
     <div class="flex gap-2 mb-3 flex-wrap">
-      ${v.photos?.front ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${(v.photos.front.publicUrl || v.photos.front.dataUrl).replace(/'/g, "\\'")}')"><img alt="Pyès idantite (devan)" src="${v.photos.front.publicUrl || v.photos.front.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
-      ${v.photos?.back ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${(v.photos.back.publicUrl || v.photos.back.dataUrl).replace(/'/g, "\\'")}')"><img alt="Pyès idantite (dèyè)" src="${v.photos.back.publicUrl || v.photos.back.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
-      ${v.photos?.selfie ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${(v.photos.selfie.publicUrl || v.photos.selfie.dataUrl).replace(/'/g, "\\'")}')"><img alt="Selfie verifikasyon" src="${v.photos.selfie.publicUrl || v.photos.selfie.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${v.photos?.front ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${jsAttr(v.photos.front.publicUrl || v.photos.front.dataUrl)}')"><img alt="Pyès idantite (devan)" src="${v.photos.front.publicUrl || v.photos.front.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${v.photos?.back ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${jsAttr(v.photos.back.publicUrl || v.photos.back.dataUrl)}')"><img alt="Pyès idantite (dèyè)" src="${v.photos.back.publicUrl || v.photos.back.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
+      ${v.photos?.selfie ? `<div class="w-20 h-14 rounded-lg overflow-hidden cursor-pointer" onclick="openProductLightbox('${jsAttr(v.photos.selfie.publicUrl || v.photos.selfie.dataUrl)}')"><img alt="Selfie verifikasyon" src="${v.photos.selfie.publicUrl || v.photos.selfie.dataUrl}" class="w-full h-full object-cover"/></div>` : ''}
       ${!v.photos?.front && !v.photos?.back && !v.photos?.selfie ? `<div class="flex-1 rounded-lg p-3 flex items-center gap-2" style="background:#f6f3ee"><span class="material-symbols-outlined text-on-surface-variant" style="font-size:20px">badge</span><div><p class="font-label text-xs font-bold text-on-surface">${v.idType || 'ID'}</p><p class="font-label text-[11px] text-on-surface-variant">Pa gen foto disponib</p></div></div>` : ''}
     </div>
     ${v.idType ? `<p class="font-label text-[11px] text-on-surface-variant mb-2">Tip: <strong>${v.idType === 'cin' ? 'CIN' : v.idType === 'passport' ? 'Paspò' : v.idType}</strong></p>` : ''}
@@ -10884,7 +10884,7 @@
 
             if (photo) {
                 const imgUrl = photo.publicUrl || photo.dataUrl;
-                img.innerHTML = `<img alt="Foto pwodwi" src="${imgUrl}" class="w-full h-full object-contain rounded-xl" style="cursor:zoom-in" onclick="openProductLightbox('${imgUrl.replace(/'/g, "\\'")}')" onerror="this.onerror=null;this.src='';this.parentElement.innerHTML='<div class=\\'flex flex-col items-center gap-2\\'><span class=\\'material-symbols-outlined text-on-surface-variant\\' style=\\'font-size:48px\\'>broken_image</span><p class=\\'font-label text-sm text-on-surface-variant\\'>Image indisponib</p></div>'"/>`;
+                img.innerHTML = `<img alt="Foto pwodwi" src="${imgUrl}" class="w-full h-full object-contain rounded-xl" style="cursor:zoom-in" onclick="openProductLightbox('${jsAttr(imgUrl)}')" onerror="this.onerror=null;this.src='';this.parentElement.innerHTML='<div class=\\'flex flex-col items-center gap-2\\'><span class=\\'material-symbols-outlined text-on-surface-variant\\' style=\\'font-size:48px\\'>broken_image</span><p class=\\'font-label text-sm text-on-surface-variant\\'>Image indisponib</p></div>'"/>`;
                 img.style.padding = '0';
                 meta.textContent = `${typeLabel} · ${sideLabel} · ${photo.sizeKB ? photo.sizeKB + 'KB · ' : ''}Supabase Storage`;
             } else {
@@ -13213,7 +13213,7 @@
             const subCol = sent ? 'text-white/60' : 'text-on-surface-variant';
             const btnBg = sent ? 'rgba(255,255,255,.2)' : 'rgba(0,102,111,.12)';
             const barFg = sent ? 'rgba(255,255,255,' : 'rgba(0,102,111,';
-            const safeUrl = (m.url || '').replace(/'/g, '%27');
+            const safeUrl = jsAttr(m.url || '');
             const uid = 'v' + Math.random().toString(36).slice(2, 8);
             return `
   <div class="flex ${align}">
@@ -14647,7 +14647,7 @@
             const msgs = A.msgs[pid] || [];
             const p = PRODUCTS.find(x => x.id === pid);
             if (!p) { document.getElementById('chatMsgs').innerHTML = ''; return; }
-            const pidAttr = typeof p.id === 'string' ? `'${String(p.id).replace(/'/g, "\\'")}'` : p.id;
+            const pidAttr = typeof p.id === 'string' ? `'${jsAttr(p.id)}'` : p.id;
             const imgSrc = p.img || (p.images && p.images[0]) || null;
             const thumb = imgSrc
                 ? `<img src="${esc(imgSrc)}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=window.prodPlaceholder?prodPlaceholder(${JSON.stringify({e:p.e,ec:p.ec,id:p.id}).replace(/"/g,'&quot;')},40):''"/>`
@@ -17008,7 +17008,7 @@
             // UUIDs from Supabase are strings, must be quoted in inline
             // onclick handlers, otherwise `openProduct(abc-def-123)` parses
             // as identifier-minus and the click silently throws.
-            const pidAttr = typeof p.id === 'string' ? `'${String(p.id).replace(/'/g, "\\'")}'` : p.id;
+            const pidAttr = typeof p.id === 'string' ? `'${jsAttr(p.id)}'` : p.id;
 
             return `
   <div class="mi cursor-pointer" style="${i % 2 === 1 ? 'margin-top:' + offset + 'px' : ''}">
