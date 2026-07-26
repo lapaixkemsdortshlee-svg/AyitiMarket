@@ -7,6 +7,27 @@
 
 ---
 
+## 2026-07-26 (fin) : Huit retours terrain sur les bannières, et la découverte que la mémoire longue durée était vide (PR #251)
+
+Session de finition sur les bannières d'accueil, partie d'une liste de huit retours en Kreyòl accompagnés de cinq captures. Skills actifs : ayitimarket, systematic-debugging, ui-ux-pro-max, frontend-design, verification-before-completion, quick-recap.
+
+- **Les huit demandes livrées.** Image sur la carte « Dekouvri Ekomat », message admin qui s'efface seul à 14s, retour à la ligne contrôlé au clavier, modification d'une bannière après publication, dégradés divergents, libellé sur le champ date, quotas 5 acheteurs / 5 vendeurs / 10 admin avec compteur de places, suppression de la bande crème et premier rendu immédiat du carrousel.
+- **Trois demandes n'avaient pas la cause que leur formulation suggérait.** Les dégradés : `teal` et `deep` partageaient le voile `0,64,74`, et comme l'image recouvre entièrement le dégradé, les deux thèmes étaient pixel-identiques sur toute bannière avec photo. Corriger la pastille n'aurait rien changé. La bande crème : c'était la vague de la carte, ancrée au bord bas d'un conteneur haut de 0px tant que rien n'était chargé. Le retour à la ligne : les champs étaient des `<input>`, incapables de contenir un saut de ligne.
+- **Une théorie démentie par la mesure, avant livraison.** J'avais expliqué le défaut de coupe par `text-wrap: balance` et l'écart de largeur entre la feuille admin et le feed. Reproduction sur le vrai `index.html` servi en HTTP à six largeurs : faux, la coupe était déjà identique partout. La réponse était dans les données de Thrasher, pas dans le CSS : son sous-titre en base portait des espaces avant la ponctuation, trace d'une tentative de forcer une coupe à la main. Leçon consignée dans `LEARNINGS.md`.
+- **Deux défauts non signalés trouvés en vérifiant.** `line-clamp: 2` avalait du texte en silence, à 320px « Nou ap chèche premye 50 vandè yo » fait 3 lignes et le « yo » disparaissait. Et le mode invité n'ouvre aucune session Supabase, donc lire `app_settings` aurait privé tout visiteur non connecté de l'image de la carte de marque, sur l'écran de première impression. Résolu par une fonction `security definer` exposant la seule colonne image, sans ouvrir une table qui contient `admin_moncash_number`.
+- **Un piège d'infrastructure désamorcé.** `package.json` déclarait `tailwindcss ^4.3.3` pour une configuration v3. En appliquant la règle dure du projet sur `npm run build:css`, le build v4 supprimait 284 règles, dont `.bg-primary` et toutes les couleurs personnalisées. Épinglé en `^3.4.19`.
+
+**Décisions produit prises dans la session :**
+- **Annonces plafonnées à 2 dans le carrousel.** À 4s par carte, la carte de marque plus 5 bannières font déjà 24s de boucle. Une annonce en position 8 ne serait jamais vue, donc un chiffre plus haut n'allonge qu'un tour que personne ne termine. L'ordre reste bannières d'abord, celui que Thrasher règle lui-même.
+- **Cartes autorisées à 3 lignes** au lieu de 2. Ce n'est plus un arbitrage de goût depuis la mesure à 320px : l'ancien plafond tronquait du texte réel.
+- **L'image de la carte de marque est un paramètre, pas une bannière.** Elle vit dans `app_settings` parce que le texte et le bouton de cette carte restent automatiques selon le rôle. Elle n'entre donc pas dans les quotas.
+
+**Découverte majeure sur la mémoire longue durée.** En vérifiant la disponibilité d'agentmemory à la demande de Thrasher : le CLI est bien installé et le MCP bien câblé, mais **rien ne démarre jamais le serveur REST sur `:3111`**, donc les outils `memory_save` / `memory_recall` sont absents de la session entière alors que tout a l'air en place. Pire, une fois le serveur lancé à la main, le compteur affiche **0 session, 0 observation, 0 mémoire** : les données vivent dans `/root/.agentmemory`, à l'intérieur du conteneur éphémère. Les « leçons semées dans agentmemory » consignées ici les 25 et 26 juillet ont donc été écrites dans un magasin mort avec son conteneur. Le hook `session-start.sh` démarre désormais le worker, ce qui règle la disponibilité **dans** une session. La persistance **entre** sessions reste ouverte et demande une décision de Thrasher : héberger une instance agentmemory et pointer `AGENTMEMORY_URL` dessus. En attendant, la seule mémoire qui survit vraiment est celle versionnée dans le dépôt, `LEARNINGS.md` et ce fichier.
+
+SW v82 → v83. PR #251 mergée, CI verte de bout en bout, migration `20260726210000` déployée et vérifiée en production, sans divergence de version.
+
+---
+
 ## 2026-07-26 (suite) : Bannières d'accueil, du texte invisible à un outil admin complet (2 PR : #247, #248)
 
 Session partie d'une demande de contenu, arrivée sur un bug de rendu puis sur une refonte. Skills actifs : ayitimarket, copywriting, systematic-debugging, artifact-design, verification-before-completion.

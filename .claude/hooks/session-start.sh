@@ -46,6 +46,27 @@ if [ -n "${GEMINI_API_KEY:-}" ]; then
 else LOG "agentmemory will run keyword-only (GEMINI_API_KEY unset)"; fi
 have_mcp agentmemory || { LOG "wire agentmemory"; agentmemory connect claude-code >/dev/null 2>&1 || LOG "agentmemory wiring failed"; }
 
+# Câbler le MCP ne suffit pas : le serveur MCP parle à l'API REST sur :3111, et
+# rien ne la démarre. Sans ce bloc, `memory_save` / `memory_recall` sont absents
+# de la session entière alors que tout a l'air installé (constaté 2026-07-26).
+#
+# Le test doit porter sur la CONNEXION, pas sur le code HTTP : `/health` répond
+# 404 sur cette version, donc un `curl -f` échoue alors que le serveur tourne,
+# et le hook lancerait un worker de plus à chaque session. `%{http_code}` vaut
+# 000 uniquement quand rien n'écoute, c'est le seul signal fiable.
+# Pas de `|| echo 000` en secours : curl écrit DÉJÀ 000 via `-w` quand la
+# connexion échoue, et il sort en code 7, donc le `||` ajouterait un second
+# 000 et la comparaison verrait « 000000 », soit un serveur vivant. Mesuré.
+# `setsid` + stdin fermé : l'onboarding ne doit jamais attendre un TTY qui
+# n'existe pas dans un hook (leçon des installeurs sans TTY).
+am_up(){ [ "$(curl -sS -m 2 -o /dev/null -w '%{http_code}' http://localhost:3111/ 2>/dev/null)" != "000" ]; }
+if am_up; then LOG "agentmemory already up (:3111)"; else
+  LOG "start agentmemory worker"
+  setsid nohup agentmemory --tools all </dev/null >"$HOME/.agentmemory/worker.log" 2>&1 &
+  for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do am_up && break; sleep 1; done
+  am_up && LOG "agentmemory up (:3111)" || LOG "agentmemory worker did not come up"
+fi
+
 if [ -n "${SUPABASE_ACCESS_TOKEN:-}" ]; then
   have_mcp supabase || { LOG "wire supabase"; claude mcp add supabase --scope user --env SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" -- npx -y @supabase/mcp-server-supabase@latest --read-only --project-ref=htxfwxldzaocuwezzbom || LOG "supabase wiring failed"; }
 else LOG "skip supabase (SUPABASE_ACCESS_TOKEN unset)"; fi
