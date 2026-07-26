@@ -20,6 +20,12 @@ Leçons arrivées à 3 occurrences ou plus. Lues systématiquement, elles primen
 
 Les plus récentes en premier.
 
+### 2026-07-26 | process | Théoriser sur le rendu sans lire les données saisies
+- **Erreur** : sur « le retour à la ligne n'est pas respecté » dans les bannières, j'ai théorisé une cause sophistiquée avant de rien mesurer : `text-wrap: balance` combiné à la différence de largeur entre la feuille admin (padding 24px) et le feed (`px-4`) déplacerait la coupe. Reproduction sur le vrai `index.html` servi en HTTP, à 320, 360, 390, 414, 430 et 520px : faux, la coupe était déjà identique partout, avant comme après. La vraie cause était triviale, les champs étaient des `<input>`, qui ne peuvent contenir aucun retour à la ligne. Thrasher n'avait aucun moyen d'en écrire un.
+- **Correction** : la réponse était dans ses données, pas dans le CSS. Le sous-titre en base valait `"Nan retrè a ,ou bay kod 6 chif ou a .Se lè sa vandè a peye."`, avec un espace AVANT la ponctuation et aucun après. C'est la trace visible d'une tentative de forcer une coupe à la main. Passage en `<textarea>` plus `white-space: pre-line`.
+- **Règle** : avant de théoriser sur un défaut de rendu, lire les données réelles que l'utilisateur a saisies. Elles portent souvent la trace de ce qu'il essayait d'obtenir, et cette trace nomme le manque mieux que n'importe quelle hypothèse sur la cascade. Corollaire de méthode : mesurer une coupe de ligne caractère par caractère avec `Range.getClientRects` plutôt que de juger à l'œil sur une capture.
+- **Occurrences** : 1
+
 ### 2026-07-26 | ui | Le mauvais paramètre, trois fois de suite
 - **Erreur** : la découpe sous la carte du feed a été refusée trois fois. À chaque refus j'ai retouché la courbure (points de contrôle du Bézier, hauteur, largeur du viewBox) alors que le vrai défaut était ailleurs : le SVG faisait toute la largeur de la carte et posait une bande de 7 px sur l'intégralité du bord bas, ce qui écrasait les coins arrondis. Ce n'était pas la courbe qui clochait, c'était son emprise.
 - **Correction** : une seule colline en largeur fixe, centrée, dont la base coïncide avec le bord bas et dont les deux bouts s'éteignent à zéro. Les coins restent intacts, et les tangentes horizontales aux raccords suppriment les accroches par construction, pas par retouche.
