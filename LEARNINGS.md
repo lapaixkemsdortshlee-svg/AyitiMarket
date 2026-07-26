@@ -18,6 +18,18 @@ Leçons arrivées à 3 occurrences ou plus. Lues systématiquement, elles primen
 
 Les plus récentes en premier.
 
+### 2026-07-25 | ui | Correctif sur la mauvaise couche
+- **Erreur** : le spinner de recherche d'adresse tournait sans fin. J'ai réécrit sa logique JS (compteur, `finally`, abort), livré, et il tournait toujours.
+- **Correction** : la cause était dans la cascade CSS, pas dans le JS. `.hidden` vient de `assets/tw.css` chargé avant le bloc `<style>` inline ; à spécificité égale `.material-symbols-outlined` gagnait et annulait `display:none`.
+- **Règle** : quand un correctif ne change rien au symptôme, changer de couche au lieu de retoucher la même. Vérifier le style calculé dans le navigateur avant de réécrire de la logique.
+- **Occurrences** : 1
+
+### 2026-07-25 | ui | Locale non supportée en Kreyòl
+- **Erreur** : `toLocaleDateString('ht', …)` affichait « April 2026 » dans une app entièrement en Kreyòl.
+- **Correction** : la locale `ht` n'est pas supportée par Intl, le navigateur retombe sur l'anglais. Formater les dates avec une table de mois Kreyòl explicite.
+- **Règle** : ne jamais confier un texte visible en Kreyòl à `toLocaleDateString`, la locale n'existe pas.
+- **Occurrences** : 1
+
 ### 2026-07-25 | process | Contrainte déclarée sans mesure
 - **Erreur** : j'ai annoncé qu'il était impossible de remonter le titre de Mesaj yo, en supposant que `#topbar` recevait un `safe-area-inset-top` qui le rendait plus haut sur iPhone.
 - **Correction** : Thrasher a demandé de vérifier. Le `safe-area-inset-top` ne s'applique qu'aux feuilles plein écran. La barre fait 64 px sur tous les appareils, le titre est monté de 8 px sans risque.
