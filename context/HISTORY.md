@@ -7,7 +7,7 @@
 
 ---
 
-## 2026-07-26 : Bannières d'accueil, du texte invisible à un outil admin complet (2 PR : #247, #248)
+## 2026-07-26 (suite) : Bannières d'accueil, du texte invisible à un outil admin complet (2 PR : #247, #248)
 
 Session partie d'une demande de contenu, arrivée sur un bug de rendu puis sur une refonte. Skills actifs : ayitimarket, copywriting, systematic-debugging, artifact-design, verification-before-completion.
 
@@ -27,7 +27,28 @@ Session partie d'une demande de contenu, arrivée sur un bug de rendu puis sur u
 
 **Leçons durables (semées agentmemory) :** (1) Un élément en `position: absolute` est peint APRÈS le contenu en flux du même conteneur, donc tout texte posé sur une image doit être positionné explicitement, sinon il disparaît. Mon propre simulateur contournait déjà ce bug sans que je le remarque : un harnais peut corriger en silence ce qu'il est censé reproduire. (2) Servir `index.html` en `file://` ne charge PAS `assets/tw.css`, référencé en chemin absolu `/assets/...` : toute vérification de mise en page passe par `python3 -m http.server`, comme le fait `playwright.config.mjs`. Deux séries de captures étaient fausses avant que je le voie. (3) Lire la vraie base avant d'accuser le rendu ou l'enregistrement.
 
-SW v75 à v82 sur la session. Les deux PR mergées, CI verte, migration confirmée en production.
+SW v76 sur la première PR, puis v81 et v82 après avoir repris main (la session parallèle était montée à v80 entre temps). Les deux PR mergées, CI verte, migration confirmée en production.
+
+---
+
+## 2026-07-26 : vague du feed, qui paie les frais, tarif fondateur, durcissement sécurité (2 PR : #245 et #246)
+
+Session partie sur du design et finie sur de la sécurité, par un chemin que je n'avais pas prévu. Skills actifs : ayitimarket, ecriture-pro-et-lecons, marketing-psychology, marketing-ideas, systematic-debugging, verification-before-completion.
+
+- **#245 Vague sous la carte du feed, plus trois correctifs.** La découpe a été refusée trois fois. Le défaut n'était pas la courbure mais l'emprise : un SVG pleine largeur posait une bande de 7 px sur tout le bord bas et écrasait les coins arrondis. Remplacé par une colline unique en largeur fixe, centrée, dont les extrémités s'éteignent à zéro et dont les tangentes rejoignent le bord à plat, donc aucune accroche par construction. Avec aussi le spinner d'adresse (vraie cause : conflit de cascade, `.hidden` de `tw.css` perdait contre `.material-symbols-outlined`), les dates en Kreyòl (`toLocaleDateString('ht')` retombait en anglais) et le titre de boutique.
+- **#246 Cohérence des frais, logo MonCash, tarif fondateur, balayage typographique.** Sur l'achat direct, trois écrans donnaient trois montants : la fiche affichait 1030, la feuille MonCash demandait 1000, le vendeur touchait 970. Les 3% étaient payés par le vendeur mais l'écran le disait à l'acheteur. L'acheteur paie maintenant le prix affiché, le vendeur voit son net et le prélèvement. Vocabulaire unifié en « frè eskwo ». Vrai logo MonCash à la place du carré rouge. 962 tirets cadratins remplacés sur 48 fichiers, générateur de landing pages inclus pour que la prochaine génération ne les réintroduise pas.
+
+**Décisions produit prises dans la session :**
+- **Les frais sont payés par le vendeur, pas par l'acheteur.** Une ligne de frais ajoutée au moment de payer un inconnu est une taxe sur l'abandon, et elle rend les prix affichés plus chers que le même produit sur Facebook. Côté vendeur c'est une déduction sur un versement déjà arrivé, ce n'est pas le même compte mental.
+- **3% n'est pas le prix d'Ekomat, c'est un tarif fondateur plafonné à vie** pour les 50 premiers vendeurs. Motif : augmenter un take rate sur une marketplace se paie très cher en confiance, et le tarif standard ne peut pas être fixé honnêtement tant que le coût réel par commande n'est pas mesuré. Le compteur de places est branché sur les vendeurs actifs réels, avec masquage au-delà de 50 : une rareté affichée sans être comptée devient un mensonge le jour où le seuil est franchi.
+- **Objectif du pilote relevé de 2-3 à 50 vendeurs** (décision Thrasher). Réserve exprimée et écartée : à 50, avec un rail argent encore manuel, ce n'est plus un pilote mais un lancement.
+- **Migrations déjà déployées laissées intactes** pendant le balayage typographique. Leurs 149 tirets sont tous dans des commentaires, et rééditer des migrations appliquées est ce qui a cassé le pipeline une semaine en juillet.
+
+**Quinze défauts de sécurité préexistants trouvés et corrigés**, tous dans `index.html`, aucun introduit par cette PR : dix sorties de chaîne possibles dans des attributs `onclick` (apostrophe échappée sans l'antislash), quatre échappements HTML partiels, deux ponts `postMessage` sans vérification d'origine, et le repli `Math.random` sur l'OTP qui libère l'escrow. Plusieurs dans le panneau admin, celui qui libère les fonds. Tout routé par les helpers existants `esc()` et `jsAttr()`, plus un `randCode()` sur `crypto`.
+
+**Leçons durables (semées agentmemory) :** (1) **Une preuve répond à la question qu'elle pose, jamais à celle d'à côté.** J'ai déclaré ces alertes CodeQL faux positifs, deux fois et publiquement, sur la foi d'une démonstration qui établissait seulement que mes changements ne les avaient pas introduites. Elles étaient réelles. Thrasher a dû m'envoyer des captures d'écran pour que je lise enfin les annotations. (2) Quand trois réglages successifs du même paramètre échouent, ce n'est plus le réglage qui est faux mais le paramètre. (3) Sans les données nécessaires pour conclure, dire qu'on ne peut pas conclure, au lieu de conclure.
+
+SW v74 à v80. Les deux PR mergées, CI entièrement verte CodeQL compris, aucune migration donc pas de déploiement base à surveiller.
 
 ---
 
