@@ -6806,7 +6806,7 @@
     <div class="bg-surface-container-lowest rounded-2xl p-4 flex items-center gap-4 mb-5 amb">
       <div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0" style="background:#f0ede8">
         ${(p.img || (p.images && p.images[0]))
-          ? `<img src="${esc(p.img || p.images[0])}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=prodPlaceholder(${JSON.stringify({e:p.e,ec:p.ec,id:p.id}).replace(/"/g,'&quot;')},80)"/>`
+          ? `<img src="${esc(p.img || p.images[0])}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=prodPlaceholder(${esc(JSON.stringify({e:p.e,ec:p.ec,id:p.id}))},80)"/>`
           : prodPlaceholder(p, 80)}
       </div>
       <div class="flex-1 min-w-0">
@@ -7515,7 +7515,7 @@
             const pidAttr = typeof p.id === 'string' ? `'${jsAttr(p.id)}'` : p.id;
             const imgSrc = p.img || (p.images && p.images[0]) || null;
             const thumb = imgSrc
-                ? `<img src="${esc(imgSrc)}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=window.prodPlaceholder?prodPlaceholder(${JSON.stringify({e:p.e,ec:p.ec}).replace(/"/g,'&quot;')},40):''"/>`
+                ? `<img src="${esc(imgSrc)}" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=window.prodPlaceholder?prodPlaceholder(${esc(JSON.stringify({e:p.e,ec:p.ec}))},40):''"/>`
                 : prodPlaceholder(p, 40);
             document.getElementById("chatMsgs").innerHTML = `
     <div class="self-center bg-surface-container-lowest rounded-xl p-3 flex items-center gap-3 w-[82%] amb cursor-pointer" onclick="openProduct(${pidAttr})">
@@ -7901,9 +7901,9 @@
         // a string usable inside innerHTML.
         function cartProductImageHTML(p, sizePx) {
             const src = p.img || (p.images && p.images[0]) || null;
-            const ph = prodPlaceholder(p, sizePx).replace(/"/g, '&quot;');
+            const ph = jsAttr(prodPlaceholder(p, sizePx));
             if (src) {
-                return '<img src="' + src + '" loading="lazy" decoding="async" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=\'' + ph.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\'"/>';
+                return '<img src="' + src + '" loading="lazy" decoding="async" alt="" class="w-full h-full object-cover" onerror="this.onerror=null;this.outerHTML=\'' + ph + '\'"/>';
             }
             return prodPlaceholder(p, sizePx);
         }
@@ -11163,13 +11163,13 @@
                 const recent = Array.isArray(data.recent) ? data.recent : [];
                 const tone = d24 > 0 ? '#b91c1c' : '#065f46';
                 const srcChips = Object.keys(bySrc).map(k =>
-                    `<span class="font-label text-xs font-bold px-2 py-1 rounded-lg" style="background:#00666f1a;color:#00666f">${k}: ${bySrc[k]}</span>`
+                    `<span class="font-label text-xs font-bold px-2 py-1 rounded-lg" style="background:#00666f1a;color:#00666f">${esc(k)}: ${bySrc[k]}</span>`
                 ).join('');
                 const recentHtml = recent.length
                     ? recent.slice(0, 5).map(r => `
                         <div class="flex items-start gap-2 py-1 border-t" style="border-color:#e5e2dd">
-                            <span class="font-label text-[11px] px-1.5 py-0.5 rounded flex-shrink-0" style="background:#f4f1eb;color:#6d7979">${r.source || '?'}</span>
-                            <span class="font-label text-xs text-on-surface-variant flex-1 break-words" style="word-break:break-word">${(r.message || '').replace(/</g,'&lt;')}</span>
+                            <span class="font-label text-[11px] px-1.5 py-0.5 rounded flex-shrink-0" style="background:#f4f1eb;color:#6d7979">${esc(r.source || '?')}</span>
+                            <span class="font-label text-xs text-on-surface-variant flex-1 break-words" style="word-break:break-word">${esc(r.message || '')}</span>
                         </div>`).join('')
                     : `<p class="font-label text-xs" style="color:#065f46">✓ Pa gen erè resan</p>`;
                 box.innerHTML = `
