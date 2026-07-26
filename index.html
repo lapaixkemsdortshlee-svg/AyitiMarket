@@ -14521,12 +14521,15 @@
 
         async function loadHeroBrandImage() {
             if (!db) return;
-            const { data, error } = await db.from('app_settings')
-                .select('hero_brand_image_url').eq('id', 1).maybeSingle();
+            // RPC epi pa yon `select` sou `app_settings`: politik lekti tab la
+            // egzije yon sesyon, epi `enterGuestMode` pa louvri okenn. Yon
+            // vizitè ki pa konekte ta wè kat mak la SAN imaj la. Fonksyon an
+            // ekspoze sèlman kolòn imaj la, pa rès tab la.
+            const { data, error } = await db.rpc('hero_brand_image');
             // Degrade an silans: si migrasyon an poko sou pwodiksyon, kat mak
             // la rete jan l te ye a epi feed la pa kase.
             if (error) { console.warn('[hero brand img]', error.message); return; }
-            HERO_BRAND_IMG = data?.hero_brand_image_url || null;
+            HERO_BRAND_IMG = data || null;
             try {
                 if (HERO_BRAND_IMG) localStorage.setItem(HERO_BRAND_KEY, HERO_BRAND_IMG);
                 else localStorage.removeItem(HERO_BRAND_KEY);
