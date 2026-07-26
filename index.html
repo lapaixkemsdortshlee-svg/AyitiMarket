@@ -68,6 +68,15 @@
             direction: ltr;
         }
 
+        /* `.hidden` vin de assets/tw.css ki chaje AVAN blòk sa a. Ak menm
+           espesifisite, se dènye a ki genyen: `.material-symbols-outlined`
+           t ap bat `display:none` la, epi tout ikòn ak klas `hidden` te rete
+           vizib (spinner rechèch adrès la ki pa t janm kanpe). Espesifisite
+           0,2,0 remèt lòd la san `!important`. */
+        .material-symbols-outlined.hidden {
+            display: none;
+        }
+
         .fi {
             font-variation-settings: 'FILL' 1;
         }
@@ -8221,6 +8230,18 @@
 
         const _EKC = {};
         const _EKC_MO = ['jan', 'fev', 'mas', 'avr', 'me', 'jen', 'jiy', 'out', 'sep', 'okt', 'nov', 'des'];
+        // Mwa konplè yo, pou tèks moun ap li (pa graf). `toLocaleDateString`
+        // ak lokal 'ht' pa sipòte: navigatè a tonbe sou anglè epi li bay
+        // « April 2026 » nan yon app ki an kreyòl.
+        const _MWA = ['janvye', 'fevriye', 'mas', 'avril', 'me', 'jen',
+            'jiyè', 'out', 'septanm', 'oktòb', 'novanm', 'desanm'];
+        function datKreyol(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            if (isNaN(d)) return '';
+            return d.getDate() + ' ' + (_MWA[d.getMonth()] || '') + ' ' + d.getFullYear();
+        }
+        window.datKreyol = datKreyol;
         function _ekcDay(d) { return d ? parseInt(d.slice(8, 10), 10) + ' ' + (_EKC_MO[+d.slice(5, 7) - 1] || '') : ''; }
         // Tanjant Fritsch-Carlson: koub la pa janm depase anba 0 sou jou san lavant
         function _ekcMonoSegs(p) {
@@ -16907,7 +16928,7 @@
       <div class="flex items-center justify-between mb-3">
         <div>
           <p class="font-label text-[11px] font-bold uppercase tracking-[.12em] text-on-surface-variant mb-0.5">Boutik</p>
-          <h3 class="font-headline font-extrabold text-lg text-on-surface tracking-tight">Pwodwi ${esc(seller.name)}</h3>
+          <h3 class="font-headline font-extrabold text-lg text-on-surface tracking-tight">Pwodwi</h3>
         </div>
         <span class="font-label text-xs font-bold px-2.5 py-1 rounded-full" style="background:rgba(0,102,111,.08);color:#00666f">${sellerProducts.length} pwodwi</span>
       </div>
@@ -18065,7 +18086,7 @@
                 rating: data.rating_avg || 0,
                 reviewCount: data.review_count || 0,
                 salesCount: data.sales_count || 0,
-                memberSince: data.created_at ? new Date(data.created_at).toLocaleDateString('ht', { month: 'long', year: 'numeric' }) : '',
+                memberSince: datKreyol(data.created_at),
                 location: data.location || '',
                 bio: data.bio || '',
                 specialties: data.specialties || [],
