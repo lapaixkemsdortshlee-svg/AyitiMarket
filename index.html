@@ -1580,6 +1580,10 @@
                     // compiled the JSX, leaving a black frame.
                     const ready = new Promise(resolve => {
                         function onMsg(e) {
+                            // onboarding.html se menm orijin: tout lòt fenèt
+                            // (yon iframe tyès, yon popup) pa gen dwa pilote
+                            // ekran an.
+                            if (!e || e.origin !== window.location.origin) return;
                             if (e && e.data && e.data.type === 'aym:onboarding-ready') {
                                 window.removeEventListener('message', onMsg);
                                 c.removeAttribute('data-loading');
@@ -1641,6 +1645,8 @@
 
             // Bridge: child iframe (onboarding.html) signals completion via postMessage
             window.addEventListener('message', (e) => {
+                // Menm règ ke pou 'aym:onboarding-ready': sèlman menm orijin.
+                if (!e || e.origin !== window.location.origin) return;
                 if (e && e.data && e.data.type === 'aym:onboarding-complete') {
                     window.__completeOnboarding();
                 }
@@ -8030,7 +8036,7 @@
             const _zone = A.pickupZone || _lastGeocode();
             const pickupLabel = (_zone && _zone.label) ? _zone.label : 'Zòn pa presize';
             const feePct = (APP_SETTINGS.fee_percent || 3) / 100;
-            const otp = (typeof generateDeliveryOTP === 'function') ? generateDeliveryOTP() : String(Math.floor(100000 + Math.random() * 900000));
+            const otp = generateDeliveryOTP();
 
             const createdOrders = [];
             const failed = [];
@@ -10335,7 +10341,7 @@
                     btn.disabled = false;
                     btn.style.background = '';
                     btn.style.color = '';
-                    btn.className = btn.className.replace('', '') + ' cta';
+                    btn.className = btn.className + ' cta';
                     btn.style.background = 'linear-gradient(180deg,#00666f,#00818c)';
                     btn.style.color = '#fff';
                     btn.textContent = 'Upload 2 foto : Kontinye';
@@ -12356,7 +12362,7 @@
             // Jenere yon kòd 6 karaktè baz36.
             let code = '';
             do {
-                code = 'EKO-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+                code = 'EKO-' + randCode(6);
                 const { data: clash } = await db.from('promo_codes')
                     .select('id').eq('code', code).limit(1);
                 if (!clash || !clash.length) break;
@@ -13214,7 +13220,7 @@
             const btnBg = sent ? 'rgba(255,255,255,.2)' : 'rgba(0,102,111,.12)';
             const barFg = sent ? 'rgba(255,255,255,' : 'rgba(0,102,111,';
             const safeUrl = jsAttr(m.url || '');
-            const uid = 'v' + Math.random().toString(36).slice(2, 8);
+            const uid = 'v' + randCode(6);
             return `
   <div class="flex ${align}">
     <div class="rounded-[1.25rem] ${corner} px-4 py-3 ${bg}" style="min-width:200px;max-width:80%">
@@ -13514,6 +13520,17 @@
         // ══════════════════════════════════════════════════════════
         //  FONCTIONNALITE 4 : DELIVERY OTP
         // ══════════════════════════════════════════════════════════
+        // Kòd aleyatwa kriptografik. Math.random se yon PRNG previzib: li pa
+        // gen dwa jenere anyen ki gen yon wòl sekirite (OTP livrezon, kòd refè,
+        // referans tiket). Alfabè a pa gen O/0 ni I/1, moun tape kòd sa yo.
+        function randCode(len) {
+            const AB = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            const arr = new Uint8Array(len);
+            crypto.getRandomValues(arr);
+            return Array.from(arr).map(n => AB[n % AB.length]).join('');
+        }
+        window.randCode = randCode;
+
         function generateDeliveryOTP() {
             // OTP 6 chif kriptografik
             const arr = new Uint8Array(6);
@@ -16374,7 +16391,7 @@
             const msg = document.getElementById('ticketMsg').value.trim();
             if (!msg) { toast('Ekri mesaj ou anvan'); return; }
             if (!db || !A.user?.uid) { toast('Konekte pou voye yon tiket'); return; }
-            const ticketId = 'TK-' + Math.floor(Math.random() * 9000 + 1000);
+            const ticketId = 'TK-' + randCode(4);
 
             // notifyAdmins surfaces the error, previously a fire-and-forget
             // .forEach() insert hid RLS rejections behind a fake success.
