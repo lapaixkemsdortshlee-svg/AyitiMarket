@@ -11,6 +11,7 @@ Dernière consolidation : (jamais)
 Leçons arrivées à 3 occurrences ou plus. Lues systématiquement, elles priment sur tout le reste.
 
 - Jamais de tiret cadratin, quel que soit le support.
+- Sur un gros diff touchant `index.html`, les « new alerts » CodeQL sont des alertes baseline réattribuées, pas des vulnérabilités introduites (PR #99, #151, #152, #246 ; son propre résumé dit « code changes were too large »). Ne jamais conclure au faux positif sans preuve : rejouer la transformation sur la version précédente du fichier, differ contre la nouvelle, et vérifier que les lignes restantes sont exactement les changements voulus. Documenter la preuve en commentaire de PR, puis merger.
 
 ---
 
