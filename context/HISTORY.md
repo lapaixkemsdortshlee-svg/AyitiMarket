@@ -7,6 +7,30 @@
 
 ---
 
+## 2026-07-26 : Bannières d'accueil, du texte invisible à un outil admin complet (2 PR : #247, #248)
+
+Session partie d'une demande de contenu, arrivée sur un bug de rendu puis sur une refonte. Skills actifs : ayitimarket, copywriting, systematic-debugging, artifact-design, verification-before-completion.
+
+- **Cadrage sparring d'abord.** Thrasher voulait des idées de texte pour ses bannières. Verdict : pas de bannière promo tant que le catalogue est vide, une promo qui mène à un feed vide brûle la première impression. Les bannières doivent servir le goulot réel, recruter des vendeurs pilotes et prouver la protection escrow. Trois textes retenus, A2 recrutement, B2 escrow et code OTP, D1 parrainage, calibrés aux limites réelles des champs (24 / 60 / 90 / 24).
+- **Simulateur de bannière** publié en artifact : on y dépose une image et on voit le rendu exact de la carte du feed, avec les repères de zones.
+- **Le bug.** « Text yo pa monte. » Diagnostic sur la vraie base d'abord : les données étaient correctes, ce qui a éliminé la moitié des hypothèses en une requête. Puis reproduction sur le vrai `index.html`. Cause : `.ekf-slide-img` et `.ekf-slide-fade` sont en `position: absolute` alors que pastille, titre, sous-titre et bouton sont en flux, donc l'image était peinte après eux et recouvrait tout. La carte produit automatique avait le même défaut.
+- **#247** : correctif (`position: relative; z-index: 1` sur les quatre éléments), puis refonte de l'outil admin. L'écran devient une feuille, ouverte par un troisième bouton du menu flottant à côté d'Anons et Feedback. Aperçu en direct construit avec `heroSlideHTML`, la fonction de rendu du feed elle-même. Choix du dégradé via une colonne `theme`. Le CTA suit le libellé écrit. Deux destinations ajoutées, `promo` et `shops`. Migration `20260726160000`, vérifiée en production sans divergence de version.
+- **#247, deuxième passe** : texte limité en largeur (20 et 32 caractères) et plafonné à deux lignes pour qu'une bannière ne gonfle jamais la carte, sept boutons CTA prêts à l'emploi qui portent libellé et destination ensemble, repères de zones sur l'aperçu.
+- **#248** : la carte produit automatique est retirée, Thrasher choisit chaque image. L'ordre des bannières devient réglable depuis la feuille, avec renumérotation complète de la liste puisque tous les `sort` valaient 0. Tri `sort` puis `created_at` pour un ordre stable.
+- **En production, sur demande explicite** : bannière de parrainage supprimée et recréée en une instruction atomique pour ne pas perdre son image, destination passée de `shop` à `promo`, puis date de fin retirée.
+
+**Décisions produit prises dans la session :**
+- **Pas de bannière promo sur un catalogue vide.** Les bannières servent le pilote, pas la vitrine.
+- **Plus aucune carte automatique côté produit** dans le carrousel. La carte de marque reste, comme filet quand aucune bannière n'est active.
+- **Couleur et ordre deviennent des choix admin.** `auto` conserve le comportement historique où la position décide de la couleur, ce qui n'était fiable qu'une fois l'ordre maîtrisé.
+- **Le CTA reste une clé d'une liste fermée en base.** L'auto-détection depuis le libellé n'est qu'une aide de saisie, jamais une source de vérité : un champ admin ne doit pas devenir un `onclick`.
+
+**Leçons durables (semées agentmemory) :** (1) Un élément en `position: absolute` est peint APRÈS le contenu en flux du même conteneur, donc tout texte posé sur une image doit être positionné explicitement, sinon il disparaît. Mon propre simulateur contournait déjà ce bug sans que je le remarque : un harnais peut corriger en silence ce qu'il est censé reproduire. (2) Servir `index.html` en `file://` ne charge PAS `assets/tw.css`, référencé en chemin absolu `/assets/...` : toute vérification de mise en page passe par `python3 -m http.server`, comme le fait `playwright.config.mjs`. Deux séries de captures étaient fausses avant que je le voie. (3) Lire la vraie base avant d'accuser le rendu ou l'enregistrement.
+
+SW v75 à v82 sur la session. Les deux PR mergées, CI verte, migration confirmée en production.
+
+---
+
 ## 2026-07-25 (suite) : Mesaj yo, header feed, Swiv kòmand, mémoire des leçons (5 PR : #239 à #243)
 
 Longue session de design produit menée au retour terrain, écran par écran. Skills actifs : ayitimarket, ui-ux-pro-max, frontend-design, systematic-debugging, verification-before-completion, puis ecriture-pro-et-lecons installé en fin de session.
