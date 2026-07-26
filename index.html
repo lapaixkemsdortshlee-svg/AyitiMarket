@@ -459,14 +459,8 @@
            slide yo ap pase anba l. */
         .ekf-notch { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 2; background: #fcf9f4; border-radius: 15px 15px 0 0; padding: 9px 17px 3px; }
         body.dark .ekf-notch { background: #1c1c19; }
-        /* Kwen konkav yo. Yon `transparent 16px, koulè 16px` kite yon ti fil
-           dantle (aliasing) — se « ti akwòch » yo. Yon degrade 0.5px pi dous
-           efase yo, epi +1px lajè/wotè bouche kwen an nèt. */
-        .ekf-notch::before, .ekf-notch::after { content: ''; position: absolute; bottom: -1px; width: 17px; height: 17px; }
-        .ekf-notch::before { left: -16px; background: radial-gradient(circle 16px at 0 0, transparent 15.5px, #fcf9f4 16.5px); }
-        .ekf-notch::after { right: -16px; background: radial-gradient(circle 16px at 100% 0, transparent 15.5px, #fcf9f4 16.5px); }
-        body.dark .ekf-notch::before { background: radial-gradient(circle 16px at 0 0, transparent 15.5px, #1c1c19 16.5px); }
-        body.dark .ekf-notch::after { background: radial-gradient(circle 16px at 100% 0, transparent 15.5px, #1c1c19 16.5px); }
+        /* Pa gen kwen konkav sou kote yo (desizyon Thrasher 2026-07-26): sèl
+           fòm nan ki rete se bò won ki kwafe pwen yo. */
         .ekf-dots { display: flex; justify-content: center; gap: 6px; }
         .ekf-dot { width: 7px; height: 7px; border-radius: 999px; border: 0; padding: 0; background: rgba(61,73,73,.24); transition: width .22s ease, background .22s ease; cursor: pointer; }
         body.dark .ekf-dot { background: rgba(255,255,255,.22); }
