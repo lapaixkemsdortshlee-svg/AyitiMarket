@@ -14967,18 +14967,32 @@
         }
         window.scrollToFeedGrid = scrollToFeedGrid;
 
+        // Kantite kat REYÈL yo, san jimo a. Bouk la bezwen l pou l konnen ki
+        // kote vre lis la fini epi kopi a kòmanse.
+        let HERO_N = 0;
+
         function paintFeedHero(slides) {
             const track = document.getElementById('feedHeroTrack');
             const dots = document.getElementById('feedHeroDots');
             if (!track) return;
-            track.innerHTML = slides.map((s, i) => heroSlideHTML(s, i)).join('');
+            HERO_N = slides.length;
+            // Bouk san fen, pa yon retou. Anvan, pou pase de dènye kat la a
+            // premye a, `heroGoTo(0)` te fè scroll la tounen sou TOUT lajè
+            // kawousèl la an dous: moun nan te wè tout kat yo defile alanvè.
+            // Kounye a yon JIMO slide 0 kole nan bout la. Defilman an kontinye
+            // toujou pi devan, li rive sou jimo a, epi nou remèt scroll la sou
+            // 0 SAN animasyon. Jimo a ak slide 0 idantik, kidonk je a pa ka wè
+            // sote a: kat la sanble yon senti ki vire san rete.
+            track.innerHTML = slides.map((s, i) => heroSlideHTML(s, i)).join('')
+                + (HERO_N > 1 ? heroSlideHTML(slides[0], 0) : '');
             if (dots) {
-                dots.innerHTML = slides.length > 1
+                dots.innerHTML = HERO_N > 1
                     ? slides.map((_, i) => `<button class="ekf-dot${i === 0 ? ' on' : ''}" aria-label="Slide ${i + 1}" onclick="heroGoTo(${i})"></button>`).join('')
                     : '';
             }
             track.onscroll = heroSyncDots;
-            heroAutoplay(slides.length);
+            track.onscrollend = heroMaybeRewind;
+            heroAutoplay(HERO_N);
         }
 
         async function renderFeedHero() {
@@ -15043,8 +15057,10 @@
             const tick = () => {
                 if (!document.getElementById('s-feed')?.classList.contains('on')) return;
                 if (document.hidden) return;
-                const i = Math.round(track.scrollLeft / (track.clientWidth + 10));
-                heroGoTo((i + 1) % n);
+                // Toujou pi devan, jamè alanvè. Depi nou deja sou jimo a, se
+                // slide 1 ki vin apre: jimo a se slide 0 pou je moun nan.
+                const i = heroIndex(track);
+                heroGoTo(i >= n ? 1 : i + 1);
             };
             _heroTimer = setInterval(tick, 4000);
             const pause = () => {
@@ -15097,12 +15113,56 @@
         }
         window.heroGoTo = heroGoTo;
 
+        function heroIndex(track) {
+            return Math.round(track.scrollLeft / (track.clientWidth + 10));
+        }
+
+        // Remèt la dwe fèt lè defilman an FINI NÈT, pa lè li sanble fini.
+        // Premye esè a te sèvi ak yon debounce 140 ms: sote a te rive pandan
+        // animasyon `behavior:'smooth'` la t ap toujou kouri, epi navigatè a
+        // te kontinye animasyon l depi nouvo pozisyon an. Rezilta mezire: kat
+        // la te poze sou 197px, apre sou 230px, ant de kran de 368px. Se pou
+        // sa nou tann `scrollend`, evènman ki fèt egzakteman pou sa a.
+        // Debounce la rete kòm ranplasan pou navigatè ki poko gen li (Safari
+        // ansyen), epi li RE-AME tèt li toutotan kat la poko poze: si nou te
+        // sèlman abandone, okenn lòt evènman pa t ap vin rele l ankò.
+        let _heroRewind = null;
+
+        function heroMaybeRewind() {
+            const track = document.getElementById('feedHeroTrack');
+            if (!track || HERO_N < 2) return;
+            const end = HERO_N * (track.clientWidth + 10);
+            if (Math.abs(track.scrollLeft - end) > 2) return;
+            // `scroll-snap-type: x mandatory` ka reprann kontwòl apre yon sote
+            // enstantane: nou koupe l pandan sote a sèlman.
+            const snap = track.style.scrollSnapType;
+            track.style.scrollSnapType = 'none';
+            track.scrollLeft = 0;
+            void track.offsetWidth;
+            track.style.scrollSnapType = snap;
+        }
+
         function heroSyncDots() {
             const track = document.getElementById('feedHeroTrack');
             const dots = document.getElementById('feedHeroDots');
-            if (!track || !dots) return;
-            const i = Math.round(track.scrollLeft / (track.clientWidth + 10));
-            dots.querySelectorAll('.ekf-dot').forEach((d, k) => d.classList.toggle('on', k === i));
+            if (!track) return;
+            const i = heroIndex(track);
+            // Jimo a limenm limen pwen premye kat la: se menm kat la pou je a.
+            if (dots && HERO_N > 0) {
+                dots.querySelectorAll('.ekf-dot').forEach((d, k) => d.classList.toggle('on', k === i % HERO_N));
+            }
+            // Ranplasan pou navigatè san `scrollend`: li tann kat la poze,
+            // epi li re-ame tèt li toutotan li poko poze.
+            if ('onscrollend' in track) return;
+            clearTimeout(_heroRewind);
+            const settle = () => {
+                const x = track.scrollLeft;
+                _heroRewind = setTimeout(() => {
+                    if (track.scrollLeft !== x) { settle(); return; }
+                    heroMaybeRewind();
+                }, 120);
+            };
+            settle();
         }
 
         // ══════════════════════════════════════════════════════════
