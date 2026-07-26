@@ -2703,6 +2703,16 @@
                     1</div>
                 <h3 class="font-headline font-extrabold text-lg text-on-surface tracking-tight">Chwa Pyès Idantite</h3>
             </div>
+            <!-- Tarif fondatè: li parèt AVAN moun nan soumèt ID li, paske se
+                 la li deside. Tan ke gen mwens pase 10 vandè, tèks la vre. -->
+            <div class="rounded-xl p-3.5 mb-4 amb" style="background:rgba(0,102,111,.07)">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined fi text-primary" style="font-size:18px">workspace_premium</span>
+                    <span class="font-label text-[11px] font-extrabold px-2 py-1 rounded-full" style="background:#00666f;color:#fcf9f4">Tarif fondatè</span>
+                </div>
+                <p class="font-headline font-extrabold text-base text-on-surface">3% bloke a vi</p>
+                <p class="font-body text-xs text-on-surface-variant leading-relaxed mt-1">Se vandè a ki peye frè eskwo a. Pou 10 premye vandè Ekomat yo, li rete 3% pou tout tan : menm si tarif estanda a monte pita, ou pa janm depase 3%. Achtè w yo peye pri ou afiche a, san frè anplis.</p>
+            </div>
             <p class="font-body text-sm text-on-surface-variant mb-4 leading-relaxed">Chwazi youn nan dokiman sa yo. Ou
                 bezwen pran de (2) foto : fas ak do.</p>
             <!-- ID type selector -->
@@ -6781,9 +6791,13 @@
         function renderOrderSheet() {
             const p = A.curProd;
             if (!p) { toast('Chwazi yon pwodwi dabò'); return; }
-            const sub = p.p, fee = Math.round(sub * .03);
-            const promoDiscount = Math.max(0, Math.min(sub + fee, A._promoDiscount || 0));
-            const total = sub + fee - promoDiscount;
+            // Frè eskwo a se VANDÈ a ki peye l (net_amount nan confirmOrder).
+            // Ekran sa a te ajoute l sou total achtè a pandan kòmand la te
+            // anrejistre `total_amount = pri a` — donk achtè a te wè yon
+            // montan isit la epi yon lòt sou fèy MonCash la (:13719).
+            const sub = p.p;
+            const promoDiscount = Math.max(0, Math.min(sub, A._promoDiscount || 0));
+            const total = Math.max(0, sub - promoDiscount);
             const zone = A.pickupZone || _lastGeocode();
             document.getElementById("orderSheetContent").innerHTML = `
     <div class="bg-surface-container-lowest rounded-2xl p-4 flex items-center gap-4 mb-5 amb">
@@ -6866,7 +6880,7 @@
     </div>
     <div class="space-y-2 mb-4">
       <div class="flex justify-between font-body text-sm text-on-surface-variant"><span>Sou-total</span><span class="font-bold">${fp(sub)} HTG</span></div>
-      <div class="flex justify-between font-body text-sm text-on-surface-variant"><span>Frè sèvis (3%)</span><span class="font-bold">${fp(fee)} HTG</span></div>
+      <div class="flex justify-between font-body text-sm" style="color:#065f46"><span>Frè anplis pou ou</span><span class="font-bold">0 HTG</span></div>
       ${promoDiscount > 0 ? `<div class="flex justify-between font-body text-sm" style="color:#065f46"><span>Rabè (${A._promoCode})</span><span class="font-bold">− ${fp(promoDiscount)} HTG</span></div>` : ''}
       <div class="flex justify-between items-center"><span class="font-headline font-bold text-lg">Total</span><span class="font-headline font-extrabold text-2xl text-primary">${fp(total)} HTG</span></div>
     </div>
@@ -7305,6 +7319,7 @@
             const partnerNameSafe = jsAttr(partner || '');
             const amountLabel = isSeller
                 ? `<span class="text-on-surface-variant">Ou resevwa:</span> <strong class="text-primary">${fp(o.net_amount || (o.total_amount - (o.fee_amount||0)))} HTG</strong>`
+                    + `<span class="text-on-surface-variant"> · frè eskwo −${fp(o.fee_amount || 0)} HTG</span>`
                 : `<strong class="text-primary">${fp(o.total_amount || 0)} HTG</strong>`;
             return `
 <div class="bg-surface-container-lowest rounded-xl p-3 amb">
@@ -7369,7 +7384,7 @@
             // Rabè pwomosyon: Ekomat asime depans la — vandè a toujou
             // resevwa nan netAmount li te dwe resevwa a; sèl bilye achtè a
             // ki bese.
-            const promoDiscount = Math.max(0, Math.min(unitPrice + feeAmount, A._promoDiscount || 0));
+            const promoDiscount = Math.max(0, Math.min(unitPrice, A._promoDiscount || 0));
             const promoCode = A._promoCode || null;
             const totalAmount = Math.max(0, unitPrice - promoDiscount);
             const netAmount = unitPrice - feeAmount;   // seller payout unchanged
@@ -11184,7 +11199,7 @@
                 const maxRev = Math.max(1, rv.gmv_htg||0);
                 const revs = [
                     ['Total lavant', fp(rv.gmv_htg||0)+' HTG', (rv.gmv_htg||0)/maxRev],
-                    ['Komisyon nou', fp(rv.fees_htg||0)+' HTG', (rv.fees_htg||0)/maxRev],
+                    ['Frè eskwo', fp(rv.fees_htg||0)+' HTG', (rv.fees_htg||0)/maxRev],
                 ];
                 box.innerHTML = `
                     <div class="rounded-xl p-3" style="background:#97422b0d;border:1px solid #97422b33">
@@ -12352,8 +12367,7 @@
             }
             const p = A.curProd;
             if (!p) return;
-            const sub = p.p, fee = Math.round(sub * .03);
-            const total = sub + fee;
+            const total = p.p;   // menm baz ke renderOrderSheet: achtè a peye pri a
             const btn = document.getElementById('orderPromoBtn');
             const orig = btn ? btn.innerHTML : '';
             if (btn) {
@@ -15065,7 +15079,7 @@
                     'Lè yon achtè kòmande, w ap resevwa yon notifikasyon.',
                     'Prepare pwodwi a epi ranje livrezon oswa kolèt la ak achtè a.',
                     'Lè w livre, mande achtè a kòd 6 chif OTP li epi antre l nan app la.',
-                    'Kòd la libere eskwo a — lajan an vin pou ou (mwens komisyon platfòm nan).'
+                    'Kòd la libere eskwo a : lajan an vin pou ou, mwens frè eskwo 3% la.'
                 ],
                 why: 'Poukisa OTP? Se prèv livrezon an fèt vre. Konsa yon achtè pa ka di li pa resevwa pwodwi a pou l bloke lajan w — se li menm ki bay kòd la lè li resevwa.'
             },
@@ -16154,11 +16168,11 @@
                 ['2', 'Kont ou', `<ul class="font-body text-sm text-on-surface-variant leading-relaxed"><li>Ou dwe bay ${kw('enfòmasyon vre')} lè w kreye kont ou.</li><li>Ou responsab tout sa k pase sou kont ou. Pa pataje modpas ou.</li><li>Ou dwe gen omwen ${kw('18 an')}.</li><li>Nou ka sispann yon kont ki bay fo enfòmasyon oswa ki vyole kondisyon sa yo.</li></ul>`],
                 ['3', 'Pou vandè yo', `<ul class="font-body text-sm text-on-surface-variant leading-relaxed"><li>Pou vann, ou dwe ${kw('verifye idantite w')} ak yon CIN oswa yon Paspò — yon administratè ap tcheke l.</li><li>Ou responsab pwodwi w yo: deskripsyon egzak, foto reyèl, pri klè, epi ou gen dwa vann yo.</li><li>Pwodwi entèdi: nenpòt bagay ilegal, danjre, kontrefè, oswa ki vyole lwa peyi a.</li></ul>`],
                 ['4', 'Kijan yon acha mache (eskwo)', `<ul class="font-body text-sm text-on-surface-variant leading-relaxed"><li>Lè yon achtè peye, lajan an ${kw('pa ale dirèk')} bay vandè a: li rete bloke (eskwo) jiskaske achtè a konfime li resevwa pwodwi a ak yon kòd OTP.</li><li>Kounye a, peman yo fèt ak ${kw('MonCash')} epi yo verifye alamen pa ekip Ekomat.</li><li>Se Ekomat ki lage lajan an bay vandè a apre konfimasyon resepsyon an. Si achtè a pa reponn epi pa gen okenn dezakò, lajan an ka lage otomatikman apre ${kw('7 jou')}.</li></ul>`],
-                ['5', 'Komisyon', `<p class="font-body text-sm text-on-surface-variant leading-relaxed">Ekomat pran yon ti komisyon sou chak vant (${kw('kounye a 3%')}). Montan an toujou parèt anvan ou konfime tranzaksyon an.</p>`],
+                ['5', 'Frè eskwo', `<p class="font-body text-sm text-on-surface-variant leading-relaxed">Se ${kw('vandè a')} ki peye frè eskwo a, ${kw('kounye a 3%')} sou chak vant. ${kw('Achtè a peye pri ki afiche a')}, san okenn frè anplis. Vandè a wè montan an sou fich kòmand li anvan chak tranzaksyon.</p><p class="font-body text-sm text-on-surface-variant leading-relaxed mt-2">${kw('Tarif fondatè')} : 10 premye vandè Ekomat yo kenbe 3% ${kw('bloke a vi')}. Menm si tarif estanda a monte pita, yo pa janm depase 3%.</p>`],
                 ['6', 'Livrezon ak ranmasaj', `<p class="font-body text-sm text-on-surface-variant leading-relaxed">Achtè ak vandè antann yo sou yon pwen ranmasaj. Ekomat fasilite kontak la men li pa responsab transpò a menm.</p>`],
                 ['7', 'Ranbousman ak dezakò', `<ul class="font-body text-sm text-on-surface-variant leading-relaxed"><li>Si yon pwodwi pa rive, oswa li pa koresponn ak deskripsyon an, achtè a ka louvri yon ${kw('dezakò')}.</li><li>Yon administratè ap egzamine ka a epi deside nan yon delè ${kw('7 jou')}.</li></ul>`],
                 ['8', 'Sa ou pa gen dwa fè', `<ul class="font-body text-sm text-on-surface-variant leading-relaxed"><li>Bay fo enfòmasyon, fè fwod, oswa eseye kontounen sistèm eskwo a.</li><li>Pataje kontni ilegal, voye mesaj abi, oswa deranje lòt itilizatè.</li></ul>`],
-                ['9', 'Sispansyon kont', `<p class="font-body text-sm text-on-surface-variant leading-relaxed">Nou ka avèti, sispann, oswa bloke yon kont ki vyole kondisyon sa yo, san ranbousman komisyon ki deja peye.</p>`],
+                ['9', 'Sispansyon kont', `<p class="font-body text-sm text-on-surface-variant leading-relaxed">Nou ka avèti, sispann, oswa bloke yon kont ki vyole kondisyon sa yo, san ranbousman frè eskwo ki deja peye.</p>`],
                 ['10', 'Responsablite', `<p class="font-body text-sm text-on-surface-variant leading-relaxed">Ekomat bay yon sèvis "jan li ye a". Kòm nou pa vandè a, ${kw('nou pa garanti kalite oswa eta chak pwodwi')}. Nou fè tout efò rezonab pou platfòm nan rete an sekirite, men nou pa responsab pou aksyon endividyèl yon vandè oswa yon achtè.</p>`],
                 ['11', 'Chanjman nan kondisyon yo', `<p class="font-body text-sm text-on-surface-variant leading-relaxed">Nou ka mete kondisyon sa yo ajou. Lè yo chanje anpil, n ap mande w aksepte vèsyon ki nouvo a anvan w kontinye.</p>`],
                 ['12', 'Lwa aplikab', `<p class="font-body text-sm text-on-surface-variant leading-relaxed">Kondisyon sa yo swiv lwa peyi Dayiti.</p>`],
@@ -16250,7 +16264,7 @@
         const BOT_ANSWERS = {
             pay: {
                 q: 'Comment payer ? (MonCash)',
-                r: `Sou Ekomat, ou peye ak <strong>MonCash</strong> sèlman.\n\n<strong>Etap yo:</strong>\n<strong>1.</strong> Kòmande pwodwi a → chwazi pwen kolèk\n<strong>2.</strong> Klike "Peye kounye a" → wè nimewo MonCash admin\n<strong>3.</strong> Transfere lajan nan nimewo sa a via MonCash\n<strong>4.</strong> Kole referans tranzaksyon MonCash nan fòm nan\n<strong>5.</strong> Admin verifye peman an → eskwo aktive\n\n💡 3% frè sèvis aplike. Lajan ou pwoteje pa Escrow jouk livrezon konfime.`
+                r: `Sou Ekomat, ou peye ak <strong>MonCash</strong> sèlman.\n\n<strong>Etap yo:</strong>\n<strong>1.</strong> Kòmande pwodwi a → chwazi pwen kolèk\n<strong>2.</strong> Klike "Peye kounye a" → wè nimewo MonCash admin\n<strong>3.</strong> Transfere lajan nan nimewo sa a via MonCash\n<strong>4.</strong> Kole referans tranzaksyon MonCash nan fòm nan\n<strong>5.</strong> Admin verifye peman an → eskwo aktive\n\n💡 Ou peye pri ki afiche a, san frè anplis : se vandè a ki peye frè eskwo 3% la. Lajan ou pwoteje pa Eskwo jouk livrezon konfime.`
             },
             track: {
                 q: 'Swiv kòmand mwen',
@@ -16271,7 +16285,7 @@
             },
             legal: {
                 q: 'Kondisyon & vi prive',
-                r: `Men de dokiman legal Ekomat yo:\n• <strong>Kondisyon Itilizasyon</strong> — règ yo, eskwo, komisyon, responsablite.\n• <strong>Politik Konfidansyalite</strong> — ki done nou kolekte ak sa nou fè avè yo.\n\nPeze bouton anba a pou li yo.`,
+                r: `Men de dokiman legal Ekomat yo:\n• <strong>Kondisyon Itilizasyon</strong> — règ yo, eskwo, frè yo, responsablite.\n• <strong>Politik Konfidansyalite</strong> — ki done nou kolekte ak sa nou fè avè yo.\n\nPeze bouton anba a pou li yo.`,
                 openLegal: true
             }
         };
