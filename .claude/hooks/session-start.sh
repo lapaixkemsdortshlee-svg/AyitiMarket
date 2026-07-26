@@ -1,5 +1,5 @@
 #!/bin/bash
-# SessionStart hook — restores the ephemeral tools/MCP/skills that don't live in
+# SessionStart hook : restores the ephemeral tools/MCP/skills that don't live in
 # the repo, so a fresh Claude Code web container comes back fully equipped.
 # Skills committed under .claude/skills/ are already cloned with the repo; this
 # only rebuilds what is container-level: CLIs, MCP servers, the code graph, and
@@ -13,7 +13,7 @@
 set -uo pipefail
 LOG(){ echo "[ayitimarket-setup] $*"; }
 
-# Web/remote only — never clobber a developer's own local setup.
+# Web/remote only, never clobber a developer's own local setup.
 if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then exit 0; fi
 PROJ="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 
@@ -100,12 +100,12 @@ if [ ! -d "$HOME/.claude/skills/system-prompts-leaks" ]; then
 name: system-prompts-leaks
 description: Reference archive of publicly documented/leaked system prompts for AI assistants (Claude, ChatGPT, Gemini, Grok, Perplexity, Copilot, Meta AI, Mistral, Cursor, Qwen, Notion). Use to compare how assistants are instructed, study prompt-engineering patterns, or model your own system/agent prompts. Markdown under reference/.
 ---
-# System Prompt Leaks — reference archive
-Read-only study material (not a tool). Browse `reference/` by editor; `grep -ri "<topic>" reference/` to compare phrasings. Community-extracted — may be outdated; never present as a product's official current prompt.
+# System Prompt Leaks, reference archive
+Read-only study material (not a tool). Browse `reference/` by editor; `grep -ri "<topic>" reference/` to compare phrasings. Community-extracted, may be outdated; never present as a product's official current prompt.
 MD
 fi
 
-# gstack suite (browser-driven skills) — heavier, best-effort
+# gstack suite (browser-driven skills), heavier, best-effort
 if [ ! -d "$HOME/.claude/skills/gstack" ]; then
   LOG "restore gstack"
   if GIT_CONFIG_GLOBAL=/dev/null git -c http.proxy="${HTTPS_PROXY:-}" -c http.sslCAInfo=/root/.ccr/ca-bundle.crt \
