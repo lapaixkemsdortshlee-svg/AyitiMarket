@@ -479,6 +479,12 @@
         .ekh-sw { width: 46px; height: 32px; border-radius: 10px; border: 2px solid transparent; box-shadow: inset 0 0 0 1px rgba(28,28,25,.09); padding: 0; flex: 0 0 auto; cursor: pointer; }
         .ekh-sw.on { border-color: #00666f; }
         body.dark .ekh-sw.on { border-color: #5ad7e6; }
+        /* Monte/desann yon banyè nan lis la. */
+        /* `overflow: hidden` se yon garanti: si font ikòn nan pa chaje, non
+           ligati a (`keyboard_arrow_up`) pa gaye sou tit la (leson 2026-07-19). */
+        .ekh-ord { width: 26px; height: 20px; border-radius: 6px; border: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,102,111,.09); color: #00666f; cursor: pointer; overflow: hidden; flex: 0 0 auto; }
+        .ekh-ord[disabled] { opacity: .3; cursor: default; }
+        body.dark .ekh-ord { background: rgba(90,215,230,.12); color: #5ad7e6; }
         /* Bouton CTA ki deja konekte ak yon paj nan app la. */
         .ekh-chip { display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(0,102,111,.22); background: rgba(0,102,111,.07); color: #00666f; font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; }
         .ekh-chip.on { background: #00666f; color: #fcf9f4; border-color: #00666f; }
@@ -1971,7 +1977,7 @@
                 </button>
             </div>
 
-            <!-- Kat glisan : Dekouvri Ekomat, anons admin, piblikasyon.
+            <!-- Kat glisan : Dekouvri Ekomat, banyè admin, anons admin.
                  Tout se eleman efemè: yo parèt lè yo egziste, yo ale lè yo fini. -->
             <div class="ekf-hero" id="feedHero">
                 <div class="ekf-track" id="feedHeroTrack"></div>
@@ -14575,23 +14581,59 @@
         }
         window.onHeroCtaLabel = onHeroCtaLabel;
 
+        // Lis banyè yo, nan lòd defilman an. `HERO_LIST` kenbe lòd ki afiche a
+        // pou bouton monte/desann yo ka travay san yon lòt rekèt.
+        let HERO_LIST = [];
+
         async function loadHeroSlides() {
             const el = document.getElementById('hsList');
             if (!el || !db) return;
-            const { data, error } = await db.from('hero_slides').select('*').order('sort').limit(30);
+            const { data, error } = await db.from('hero_slides').select('*')
+                .order('sort').order('created_at').limit(30);
             if (error) { console.warn('[hero_slides]', error.message); el.innerHTML = ''; return; }
-            el.innerHTML = (data || []).map(s => `
+            HERO_LIST = data || [];
+            const last = HERO_LIST.length - 1;
+            el.innerHTML = HERO_LIST.map((s, i) => `
         <div class="flex items-center gap-3 p-3 rounded-xl bg-surface-container-lowest amb">
+          <div class="flex flex-col" style="gap:2px">
+            <button onclick="moveHeroSlide('${jsAttr(s.id)}',-1)" class="ekh-ord" aria-label="Monte" ${i === 0 ? 'disabled' : ''}>
+              <span class="material-symbols-outlined" style="font-size:15px">keyboard_arrow_up</span>
+            </button>
+            <button onclick="moveHeroSlide('${jsAttr(s.id)}',1)" class="ekh-ord" aria-label="Desann" ${i === last ? 'disabled' : ''}>
+              <span class="material-symbols-outlined" style="font-size:15px">keyboard_arrow_down</span>
+            </button>
+          </div>
           ${s.image_url ? `<img src="${esc(s.image_url)}" alt="" style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex:0 0 auto" onerror="this.remove()"/>` : ''}
           <div class="flex-1 min-w-0">
             <p class="font-headline font-bold text-sm text-on-surface truncate">${esc(s.title)}</p>
-            <p class="font-label text-[11px] text-on-surface-variant">${esc(s.audience)}${s.ends_at ? ' · jiska ' + new Date(s.ends_at).toLocaleDateString('fr') : ''}${s.active ? '' : ' · pa aktif'}</p>
+            <p class="font-label text-[11px] text-on-surface-variant">${i + 1} · ${esc(s.audience)}${s.ends_at ? ' · jiska ' + new Date(s.ends_at).toLocaleDateString('fr') : ''}${s.active ? '' : ' · pa aktif'}</p>
           </div>
           <button onclick="deleteHeroSlide('${jsAttr(s.id)}')" class="w-8 h-8 rounded-full flex items-center justify-center ekv-del" aria-label="Efase">
             <span class="material-symbols-outlined" style="font-size:17px">delete</span>
           </button>
         </div>`).join('') || '<p class="font-body text-xs text-on-surface-variant">Pa gen banyè pou kounye a.</p>';
         }
+
+        // Tout banyè te gen `sort = 0`, kidonk yon senp echanj de valè pa t ap
+        // chanje anyen. Nou renimewote tout lis la (0, 1, 2…) apre chak
+        // deplasman: konsa lòd la vin sèten epi koulè `auto` a rete estab.
+        async function moveHeroSlide(id, dir) {
+            const i = HERO_LIST.findIndex(s => s.id === id);
+            const j = i + dir;
+            if (i < 0 || j < 0 || j >= HERO_LIST.length || !db) return;
+            const next = HERO_LIST.slice();
+            next.splice(j, 0, next.splice(i, 1)[0]);
+            for (let k = 0; k < next.length; k++) {
+                if (next[k].sort === k) continue;
+                const { error } = await db.from('hero_slides').update({ sort: k }).eq('id', next[k].id);
+                if (error) { toast('Nou pa t ka chanje lòd la'); return; }
+                next[k].sort = k;
+            }
+            HERO_LIST = next;
+            loadHeroSlides();
+            if (typeof renderFeedHero === 'function') renderFeedHero();
+        }
+        window.moveHeroSlide = moveHeroSlide;
 
         async function submitHeroSlide() {
             const title = document.getElementById('hsTitle')?.value.trim();
@@ -14654,9 +14696,11 @@
 
         // ══════════════════════════════════════════════════════════
         //  KAT GLISAN NAN TÈT FEED LA
-        //  Slide 1 se toujou mak la (li pa janm vid). Apre sa vin slide admin
-        //  yo (hero_slides), anons yo, epi dènye piblikasyon an. Tout se
-        //  eleman efemè: yo parèt lè yo egziste, yo disparèt lè yo fini.
+        //  Slide 1 se toujou mak la (li pa janm vid). Apre sa vin banyè admin
+        //  yo (hero_slides), nan lòd `sort` admin nan chwazi, epi anons yo.
+        //  Tout se eleman efemè: yo parèt lè yo egziste, yo disparèt lè yo fini.
+        //  Pa gen slide otomatik sou yon pwodwi: se admin nan ki mete chak
+        //  imaj li menm (desizyon Thrasher 2026-07-26).
         //  Limit di a 5: de sous ki alimante menm kawousèl la ka anfle vit.
         // ══════════════════════════════════════════════════════════
         const HERO_MAX = 5;
@@ -14701,13 +14745,11 @@
                 const nowIso = new Date().toISOString();
                 // Tou de sous yo degrade an silans: si migrasyon an poko sou
                 // pwodiksyon, mak la rete epi paj la pa kase.
-                const [hsRes, annRes, prodRes] = await Promise.all([
+                const [hsRes, annRes] = await Promise.all([
                     db.from('hero_slides').select('*').eq('active', true).or(audFilter)
-                        .order('sort').limit(HERO_MAX).then(r => r, () => ({ data: [] })),
+                        .order('sort').order('created_at').limit(HERO_MAX).then(r => r, () => ({ data: [] })),
                     db.from('announcements').select('*').eq('active', true).or(audFilter)
                         .order('created_at', { ascending: false }).limit(HERO_MAX).then(r => r, () => ({ data: [] })),
-                    db.from('products').select('id, title, images, price').eq('status', 'active')
-                        .order('created_at', { ascending: false }).limit(1).then(r => r, () => ({ data: [] })),
                 ]);
                 const inWindow = r => (!r.starts_at || r.starts_at <= nowIso) && (!r.ends_at || r.ends_at >= nowIso);
 
@@ -14723,13 +14765,6 @@
                     cta: a.cta_label ? { label: a.cta_label, action: heroAction(a.cta_action) } : null,
                 }));
 
-                const p = (prodRes.data || [])[0];
-                if (p) slides.push({
-                    badge: 'Nouvo sou Ekomat', badgeIcon: 'new_releases',
-                    title: p.title, sub: fpc(p.price),
-                    img: (p.images && p.images[0]) || null,
-                    cta: { label: 'Wè pwodwi a', action: `openProduct('${jsAttr(p.id)}')` },
-                });
             }
 
             const shown = slides.slice(0, HERO_MAX);
