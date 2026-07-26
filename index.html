@@ -454,8 +454,15 @@
         /* Tèks la pa dwe kouri sou tout kat la: `max-width` fè l tounen liy
            bonè epi kite imaj la respire, `line-clamp` anpeche yon tèks long
            anfle wotè kat la. Admin nan wè koupi a nan apèsi a epi rakousi. */
-        .ekf-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.22rem; line-height: 1.18; letter-spacing: -.02em; color: #fcf9f4; text-shadow: 0 1px 10px rgba(0,0,0,.28); position: relative; z-index: 1; max-width: 20ch; text-wrap: balance; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .ekf-sub { font-family: 'Manrope', sans-serif; font-size: .78rem; line-height: 1.45; color: rgba(252,249,244,.92); margin-top: 5px; text-shadow: 0 1px 8px rgba(0,0,0,.3); position: relative; z-index: 1; max-width: 32ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        /* Koupi liy lan: `white-space: pre-line` fè Entre admin nan tape a vin
+           yon vre koupi, menm kote a nan apèsi a kou nan feed la. Ansyen règ
+           `balance` la te retire: mezire sou vre paj la, li deplase koupi yon
+           liy long selon LAJÈ ekran an (390px ak 430px pa t bay menm koupi),
+           pandan san li koupi a rete menm. Sou yon tèks ki gen koupi eksplisit
+           li pa chanje anyen. Kounye a se `max-width` an `ch` la ki deside,
+           epi li idantik sou tout kat yo. */
+        .ekf-title { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.22rem; line-height: 1.18; letter-spacing: -.02em; color: #fcf9f4; text-shadow: 0 1px 10px rgba(0,0,0,.28); position: relative; z-index: 1; max-width: 20ch; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .ekf-sub { font-family: 'Manrope', sans-serif; font-size: .78rem; line-height: 1.45; color: rgba(252,249,244,.92); margin-top: 5px; text-shadow: 0 1px 8px rgba(0,0,0,.3); position: relative; z-index: 1; max-width: 32ch; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
         .ekf-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 9px; margin-top: 14px; padding: 8px 8px 8px 18px; border: 0; border-radius: 999px; background: #fcf9f4; color: #00404a; font-family: 'Plus Jakarta Sans', sans-serif; font-size: .8125rem; font-weight: 800; cursor: pointer; box-shadow: 0 3px 12px rgba(28,28,25,.18); position: relative; z-index: 1; }
         .ekf-cta:active { transform: scale(.96); }
         .ekf-cta-a { width: 26px; height: 26px; border-radius: 999px; background: #00666f; color: #fcf9f4; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
@@ -467,6 +474,11 @@
            ti akwoch, koub la rankontre bò a orizontalman. Lajè fiks: si l ta
            tire sou tout ekran an, li ta manje tout bò anba kat la. */
         .ekf-wave { position: absolute; left: 50%; transform: translateX(-50%); bottom: -1px; width: 172px; height: 31px; z-index: 2; pointer-events: none; display: block; }
+        /* Anvan slide yo rive, `.ekf-track` vid la fè 0px wotè, kidonk vag la
+           (ki poze sou BÒ ANBA `.ekf-hero`) t ap flote tou dwat anba bar
+           rechèch la: yon ti mòn krèm ki parèt soti nan anyen lè app la fenk
+           louvri. Li kache toutotan pa gen kat anba l. */
+        .ekf-track:empty + .ekf-wave { display: none; }
         .ekf-wave path { fill: #fcf9f4; }
         body.dark .ekf-wave path { fill: #1c1c19; }
         .ekf-dots { position: absolute; left: 0; right: 0; bottom: 9px; z-index: 3; display: flex; justify-content: center; gap: 7px; }
@@ -485,6 +497,9 @@
         .ekh-ord { width: 26px; height: 20px; border-radius: 6px; border: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,102,111,.09); color: #00666f; cursor: pointer; overflow: hidden; flex: 0 0 auto; }
         .ekh-ord[disabled] { opacity: .3; cursor: default; }
         body.dark .ekh-ord { background: rgba(90,215,230,.12); color: #5ad7e6; }
+        /* Modifye yon banyè ki deja pibliye (bò kote bouton efase a). */
+        .ekh-edit { background: rgba(0,102,111,.1); color: #00666f; }
+        body.dark .ekh-edit { background: rgba(90,215,230,.12); color: #5ad7e6; }
         /* Bouton CTA ki deja konekte ak yon paj nan app la. */
         .ekh-chip { display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(0,102,111,.22); background: rgba(0,102,111,.07); color: #00666f; font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; }
         .ekh-chip.on { background: #00666f; color: #fcf9f4; border-color: #00666f; }
@@ -3994,8 +4009,18 @@
         </p>
 
         <div class="space-y-3">
-            <input id="hsTitle" class="si" placeholder="Tit banyè a…" maxlength="60" oninput="renderHeroPreview()"/>
-            <input id="hsSub" class="si" placeholder="Sou-tit (opsyonèl)" maxlength="90" oninput="renderHeroPreview()"/>
+            <!-- Bandwòl mòd modifikasyon: san li, admin nan pa ta konnen si
+                 bouton an pral kreye yon nouvo banyè oswa ranplase youn. -->
+            <div id="hsEditBar" class="hidden flex items-center gap-2 p-3 rounded-xl amb" style="background:rgba(0,102,111,.08)">
+                <span class="material-symbols-outlined fi text-primary" style="font-size:18px">edit</span>
+                <p class="font-label text-xs font-bold text-primary flex-1 min-w-0 truncate" id="hsEditTxt"></p>
+                <button onclick="cancelHeroEdit()" class="font-label text-xs font-bold text-on-surface-variant active:opacity-70">Anile</button>
+            </div>
+            <!-- `textarea` epi pa `input`: se sèl fason pou admin nan mete yon
+                 vre koupi liy ak Entre. Rann lan (`white-space: pre-line`)
+                 respekte l egzakteman menm kote nan apèsi a ak nan feed la. -->
+            <textarea id="hsTitle" class="si" placeholder="Tit banyè a… (peze Entre pou ale nan yon lòt liy)" maxlength="60" rows="2" style="resize:none;line-height:1.35" oninput="renderHeroPreview()"></textarea>
+            <textarea id="hsSub" class="si" placeholder="Sou-tit (opsyonèl, Entre = nouvo liy)" maxlength="90" rows="2" style="resize:none;line-height:1.35" oninput="renderHeroPreview()"></textarea>
             <div class="flex gap-2">
                 <input id="hsBadge" class="si flex-1" placeholder="Pastiy (egz. Òf limite)" maxlength="24" oninput="renderHeroPreview()"/>
                 <select id="hsAudience" class="si flex-1">
@@ -4006,15 +4031,17 @@
             </div>
 
             <p class="font-label text-[11px] font-bold text-on-surface-variant" style="text-transform:uppercase;letter-spacing:.06em">Koulè degrade</p>
+            <!-- Pastiy yo pentire pa `paintHeroSwatches()` depi `HERO_THEMES`,
+                 pa an dur isit la: konsa koulè ki nan pastiy la se toujou
+                 koulè banyè a pral genyen, san risk pou yo divòse. `auto` pa
+                 nan `HERO_THEMES` (se pozisyon an ki deside), li kenbe pwòp
+                 degrade siyal pa l. -->
             <div class="flex gap-2" id="hsThemes">
                 <button type="button" onclick="pickHeroTheme('auto')" data-th="auto" class="ekh-sw on" aria-label="Otomatik"
                     style="background:linear-gradient(135deg,#00666f,#97422b)"></button>
-                <button type="button" onclick="pickHeroTheme('teal')" data-th="teal" class="ekh-sw" aria-label="Teal"
-                    style="background:linear-gradient(135deg,#00666f,#00818c)"></button>
-                <button type="button" onclick="pickHeroTheme('deep')" data-th="deep" class="ekh-sw" aria-label="Teal fonse"
-                    style="background:linear-gradient(135deg,#00404a,#00666f)"></button>
-                <button type="button" onclick="pickHeroTheme('rust')" data-th="rust" class="ekh-sw" aria-label="Wouj tè"
-                    style="background:linear-gradient(135deg,#97422b,#b1573a)"></button>
+                <button type="button" onclick="pickHeroTheme('teal')" data-th="teal" class="ekh-sw" aria-label="Teal"></button>
+                <button type="button" onclick="pickHeroTheme('deep')" data-th="deep" class="ekh-sw" aria-label="Teal fonse"></button>
+                <button type="button" onclick="pickHeroTheme('rust')" data-th="rust" class="ekh-sw" aria-label="Wouj tè"></button>
             </div>
 
             <div class="flex gap-2">
@@ -4052,12 +4079,45 @@
                     <option value="profile">Ale nan pwofil</option>
                 </select>
             </div>
-            <input id="hsEnds" type="date" class="si" aria-label="Dat fen (opsyonèl)"/>
-            <button onclick="submitHeroSlide()" class="w-full py-3 rounded-xl cta font-label font-bold text-sm active:scale-95">
+            <!-- Yon `input type="date"` pa aksepte `placeholder`: san yon
+                 etikèt ki parèt, chan an se yon bwat gri vid ki pa di anyen. -->
+            <p class="font-label text-[11px] font-bold text-on-surface-variant" style="text-transform:uppercase;letter-spacing:.06em">Mete dat ekspirasyon (opsyonèl)</p>
+            <input id="hsEnds" type="date" class="si" aria-label="Mete dat ekspirasyon (opsyonèl)"/>
+            <p class="font-body text-[11px] text-on-surface-variant" style="margin-top:-4px">Kite l vid si banyè a pa gen dat fen. Apre dat sa a, banyè a sispann parèt pou kont li.</p>
+            <button onclick="submitHeroSlide()" id="hsSaveBtn" class="w-full py-3 rounded-xl cta font-label font-bold text-sm active:scale-95">
                 Anrejistre banyè a
             </button>
         </div>
-        <div id="hsList" class="mt-4 space-y-2"></div>
+
+        <!-- ── Imaj kat « Dekouvri Ekomat » ──
+             Kat mak la pa yon liy nan `hero_slides`: tèks li ak bouton li
+             chanje selon si moun nan se yon achtè oswa yon vandè. Se sèlman
+             imaj li ki fiks, kidonk li viv nan `app_settings` (yon sèl liy,
+             ekriti admin sèlman), pa nan lis banyè yo. -->
+        <div class="mt-6 pt-5" style="border-top:1px solid rgba(28,28,25,.09)">
+            <p class="font-label text-[11px] font-bold text-on-surface-variant" style="text-transform:uppercase;letter-spacing:.06em">Imaj kat « Dekouvri Ekomat »</p>
+            <p class="font-body text-[11px] text-on-surface-variant mt-1 mb-3">Premye kat la, sa ki di bonjou a. Tèks li ak bouton li rete otomatik, se imaj la sèlman w ap chanje.</p>
+            <div class="ekf-hero" id="hsBrandPreview" style="margin-bottom:10px">
+                <div class="ekf-track" id="hsBrandTrack"></div>
+                <svg class="ekf-wave" viewBox="0 0 172 31" aria-hidden="true">
+                    <path d="M0,31 L0,30 C34,30 52,5 86,5 C120,5 138,30 172,30 L172,31 Z"/>
+                </svg>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="pickHeroImage('hsBrand')" id="hsBrandImgBtn"
+                    class="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl amb active:scale-[.99]"
+                    style="background:rgba(0,102,111,.08);color:#00666f">
+                    <span class="material-symbols-outlined fi" style="font-size:16px">image</span>
+                    <span class="font-label text-sm font-bold" id="hsBrandImgTxt">Chwazi imaj la</span>
+                </button>
+                <button onclick="clearHeroImage('hsBrand')" id="hsBrandImgClr"
+                    class="hidden w-11 rounded-xl flex items-center justify-center ekv-del" aria-label="Retire imaj la">
+                    <span class="material-symbols-outlined" style="font-size:18px">close</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="hsList" class="mt-6 space-y-2"></div>
     </div>
 
     <!-- ══ FÈY LEGAL : Kondisyon & Konfidansyalite ══ -->
@@ -5256,6 +5316,10 @@
                 i.textContent = "admin_panel_settings"; i.style.color = "#97422b";
                 t.style.color = "#97422b"; t.textContent = "Kont Admin · Ou gen aksè konplè ak panel la";
                 b.classList.remove("hidden");
+                // Mesaj admin nan se yon rapèl, pa yon avètisman: li disparèt
+                // pou kont li menm jan ak kat « Byenveni » a (menm 14 s).
+                clearTimeout(window._authBannerTimer);
+                window._authBannerTimer = setTimeout(() => b.classList.add("hidden"), 14000);
             } else if (A.user.verifiedSeller) {
                 b.style.background = "rgba(0,102,111,.07)";
                 i.textContent = "verified"; i.style.color = "#00666f";
@@ -14398,7 +14462,10 @@
 
         // ─ Imaj banyè: menm bucket `Avatar` ki deja piblik, sou prefiks uid
         //   admin an, konsa nou pa bezwen ni nouvo bucket ni nouvo policy. ─
-        const HERO_IMG = { hs: null };
+        // `hs` se imaj banyè k ap ekri a. `hsBrand` se imaj fiks kat
+        // « Dekouvri Ekomat » la: li anrejistre TOUSWIT nan `app_settings`,
+        // paske li pa gen okenn fòm pou soumèt dèyè l.
+        const HERO_IMG = { hs: null, hsBrand: null };
 
         function pickHeroImage(kind) {
             const input = document.createElement('input');
@@ -14421,23 +14488,77 @@
                     return;
                 }
                 const { data } = db.storage.from('Avatar').getPublicUrl(path);
-                HERO_IMG[kind] = data?.publicUrl || null;
-                if (btn) btn.textContent = HERO_IMG[kind] ? 'Imaj chwazi ✓' : 'Chwazi imaj la';
-                document.getElementById(kind + 'ImgClr')?.classList.remove('hidden');
-                if (kind === 'hs') renderHeroPreview();
+                setHeroImage(kind, data?.publicUrl || null);
+                if (kind === 'hsBrand') await saveHeroBrandImage();
             };
             input.click();
         }
         window.pickHeroImage = pickHeroImage;
 
-        function clearHeroImage(kind) {
-            HERO_IMG[kind] = null;
+        function setHeroImage(kind, url) {
+            HERO_IMG[kind] = url;
             const btn = document.getElementById(kind + 'ImgTxt');
-            if (btn) btn.textContent = 'Chwazi imaj la';
-            document.getElementById(kind + 'ImgClr')?.classList.add('hidden');
+            if (btn) btn.textContent = url ? 'Imaj chwazi ✓' : 'Chwazi imaj la';
+            document.getElementById(kind + 'ImgClr')?.classList.toggle('hidden', !url);
             if (kind === 'hs') renderHeroPreview();
+            if (kind === 'hsBrand') renderHeroBrandPreview();
+        }
+
+        async function clearHeroImage(kind) {
+            setHeroImage(kind, null);
+            if (kind === 'hsBrand') await saveHeroBrandImage();
         }
         window.clearHeroImage = clearHeroImage;
+
+        // Imaj kat mak la viv nan `app_settings` (yon sèl liy, id = 1), pa nan
+        // `hero_slides`: se pa yon banyè, se yon paramèt aplikasyon an.
+        // Kache lokal la se pou premye penti a: san li, kat mak la ta parèt
+        // yon fwa SAN imaj epi yon dezyèm fwa avè l, chak fwa app la louvri.
+        const HERO_BRAND_KEY = 'ekomat_hero_brand_img';
+        let HERO_BRAND_IMG = (() => {
+            try { return localStorage.getItem(HERO_BRAND_KEY) || null; } catch (_) { return null; }
+        })();
+
+        async function loadHeroBrandImage() {
+            if (!db) return;
+            // RPC epi pa yon `select` sou `app_settings`: politik lekti tab la
+            // egzije yon sesyon, epi `enterGuestMode` pa louvri okenn. Yon
+            // vizitè ki pa konekte ta wè kat mak la SAN imaj la. Fonksyon an
+            // ekspoze sèlman kolòn imaj la, pa rès tab la.
+            const { data, error } = await db.rpc('hero_brand_image');
+            // Degrade an silans: si migrasyon an poko sou pwodiksyon, kat mak
+            // la rete jan l te ye a epi feed la pa kase.
+            if (error) { console.warn('[hero brand img]', error.message); return; }
+            HERO_BRAND_IMG = data || null;
+            try {
+                if (HERO_BRAND_IMG) localStorage.setItem(HERO_BRAND_KEY, HERO_BRAND_IMG);
+                else localStorage.removeItem(HERO_BRAND_KEY);
+            } catch (_) { /* mòd prive: kache a opsyonèl */ }
+        }
+
+        async function saveHeroBrandImage() {
+            if (!db || A.user?.role !== 'admin') return;
+            const { error } = await db.from('app_settings')
+                .update({ hero_brand_image_url: HERO_IMG.hsBrand, updated_by: A.user.uid })
+                .eq('id', 1);
+            if (error) { toast('Nou pa t ka anrejistre imaj la'); return; }
+            HERO_BRAND_IMG = HERO_IMG.hsBrand;
+            toast(HERO_BRAND_IMG ? 'Imaj kat mak la anrejistre' : 'Imaj kat mak la retire');
+            if (typeof renderFeedHero === 'function') renderFeedHero();
+        }
+
+        // Apèsi kat mak la pase pa MENM `heroSlideHTML` ak feed la, konsa sa
+        // admin nan wè se egzakteman sa moun yo pral wè.
+        function renderHeroBrandPreview() {
+            const track = document.getElementById('hsBrandTrack');
+            if (!track) return;
+            const s = heroBrandSlide();
+            // Bouton an montre, men li pa navige: se yon apèsi, pa yon paj.
+            track.innerHTML = heroSlideHTML({
+                ...s, img: HERO_IMG.hsBrand,
+                cta: s.cta ? { label: s.cta.label, action: 'void 0' } : null,
+            }, 0);
+        }
 
         async function submitAnnouncement() {
             const title = document.getElementById('annTitle')?.value.trim();
@@ -14486,10 +14607,16 @@
         // Koulè degrade a: `auto` kite pozisyon an nan kawousèl la deside
         // (konpòtman istorik la), lòt yo fikse l pou admin nan konnen davans
         // ki koulè banyè a ap genyen.
+        // `tint` se koulè VWAL la sou yon imaj. Se li ki konte plis pase `bg`:
+        // depi yon banyè gen yon imaj, degrade a disparèt nèt anba imaj la epi
+        // se vwal la sèlman moun nan wè. `teal` ak `deep` te pataje EGZAKTEMAN
+        // menm vwal la (0,64,74) epi menm koulè #00666f nan degrade a, kidonk
+        // de banyè ak imaj yo te san diferans. Chak tèm gen pwòp vwal li
+        // kounye a, epi degrade yo separe pi lwen youn de lòt.
         const HERO_THEMES = {
-            teal: { bg: 'linear-gradient(135deg,#00666f,#00818c)', tint: '0,64,74' },
-            deep: { bg: 'linear-gradient(135deg,#00404a,#00666f)', tint: '0,64,74' },
-            rust: { bg: 'linear-gradient(135deg,#97422b,#b1573a)', tint: '151,66,43' },
+            teal: { bg: 'linear-gradient(135deg,#00818c,#00b0c0)', tint: '0,102,111' },
+            deep: { bg: 'linear-gradient(135deg,#00222a,#00545f)', tint: '0,25,31' },
+            rust: { bg: 'linear-gradient(135deg,#97422b,#c56a3f)', tint: '132,52,32' },
         };
         let HERO_THEME = 'auto';
 
@@ -14502,11 +14629,23 @@
         }
         window.pickHeroTheme = pickHeroTheme;
 
-        function openHeroSheet() {
+        // Pastiy yo pentire depi `HERO_THEMES`: yon sèl sous verite pou koulè a,
+        // konsa pastiy la pa ka janm montre yon koulè banyè a pa genyen.
+        function paintHeroSwatches() {
+            document.querySelectorAll('#hsThemes .ekh-sw').forEach(b => {
+                const th = HERO_THEMES[b.dataset.th];
+                if (th) b.style.background = th.bg;
+            });
+        }
+
+        async function openHeroSheet() {
             if (A.user?.role !== 'admin') { toast('Admin sèlman'); return; }
             openSheet('heroSheet');
-            renderHeroPreview();
+            paintHeroSwatches();
+            cancelHeroEdit();
             loadHeroSlides();
+            await loadHeroBrandImage();
+            setHeroImage('hsBrand', HERO_BRAND_IMG);
         }
         window.openHeroSheet = openHeroSheet;
 
@@ -14593,7 +14732,7 @@
             if (error) { console.warn('[hero_slides]', error.message); el.innerHTML = ''; return; }
             HERO_LIST = data || [];
             const last = HERO_LIST.length - 1;
-            el.innerHTML = HERO_LIST.map((s, i) => `
+            el.innerHTML = heroSlotsHTML() + HERO_LIST.map((s, i) => `
         <div class="flex items-center gap-3 p-3 rounded-xl bg-surface-container-lowest amb">
           <div class="flex flex-col" style="gap:2px">
             <button onclick="moveHeroSlide('${jsAttr(s.id)}',-1)" class="ekh-ord" aria-label="Monte" ${i === 0 ? 'disabled' : ''}>
@@ -14605,14 +14744,95 @@
           </div>
           ${s.image_url ? `<img src="${esc(s.image_url)}" alt="" style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex:0 0 auto" onerror="this.remove()"/>` : ''}
           <div class="flex-1 min-w-0">
-            <p class="font-headline font-bold text-sm text-on-surface truncate">${esc(s.title)}</p>
+            <p class="font-headline font-bold text-sm text-on-surface truncate">${esc(String(s.title).replace(/\s*\n\s*/g, ' '))}</p>
             <p class="font-label text-[11px] text-on-surface-variant">${i + 1} · ${esc(s.audience)}${s.ends_at ? ' · jiska ' + new Date(s.ends_at).toLocaleDateString('fr') : ''}${s.active ? '' : ' · pa aktif'}</p>
           </div>
+          <button onclick="editHeroSlide('${jsAttr(s.id)}')" class="w-8 h-8 rounded-full flex items-center justify-center ekh-edit" aria-label="Modifye">
+            <span class="material-symbols-outlined" style="font-size:16px">edit</span>
+          </button>
           <button onclick="deleteHeroSlide('${jsAttr(s.id)}')" class="w-8 h-8 rounded-full flex items-center justify-center ekv-del" aria-label="Efase">
             <span class="material-symbols-outlined" style="font-size:17px">delete</span>
           </button>
         </div>`).join('') || '<p class="font-body text-xs text-on-surface-variant">Pa gen banyè pou kounye a.</p>';
         }
+
+        // Konte plas yo. San sa, admin nan ta ka kreye yon 6yèm banyè achtè
+        // epi pèsonn pa t ap janm wè l, an silans. Yon banyè « tout moun »
+        // pran yon plas nan de bò yo, se sa ki fè 5 + 5 = 10 pou admin nan.
+        function heroSlotsHTML() {
+            const now = new Date().toISOString();
+            const live = HERO_LIST.filter(s => s.active
+                && (!s.starts_at || s.starts_at <= now) && (!s.ends_at || s.ends_at >= now));
+            const n = a => live.filter(s => s.audience === 'all' || s.audience === a).length;
+            const buyers = n('buyers'), sellers = n('sellers');
+            const pill = (label, used, max) => {
+                const over = used > max;
+                const c = over ? '#8d3b26' : '#00666f';
+                const bg = over ? 'rgba(151,66,43,.1)' : 'rgba(0,102,111,.08)';
+                return `<span class="font-label text-[11px] font-bold" style="padding:4px 9px;border-radius:999px;background:${bg};color:${c}">${label} ${used}/${max}</span>`;
+            };
+            const over = buyers > HERO_MAX || sellers > HERO_MAX;
+            return `<div class="flex items-center gap-2 mb-3" style="flex-wrap:wrap">
+          ${pill('Achtè', buyers, HERO_MAX)}${pill('Vandè', sellers, HERO_MAX)}${pill('Admin', buyers + sellers, HERO_MAX_ADMIN)}
+        </div>${over ? `<p class="font-body text-[11px] mb-3" style="color:#8d3b26">Gen banyè ki depase plas yo: se sèlman premye ${HERO_MAX} yo nan lòd la moun yo ap wè.</p>` : ''}`;
+        }
+
+        // ── Modifye yon banyè ki deja pibliye ──
+        // Anvan sa, sèl fason pou chanje yon banyè se te efase l epi refè l,
+        // sa ki te fè pèdi imaj la chak fwa (desizyon Thrasher 2026-07-26).
+        let HERO_EDIT_ID = null;
+
+        function editHeroSlide(id) {
+            const s = HERO_LIST.find(x => x.id === id);
+            if (!s) return;
+            HERO_EDIT_ID = id;
+            const set = (k, v) => { const e = document.getElementById(k); if (e) e.value = v || ''; };
+            set('hsTitle', s.title);
+            set('hsSub', s.subtitle);
+            set('hsBadge', s.badge);
+            set('hsCtaLabel', s.cta_label);
+            set('hsAudience', s.audience || 'all');
+            set('hsCtaAction', s.cta_action || 'shop');
+            // `ends_at` se yon istan UTC; chan `date` la vle `AAAA-MM-JJ` LOKAL.
+            // Sèvi ak dat lokal la pou yon 31/12 pa vin 30/12 nan chan an.
+            set('hsEnds', s.ends_at ? _heroDateInput(s.ends_at) : '');
+            // Destinasyon an deja chwazi: sijesyon otomatik la pa dwe kraze l.
+            HERO_CTA_TOUCHED = true;
+            setHeroImage('hs', s.image_url || null);
+            pickHeroTheme(s.theme || 'auto');
+            document.querySelectorAll('#hsCtaChips .ekh-chip').forEach(c => c.classList.remove('on'));
+            const bar = document.getElementById('hsEditBar');
+            const txt = document.getElementById('hsEditTxt');
+            const btn = document.getElementById('hsSaveBtn');
+            if (txt) txt.textContent = 'W ap modifye: ' + String(s.title).replace(/\s*\n\s*/g, ' ');
+            if (bar) bar.classList.remove('hidden');
+            if (btn) btn.textContent = 'Anrejistre chanjman yo';
+            document.getElementById('hsPreview')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        window.editHeroSlide = editHeroSlide;
+
+        function _heroDateInput(iso) {
+            const d = new Date(iso);
+            if (isNaN(d)) return '';
+            const p = n => String(n).padStart(2, '0');
+            return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+        }
+
+        function cancelHeroEdit() {
+            HERO_EDIT_ID = null;
+            ['hsTitle', 'hsSub', 'hsBadge', 'hsCtaLabel', 'hsEnds'].forEach(id => {
+                const e = document.getElementById(id); if (e) e.value = '';
+            });
+            const aud = document.getElementById('hsAudience'); if (aud) aud.value = 'all';
+            HERO_CTA_TOUCHED = false;
+            document.querySelectorAll('#hsCtaChips .ekh-chip').forEach(c => c.classList.remove('on'));
+            setHeroImage('hs', null);
+            pickHeroTheme('auto');
+            document.getElementById('hsEditBar')?.classList.add('hidden');
+            const btn = document.getElementById('hsSaveBtn');
+            if (btn) btn.textContent = 'Anrejistre banyè a';
+        }
+        window.cancelHeroEdit = cancelHeroEdit;
 
         // Tout banyè te gen `sort = 0`, kidonk yon senp echanj de valè pa t ap
         // chanje anyen. Nou renimewote tout lis la (0, 1, 2…) apre chak
@@ -14641,7 +14861,7 @@
             if (!db || !A.user?.uid) return;
             const ctaLabel = document.getElementById('hsCtaLabel')?.value.trim() || null;
             const ends = document.getElementById('hsEnds')?.value;
-            const { error } = await db.from('hero_slides').insert({
+            const row = {
                 title,
                 subtitle: document.getElementById('hsSub')?.value.trim() || null,
                 badge: document.getElementById('hsBadge')?.value.trim() || null,
@@ -14651,17 +14871,15 @@
                 cta_action: ctaLabel ? (document.getElementById('hsCtaAction')?.value || 'shop') : null,
                 audience: document.getElementById('hsAudience')?.value || 'all',
                 ends_at: ends ? new Date(ends + 'T23:59:59').toISOString() : null,
-                created_by: A.user.uid,
-            });
+            };
+            // Modifikasyon an kenbe `sort` ak `created_by`: lòd la pa dwe sote
+            // paske admin nan korije yon fot nan yon tit.
+            const { error } = HERO_EDIT_ID
+                ? await db.from('hero_slides').update(row).eq('id', HERO_EDIT_ID)
+                : await db.from('hero_slides').insert({ ...row, created_by: A.user.uid });
             if (error) { toast('Erè: ' + error.message); return; }
-            ['hsTitle', 'hsSub', 'hsBadge', 'hsCtaLabel', 'hsEnds'].forEach(id => {
-                const e = document.getElementById(id); if (e) e.value = '';
-            });
-            HERO_CTA_TOUCHED = false;
-            document.querySelectorAll('#hsCtaChips .ekh-chip').forEach(c => c.classList.remove('on'));
-            clearHeroImage('hs');
-            pickHeroTheme('auto');
-            toast('Banyè anrejistre');
+            toast(HERO_EDIT_ID ? 'Banyè a modifye' : 'Banyè anrejistre');
+            cancelHeroEdit();
             loadHeroSlides();
             if (typeof renderFeedHero === 'function') renderFeedHero();
         }
@@ -14671,6 +14889,9 @@
             if (!db) return;
             const { error } = await db.from('hero_slides').delete().eq('id', id);
             if (error) { toast('Nou pa t ka efase banyè a'); return; }
+            // Si se banyè k ap modifye a ki sot efase, fòm nan pa dwe rete
+            // pwente sou yon liy ki pa egziste ankò.
+            if (HERO_EDIT_ID === id) cancelHeroEdit();
             loadHeroSlides();
             if (typeof renderFeedHero === 'function') renderFeedHero();
         }
@@ -14701,9 +14922,20 @@
         //  Tout se eleman efemè: yo parèt lè yo egziste, yo disparèt lè yo fini.
         //  Pa gen slide otomatik sou yon pwodwi: se admin nan ki mete chak
         //  imaj li menm (desizyon Thrasher 2026-07-26).
-        //  Limit di a 5: de sous ki alimante menm kawousèl la ka anfle vit.
+        //  Konbyen banyè admin yon moun wè (desizyon Thrasher 2026-07-26):
+        //    achtè  → 5      vandè → 5      admin → 10
+        //  Yon banyè « tout moun » pran yon plas nan de bò yo: konsa ni achtè
+        //  ni vandè pa janm wè plis pase 5, epi admin nan, ki wè tou de bò yo,
+        //  wè 10. Kat mak la ak anons yo pa konte nan chif sa a: se PLAS POU
+        //  KREYE banyè admin nan genyen, pa gwosè kawousèl la.
         // ══════════════════════════════════════════════════════════
         const HERO_MAX = 5;
+        const HERO_MAX_ADMIN = 10;
+        // Anons yo: 2 sèlman. Kawousèl la defile 4 s pa kat; kat mak la plis 5
+        // banyè fè deja 6 kat, sa vle di 24 s pou yon tou konplè. Yon anons nan
+        // pozisyon 8 pa t ap janm wè, kidonk ogmante chif sa a se sèlman
+        // alonje yon bouk pèsonn pa fini (desizyon Thrasher 2026-07-26).
+        const HERO_ANN_MAX = 2;
         const HERO_BG = [
             'linear-gradient(135deg,#00666f,#00818c)',
             'linear-gradient(135deg,#97422b,#b1573a)',
@@ -14720,7 +14952,9 @@
                 sub: isSeller
                     ? 'Mete pwodwi ou yo devan tout Ayiti, ak peman ki pwoteje.'
                     : 'Achte an sekirite: lajan ou bloke jiskaske ou resevwa bagay la.',
-                img: null,
+                // Imaj la se yon paramèt admin (`app_settings`), pa yon banyè:
+                // tèks la ak bouton an rete otomatik selon wòl moun nan.
+                img: HERO_BRAND_IMG,
                 cta: isSeller
                     ? { label: 'Vann kounye a', action: "navTo('pub')" }
                     : { label: 'Achte kounye a', action: 'scrollToFeedGrid()' },
@@ -14733,49 +14967,64 @@
         }
         window.scrollToFeedGrid = scrollToFeedGrid;
 
-        async function renderFeedHero() {
+        function paintFeedHero(slides) {
             const track = document.getElementById('feedHeroTrack');
             const dots = document.getElementById('feedHeroDots');
             if (!track) return;
-            const slides = [heroBrandSlide()];
-            const role = A.user?.role === 'seller' || A.user?.role === 'admin' ? 'sellers' : 'buyers';
-            const audFilter = 'audience.eq.all,audience.eq.' + role;
-
-            if (db) {
-                const nowIso = new Date().toISOString();
-                // Tou de sous yo degrade an silans: si migrasyon an poko sou
-                // pwodiksyon, mak la rete epi paj la pa kase.
-                const [hsRes, annRes] = await Promise.all([
-                    db.from('hero_slides').select('*').eq('active', true).or(audFilter)
-                        .order('sort').order('created_at').limit(HERO_MAX).then(r => r, () => ({ data: [] })),
-                    db.from('announcements').select('*').eq('active', true).or(audFilter)
-                        .order('created_at', { ascending: false }).limit(HERO_MAX).then(r => r, () => ({ data: [] })),
-                ]);
-                const inWindow = r => (!r.starts_at || r.starts_at <= nowIso) && (!r.ends_at || r.ends_at >= nowIso);
-
-                (hsRes.data || []).filter(inWindow).forEach(s => slides.push({
-                    badge: s.badge || 'Ekomat', badgeIcon: 'local_offer',
-                    title: s.title, sub: s.subtitle, img: s.image_url, theme: s.theme,
-                    cta: s.cta_label ? { label: s.cta_label, action: heroAction(s.cta_action) } : null,
-                }));
-
-                (annRes.data || []).filter(inWindow).forEach(a => slides.push({
-                    badge: 'Mesaj Ekomat', badgeIcon: 'campaign',
-                    title: a.title, sub: a.body, img: a.image_url || null,
-                    cta: a.cta_label ? { label: a.cta_label, action: heroAction(a.cta_action) } : null,
-                }));
-
-            }
-
-            const shown = slides.slice(0, HERO_MAX);
-            track.innerHTML = shown.map((s, i) => heroSlideHTML(s, i)).join('');
+            track.innerHTML = slides.map((s, i) => heroSlideHTML(s, i)).join('');
             if (dots) {
-                dots.innerHTML = shown.length > 1
-                    ? shown.map((_, i) => `<button class="ekf-dot${i === 0 ? ' on' : ''}" aria-label="Slide ${i + 1}" onclick="heroGoTo(${i})"></button>`).join('')
+                dots.innerHTML = slides.length > 1
+                    ? slides.map((_, i) => `<button class="ekf-dot${i === 0 ? ' on' : ''}" aria-label="Slide ${i + 1}" onclick="heroGoTo(${i})"></button>`).join('')
                     : '';
             }
             track.onscroll = heroSyncDots;
-            heroAutoplay(shown.length);
+            heroAutoplay(slides.length);
+        }
+
+        async function renderFeedHero() {
+            const track = document.getElementById('feedHeroTrack');
+            if (!track) return;
+            const isAdmin = A.user?.role === 'admin';
+
+            // Premye penti TOUSWIT, san tann Supabase: kat mak la pa depann
+            // d okenn rekèt. Anvan sa, kawousèl la te rete vid pandan tout
+            // rekèt la, epi kat la te monte lontan apre kat « Byenveni » a.
+            paintFeedHero([heroBrandSlide()]);
+            if (!db) return;
+
+            const cap = isAdmin ? HERO_MAX_ADMIN : HERO_MAX;
+            const role = A.user?.role === 'seller' ? 'sellers' : 'buyers';
+            // Admin nan wè TOUT siblaj yo (achtè kou vandè), se sa ki fè 10 la.
+            const audFilter = isAdmin ? null : 'audience.eq.all,audience.eq.' + role;
+            const aud = q => audFilter ? q.or(audFilter) : q;
+
+            const nowIso = new Date().toISOString();
+            // Tou de sous yo degrade an silans: si migrasyon an poko sou
+            // pwodiksyon, mak la rete epi paj la pa kase.
+            const [, hsRes, annRes] = await Promise.all([
+                loadHeroBrandImage().then(() => null, () => null),
+                aud(db.from('hero_slides').select('*').eq('active', true))
+                    .order('sort').order('created_at').limit(cap).then(r => r, () => ({ data: [] })),
+                aud(db.from('announcements').select('*').eq('active', true))
+                    .order('created_at', { ascending: false }).limit(HERO_ANN_MAX).then(r => r, () => ({ data: [] })),
+            ]);
+            const inWindow = r => (!r.starts_at || r.starts_at <= nowIso) && (!r.ends_at || r.ends_at >= nowIso);
+
+            const slides = [heroBrandSlide()];
+
+            (hsRes.data || []).filter(inWindow).forEach(s => slides.push({
+                badge: s.badge || 'Ekomat', badgeIcon: 'local_offer',
+                title: s.title, sub: s.subtitle, img: s.image_url, theme: s.theme,
+                cta: s.cta_label ? { label: s.cta_label, action: heroAction(s.cta_action) } : null,
+            }));
+
+            (annRes.data || []).filter(inWindow).forEach(a => slides.push({
+                badge: 'Mesaj Ekomat', badgeIcon: 'campaign',
+                title: a.title, sub: a.body, img: a.image_url || null,
+                cta: a.cta_label ? { label: a.cta_label, action: heroAction(a.cta_action) } : null,
+            }));
+
+            paintFeedHero(slides);
         }
         window.renderFeedHero = renderFeedHero;
 
