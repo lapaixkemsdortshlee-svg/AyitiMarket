@@ -62,7 +62,10 @@ have_mcp agentmemory || { LOG "wire agentmemory"; agentmemory connect claude-cod
 am_up(){ [ "$(curl -sS -m 2 -o /dev/null -w '%{http_code}' http://localhost:3111/ 2>/dev/null)" != "000" ]; }
 if am_up; then LOG "agentmemory already up (:3111)"; else
   LOG "start agentmemory worker"
-  setsid nohup agentmemory --tools all </dev/null >"$HOME/.agentmemory/worker.log" 2>&1 &
+  # `cd "$HOME"` obligatwa: motè a ekri yon dosye `data/state_store.db`
+  # nan repètwa kouran an. Lanse depi depo a, li kreye `data/` NAN DEPO a,
+  # epi yon `git add -A` ta anbake l (rive 2026-07-26).
+  ( cd "$HOME" && setsid nohup agentmemory --tools all </dev/null >"$HOME/.agentmemory/worker.log" 2>&1 & )
   for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do am_up && break; sleep 1; done
   am_up && LOG "agentmemory up (:3111)" || LOG "agentmemory worker did not come up"
 fi
