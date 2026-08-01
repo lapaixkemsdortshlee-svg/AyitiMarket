@@ -1,0 +1,637 @@
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --rust:#97422B; --rust-lt:#B65A41; --rust-dk:#5C2819;
+  --teal:#00666F; --teal-lt:#00818C; --teal-br:#5AD7E6;
+  --cream:#FCF9F4; --s-low:#F6F3EE; --s:#F0EDE8; --s-hi:#EBE8E3; --s-max:#E5E2DD;
+  --ink:#1C1C19; --sub:#3D4949; --line:#BCC9C8;
+  --ok:#059669; --ok-dk:#065F46; --err:#DC2626; --err-dk:#991B1B; --warn:#D97706;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+.mk{font-family:'Manrope',sans-serif;background:var(--s);padding:16px;color:var(--ink)}
+.mk h1,.mk h2,.mk h3,.mk .hl{font-family:'Plus Jakarta Sans',sans-serif}
+.ms{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;line-height:1;
+  -webkit-font-smoothing:antialiased;font-variation-settings:'FILL' 0}
+.ms.fi{font-variation-settings:'FILL' 1}
+
+.note{max-width:1400px;margin:0 auto 12px;font-size:12px;color:var(--sub);
+  background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;line-height:1.5}
+.note b{color:var(--ink)}
+
+.app{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:240px 1fr 300px;
+  height:760px;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(28,28,25,.16);border:1px solid var(--line)}
+
+/* ---------- SIDEBAR ---------- */
+.sb{background:var(--rust-dk);display:flex;flex-direction:column;padding:16px 12px}
+.logo{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
+.logo .mark{width:32px;height:32px;border-radius:9px;background:var(--rust);
+  display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans';
+  font-weight:800;color:var(--cream);font-size:17px;position:relative}
+.logo .mark::after{content:'';position:absolute;right:-3px;bottom:6px;width:11px;height:3px;
+  border-radius:2px;background:var(--teal-br)}
+.logo .t{font-family:'Plus Jakarta Sans';font-weight:800;color:var(--cream);font-size:14px;letter-spacing:-.2px}
+.logo .s{font-size:9.5px;color:rgba(252,249,244,.5);letter-spacing:.14em;font-weight:700;text-transform:uppercase}
+
+.nv{display:flex;flex-direction:column;gap:1px;flex:1}
+.nvi{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:9px;cursor:pointer;
+  color:rgba(252,249,244,.66);font-size:13px;font-weight:600;border:0;background:none;
+  width:100%;text-align:left;font-family:'Manrope';transition:background .12s}
+.nvi:hover{background:rgba(252,249,244,.07);color:var(--cream)}
+.nvi.on{background:var(--rust-lt);color:var(--cream)}
+.nvi .ms{font-size:19px}
+.nvi .bg{margin-left:auto;background:var(--err);color:#fff;font-size:10px;font-weight:800;
+  min-width:19px;height:19px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.nvi.on .bg{background:rgba(252,249,244,.24)}
+.sep{height:1px;background:rgba(252,249,244,.10);margin:9px 4px}
+
+.me{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:10px;background:rgba(252,249,244,.06)}
+.me .av{width:30px;height:30px;border-radius:50%;background:var(--teal);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;font-family:'Plus Jakarta Sans'}
+.me .n{color:var(--cream);font-size:12.5px;font-weight:700}
+.me .r{color:rgba(252,249,244,.5);font-size:10px;font-weight:600}
+
+/* ---------- MAIN ---------- */
+.mn{background:var(--cream);display:flex;flex-direction:column;overflow:hidden}
+.tb{height:56px;flex-shrink:0;border-bottom:1px solid var(--line);display:flex;align-items:center;
+  gap:14px;padding:0 18px;background:#fff}
+.crumb{font-size:12.5px;color:var(--sub);font-weight:600}
+.crumb b{color:var(--ink);font-weight:700}
+.srch{flex:1;max-width:340px;display:flex;align-items:center;gap:8px;background:var(--s-low);
+  border:1px solid var(--line);border-radius:9px;padding:7px 11px;color:var(--sub);font-size:12.5px}
+.srch .ms{font-size:16px}
+.kbd{margin-left:auto;font-size:9.5px;background:#fff;border:1px solid var(--line);
+  border-radius:4px;padding:2px 5px;font-weight:700;color:var(--sub)}
+.tbr{margin-left:auto;display:flex;align-items:center;gap:4px}
+.ib{width:33px;height:33px;border-radius:8px;border:0;background:none;cursor:pointer;color:var(--sub);
+  display:flex;align-items:center;justify-content:center;position:relative}
+.ib:hover{background:var(--s-low)}
+.ib .ms{font-size:19px}
+.dot{position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--err);border:1.5px solid #fff}
+
+.wk{flex:1;overflow-y:auto;padding:18px}
+.wk::-webkit-scrollbar{width:7px}
+.wk::-webkit-scrollbar-thumb{background:var(--s-max);border-radius:4px}
+.pg{display:none}.pg.on{display:block}
+
+.h2{font-family:'Plus Jakarta Sans';font-size:19px;font-weight:800;letter-spacing:-.3px;margin-bottom:2px}
+.sublead{font-size:12.5px;color:var(--sub);margin-bottom:16px}
+.lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--sub);margin-bottom:9px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+.kpi.hero{background:linear-gradient(135deg,#97422b,#b65a41);border-color:transparent}
+.kpi .k{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--sub);margin-bottom:6px}
+.kpi.hero .k{color:rgba(255,255,255,.72)}
+.kpi .v{font-family:'Plus Jakarta Sans';font-size:23px;font-weight:800;letter-spacing:-.6px;line-height:1.1}
+.kpi.hero .v{color:#fff}
+.kpi .d{font-size:11px;font-weight:700;margin-top:5px;display:flex;align-items:center;gap:3px}
+.kpi .d .ms{font-size:13px}
+.up{color:var(--ok-dk)}.dn{color:var(--err-dk)}
+.kpi.hero .d{color:rgba(255,255,255,.85)}
+
+.row2{display:grid;grid-template-columns:1.55fr 1fr;gap:12px;margin-bottom:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ch .t{font-family:'Plus Jakarta Sans';font-size:13.5px;font-weight:800}
+.pill{font-size:10px;font-weight:700;color:var(--sub);background:var(--s-low);
+  border:1px solid var(--line);border-radius:20px;padding:3px 9px}
+
+.lg{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.lg .li{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--sub);font-weight:600}
+.lg .sw{width:9px;height:9px;border-radius:3px}
+.lg .amt{margin-left:auto;font-weight:800;color:var(--ink);font-family:'Plus Jakarta Sans'}
+
+table{width:100%;border-collapse:collapse}
+th{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--sub);
+  text-align:left;padding:0 8px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{font-size:12.5px;padding:10px 8px;border-bottom:1px solid var(--s-hi);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--s-low)}
+.strong{font-weight:700}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--sub)}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;
+  border-radius:20px;padding:3px 9px;white-space:nowrap}
+.t-ok{background:#E7F5EF;color:var(--ok-dk)}
+.t-wa{background:#FDF1DF;color:#92400E}
+.t-er{background:#FCE9E9;color:var(--err-dk)}
+.t-nu{background:var(--s);color:var(--sub)}
+.age{font-size:11px;font-weight:700}
+.age.bad{color:var(--err-dk)}
+.btn{border:0;border-radius:8px;padding:6px 11px;font-size:11px;font-weight:800;cursor:pointer;
+  font-family:'Manrope';white-space:nowrap}
+.b-teal{background:var(--teal);color:#fff}
+.b-ok{background:var(--ok-dk);color:#fff}
+.b-gh{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.cb{width:14px;height:14px;border:1.5px solid var(--line);border-radius:4px;display:block}
+
+.fbar{display:flex;gap:7px;margin-bottom:13px;flex-wrap:wrap}
+.f{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;cursor:pointer;
+  font-family:'Manrope';font-size:11.5px;font-weight:700;color:var(--sub);display:flex;align-items:center;gap:6px}
+.f:hover{border-color:var(--rust-lt)}
+.f.on{background:var(--rust);border-color:var(--rust);color:#fff}
+.f .c{font-size:10px;font-weight:800;background:var(--s);color:var(--ink);border-radius:20px;padding:1px 6px}
+.f.on .c{background:rgba(255,255,255,.24);color:#fff}
+
+.bars{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:6px}
+.bars .b{flex:1;background:var(--teal);border-radius:4px 4px 0 0;position:relative;opacity:.85}
+.bars .b:last-child{background:var(--rust)}
+.xax{display:flex;gap:6px;margin-top:6px}
+.xax span{flex:1;text-align:center;font-size:9px;color:var(--sub);font-weight:700}
+
+.top{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--s-hi)}
+.top:last-child{border-bottom:0}
+.top .rk{width:20px;height:20px;border-radius:6px;background:var(--s);color:var(--sub);
+  font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.top .rk.g{background:var(--rust);color:#fff}
+.top .nm{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top .sc{font-size:10.5px;color:var(--sub);font-weight:600}
+.top .vl{margin-left:auto;font-family:'Plus Jakarta Sans';font-weight:800;font-size:12.5px}
+
+.alert{display:flex;gap:11px;background:#FDF1DF;border:1px solid #F0D9A8;border-radius:11px;padding:12px 14px;margin-bottom:13px}
+.alert .ms{color:var(--warn);font-size:19px;flex-shrink:0}
+.alert .t{font-size:12.5px;font-weight:800;margin-bottom:2px}
+.alert .d{font-size:11.5px;color:var(--sub);line-height:1.45}
+
+/* ---------- RIGHT ---------- */
+.rp{background:#fff;border-left:1px solid var(--line);overflow-y:auto;padding:16px 15px}
+.rp::-webkit-scrollbar{width:7px}
+.rp::-webkit-scrollbar-thumb{background:var(--s-max);border-radius:4px}
+.qa{display:flex;flex-direction:column;gap:7px;margin-bottom:20px}
+.qab{display:flex;align-items:center;gap:9px;padding:10px 11px;border-radius:10px;cursor:pointer;
+  border:1px solid var(--line);background:var(--cream);font-family:'Manrope';font-size:12px;
+  font-weight:700;color:var(--ink);text-align:left;width:100%}
+.qab:hover{border-color:var(--rust-lt);background:#fff}
+.qab .ic{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.qab .ic .ms{font-size:15px;color:#fff}
+.qab .n{margin-left:auto;font-size:11px;font-weight:800;color:var(--sub)}
+
+.act{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--s-hi)}
+.act:last-child{border-bottom:0}
+.act .ic{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.act .ic .ms{font-size:14px;color:#fff}
+.act .tx{font-size:11.5px;line-height:1.4}
+.act .tx b{font-weight:800}
+.act .tm{font-size:10px;color:var(--sub);margin-top:2px;font-weight:600}
+
+.jr{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--s-hi)}
+.jr:last-child{border-bottom:0}
+.jr .ic{width:29px;height:29px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.jr .ic .ms{font-size:15px;color:#fff}
+.jr .m{font-size:12.5px;font-weight:700}
+.jr .why{font-size:11.5px;color:var(--sub);margin-top:3px;font-style:italic}
+.jr .mt{font-size:10.5px;color:var(--sub);margin-top:3px;font-weight:600}
+.jr .ts{margin-left:auto;font-size:10.5px;color:var(--sub);font-weight:700;white-space:nowrap}
+
+@media(max-width:1280px){
+  .app{grid-template-columns:240px 1fr;height:auto}
+  .rp{display:none}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .row2{grid-template-columns:1fr}
+}
+</style>
+
+<div class="mk">
+  <div class="note">
+    <b>Aperçu visuel, pas du code de production.</b> Couleurs, polices et libellés Kreyòl conformes à <code>BRAND.md</code>.
+    Clique les entrées de la sidebar pour voir <b>Rezime</b>, <b>Kòmand</b> et <b>Jounal</b>.
+    Les données sont fictives et servent uniquement à juger la densité et la hiérarchie.
+  </div>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sb">
+      <div class="logo">
+        <div class="mark">e</div>
+        <div>
+          <div class="t">Ekomat</div>
+          <div class="s">Admin</div>
+        </div>
+      </div>
+
+      <nav class="nv">
+        <button class="nvi on" data-p="rez"><span class="ms">dashboard</span>Rezime</button>
+        <button class="nvi" data-p="rez"><span class="ms">how_to_reg</span>Verifikasyon<span class="bg">3</span></button>
+        <button class="nvi" data-p="kmd"><span class="ms">receipt_long</span>Kòmand<span class="bg">7</span></button>
+        <button class="nvi" data-p="rez"><span class="ms">inventory_2</span>Pwodwi<span class="bg">12</span></button>
+        <button class="nvi" data-p="rez"><span class="ms">group</span>Itilizatè</button>
+        <button class="nvi" data-p="rez"><span class="ms">forum</span>Mesaj</button>
+        <button class="nvi" data-p="knt"><span class="ms">wallpaper</span>Kontni</button>
+        <div class="sep"></div>
+        <button class="nvi" data-p="rez"><span class="ms">query_stats</span>Estatistik</button>
+        <button class="nvi" data-p="rez"><span class="ms">payments</span>Finans</button>
+        <button class="nvi" data-p="jnl"><span class="ms">history</span>Jounal</button>
+        <button class="nvi" data-p="rez"><span class="ms">settings</span>Konfigirasyon</button>
+      </nav>
+
+      <div class="me">
+        <div class="av">T</div>
+        <div>
+          <div class="n">Thrasher</div>
+          <div class="r">Administratè</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="mn">
+      <div class="tb">
+        <div class="crumb">Admin / <b id="cr">Rezime</b></div>
+        <div class="srch">
+          <span class="ms">search</span>Chèche itilizatè, pwodwi, kòmand…
+          <span class="kbd">Ctrl K</span>
+        </div>
+        <div class="tbr">
+          <button class="ib"><span class="ms">dark_mode</span></button>
+          <button class="ib"><span class="ms">refresh</span></button>
+          <button class="ib"><span class="ms">notifications</span><span class="dot"></span></button>
+        </div>
+      </div>
+
+      <div class="wk">
+
+        <!-- ============ REZIME ============ -->
+        <section class="pg on" id="p-rez">
+          <div class="h2">Rezime</div>
+          <div class="sublead">Sante plafòm nan, 30 dènye jou yo</div>
+
+          <div class="kpis">
+            <div class="kpi hero">
+              <div class="k">Lajan nan escrow</div>
+              <div class="v">248 500 <span style="font-size:13px">HTG</span></div>
+              <div class="d"><span class="ms">lock</span>12 kòmand bloke</div>
+            </div>
+            <div class="kpi">
+              <div class="k">GMV total</div>
+              <div class="v">1 842 300</div>
+              <div class="d up"><span class="ms">trending_up</span>18 % vs mwa pase</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Revni Ekomat</div>
+              <div class="v">55 269</div>
+              <div class="d up"><span class="ms">trending_up</span>18 % vs mwa pase</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Kòmand aktif</div>
+              <div class="v">42</div>
+              <div class="d dn"><span class="ms">trending_down</span>4 % vs mwa pase</div>
+            </div>
+          </div>
+
+          <div class="alert">
+            <span class="ms fi">warning</span>
+            <div>
+              <div class="t">2 kòmand gen escrow bloke depi plis pase 7 jou</div>
+              <div class="d">Livrezon konfime men lajan an poko lage. Ale nan Kòmand pou w tcheke yo.</div>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="card">
+              <div class="ch">
+                <div class="t">GMV pa jou</div>
+                <span class="pill">30 jou</span>
+              </div>
+              <div class="bars">
+                <div class="b" style="height:42%"></div><div class="b" style="height:58%"></div>
+                <div class="b" style="height:35%"></div><div class="b" style="height:71%"></div>
+                <div class="b" style="height:52%"></div><div class="b" style="height:83%"></div>
+                <div class="b" style="height:64%"></div><div class="b" style="height:91%"></div>
+                <div class="b" style="height:47%"></div><div class="b" style="height:76%"></div>
+                <div class="b" style="height:88%"></div><div class="b" style="height:100%"></div>
+              </div>
+              <div class="xax">
+                <span>1</span><span>4</span><span>7</span><span>10</span><span>13</span><span>16</span>
+                <span>19</span><span>22</span><span>24</span><span>26</span><span>28</span><span>30</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="ch"><div class="t">Vant pa kategori</div></div>
+              <div style="display:flex;justify-content:center;padding:6px 0">
+                <svg width="132" height="132" viewBox="0 0 42 42">
+                  <circle cx="21" cy="21" r="15.9" fill="none" stroke="#F0EDE8" stroke-width="6"/>
+                  <circle cx="21" cy="21" r="15.9" fill="none" stroke="#00666F" stroke-width="6"
+                    stroke-dasharray="38 62" stroke-dashoffset="25"/>
+                  <circle cx="21" cy="21" r="15.9" fill="none" stroke="#97422B" stroke-width="6"
+                    stroke-dasharray="27 73" stroke-dashoffset="-13"/>
+                  <circle cx="21" cy="21" r="15.9" fill="none" stroke="#00818C" stroke-width="6"
+                    stroke-dasharray="19 81" stroke-dashoffset="-40"/>
+                  <circle cx="21" cy="21" r="15.9" fill="none" stroke="#B65A41" stroke-width="6"
+                    stroke-dasharray="16 84" stroke-dashoffset="-59"/>
+                  <text x="21" y="20.4" text-anchor="middle" style="font:800 5.4px 'Plus Jakarta Sans'" fill="#1C1C19">1.8M</text>
+                  <text x="21" y="25" text-anchor="middle" style="font:700 2.6px Manrope" fill="#3D4949">HTG</text>
+                </svg>
+              </div>
+              <div class="lg">
+                <div class="li"><span class="sw" style="background:#00666F"></span>Elektwonik<span class="amt">700 074</span></div>
+                <div class="li"><span class="sw" style="background:#97422B"></span>Mòd<span class="amt">497 421</span></div>
+                <div class="li"><span class="sw" style="background:#00818C"></span>Bote<span class="amt">350 037</span></div>
+                <div class="li"><span class="sw" style="background:#B65A41"></span>Akseswa<span class="amt">294 768</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="card">
+              <div class="ch"><div class="t">Pwodwi ki pi vann</div><span class="pill">30 jou</span></div>
+              <div class="top"><div class="rk g">1</div><div><div class="nm">Sandal kwi ayisyen</div><div class="sc">Mòd, 34 vant</div></div><div class="vl">142 800</div></div>
+              <div class="top"><div class="rk g">2</div><div><div class="nm">Chaje solè 20 000 mAh</div><div class="sc">Elektwonik, 28 vant</div></div><div class="vl">126 000</div></div>
+              <div class="top"><div class="rk g">3</div><div><div class="nm">Bèl kaba an pay</div><div class="sc">Atizana, 22 vant</div></div><div class="vl">88 000</div></div>
+              <div class="top"><div class="rk">4</div><div><div class="nm">Ekoutè san fil TWS</div><div class="sc">Elektwonik, 19 vant</div></div><div class="vl">76 000</div></div>
+            </div>
+
+            <div class="card">
+              <div class="ch"><div class="t">Vandè ki pi aktif</div></div>
+              <div class="top"><div class="rk g">1</div><div><div class="nm">Boutik Mirlande</div><div class="sc">Verifye, 4.9 etwal</div></div><div class="vl">61 vant</div></div>
+              <div class="top"><div class="rk g">2</div><div><div class="nm">Tech Delmas 33</div><div class="sc">Verifye, 4.7 etwal</div></div><div class="vl">47 vant</div></div>
+              <div class="top"><div class="rk g">3</div><div><div class="nm">Atizana Jakmèl</div><div class="sc">Verifye, 4.8 etwal</div></div><div class="vl">38 vant</div></div>
+              <div class="top"><div class="rk">4</div><div><div class="nm">Bel Bagay PAP</div><div class="sc">An atant, 4.4 etwal</div></div><div class="vl">24 vant</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ KOMAND ============ -->
+        <section class="pg" id="p-kmd">
+          <div class="h2">Kòmand</div>
+          <div class="sublead">Tout aksyon escrow yo rete disponib. Konte yo filtre lis la, yo pa janm kache l.</div>
+
+          <div class="fbar">
+            <button class="f on">Escrow pou lage <span class="c">7</span></button>
+            <button class="f">Peman pou verifye <span class="c">3</span></button>
+            <button class="f">Litij <span class="c">1</span></button>
+            <button class="f">Bloke 7 jou+ <span class="c">2</span></button>
+            <button class="f">Tout kòmand <span class="c">142</span></button>
+          </div>
+
+          <div class="card" style="padding:13px 15px 6px">
+            <div class="ch" style="margin-bottom:9px">
+              <div class="t">7 kòmand ap tann yon desizyon</div>
+              <div style="display:flex;gap:6px">
+                <button class="btn b-gh"><span class="ms" style="font-size:12px;vertical-align:-2px">sort</span> Klase</button>
+                <button class="btn b-ok">Lage 3 escrow chwazi</button>
+              </div>
+            </div>
+            <table>
+              <thead><tr>
+                <th style="width:26px"></th><th>ID</th><th>Pwodwi</th><th>Achtè</th><th>Vandè</th>
+                <th>Montan</th><th>Estati</th><th>Depi</th><th style="text-align:right">Aksyon</th>
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td><span class="cb" style="background:var(--teal);border-color:var(--teal)"></span></td>
+                  <td class="mono">#A4F92</td><td class="strong">Sandal kwi ayisyen</td>
+                  <td>Nadège P.</td><td>Boutik Mirlande</td><td class="strong">4 200 HTG</td>
+                  <td><span class="tag t-ok">Livre</span></td><td class="age bad">9 jou</td>
+                  <td style="text-align:right"><button class="btn b-ok">Lage lajan</button></td>
+                </tr>
+                <tr>
+                  <td><span class="cb" style="background:var(--teal);border-color:var(--teal)"></span></td>
+                  <td class="mono">#B7C31</td><td class="strong">Chaje solè 20 000 mAh</td>
+                  <td>Ricardo J.</td><td>Tech Delmas 33</td><td class="strong">4 500 HTG</td>
+                  <td><span class="tag t-ok">Livre</span></td><td class="age bad">8 jou</td>
+                  <td style="text-align:right"><button class="btn b-ok">Lage lajan</button></td>
+                </tr>
+                <tr>
+                  <td><span class="cb" style="background:var(--teal);border-color:var(--teal)"></span></td>
+                  <td class="mono">#C2D88</td><td class="strong">Bèl kaba an pay</td>
+                  <td>Micheline D.</td><td>Atizana Jakmèl</td><td class="strong">4 000 HTG</td>
+                  <td><span class="tag t-ok">Livre</span></td><td class="age">3 jou</td>
+                  <td style="text-align:right"><button class="btn b-ok">Lage lajan</button></td>
+                </tr>
+                <tr>
+                  <td><span class="cb"></span></td>
+                  <td class="mono">#D9E14</td><td class="strong">Ekoutè san fil TWS</td>
+                  <td>Jean-Marc L.</td><td>Bel Bagay PAP</td><td class="strong">4 000 HTG</td>
+                  <td><span class="tag t-er">Litij</span></td><td class="age bad">5 jou</td>
+                  <td style="text-align:right"><button class="btn b-teal">Rezoud</button></td>
+                </tr>
+                <tr>
+                  <td><span class="cb"></span></td>
+                  <td class="mono">#E5A73</td><td class="strong">Rad ti moun 2 an</td>
+                  <td>Sabine V.</td><td>Boutik Mirlande</td><td class="strong">1 800 HTG</td>
+                  <td><span class="tag t-wa">Peman pou verifye</span></td><td class="age">1 jou</td>
+                  <td style="text-align:right"><button class="btn b-teal">Verifye</button></td>
+                </tr>
+                <tr>
+                  <td><span class="cb"></span></td>
+                  <td class="mono">#F1B60</td><td class="strong">Kolye an kokoye</td>
+                  <td>Wideline C.</td><td>Atizana Jakmèl</td><td class="strong">950 HTG</td>
+                  <td><span class="tag t-wa">Peman pou verifye</span></td><td class="age">6 èdtan</td>
+                  <td style="text-align:right"><button class="btn b-teal">Verifye</button></td>
+                </tr>
+                <tr>
+                  <td><span class="cb"></span></td>
+                  <td class="mono">#G8H22</td><td class="strong">Kabann pliye</td>
+                  <td>Fritzner A.</td><td>Bel Bagay PAP</td><td class="strong">12 500 HTG</td>
+                  <td><span class="tag t-nu">Anwout</span></td><td class="age">2 jou</td>
+                  <td style="text-align:right"><button class="btn b-gh">Wè</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============ JOUNAL ============ -->
+        <section class="pg" id="p-jnl">
+          <div class="h2">Jounal aksyon admin</div>
+          <div class="sublead">Lekti sèlman. Chak aksyon sansib ekri isit ak yon rezon obligatwa.</div>
+
+          <div class="alert" style="background:#E7F5EF;border-color:#A8D9C4">
+            <span class="ms fi" style="color:var(--ok-dk)">verified_user</span>
+            <div>
+              <div class="t">Chak aksyon ekri sou sèvè a, pa sou telefòn nan</div>
+              <div class="d">Yon jounal kliyan an ka pa ekri se pa yon jounal. Anrejistreman an fèt nan RPC SECURITY DEFINER yo.</div>
+            </div>
+          </div>
+
+          <div class="fbar">
+            <button class="f on">Tout <span class="c">318</span></button>
+            <button class="f">Escrow <span class="c">96</span></button>
+            <button class="f">Ranbousman <span class="c">11</span></button>
+            <button class="f">Itilizatè <span class="c">42</span></button>
+            <button class="f">Konfigirasyon <span class="c">4</span></button>
+          </div>
+
+          <div class="card">
+            <div class="jr">
+              <div class="ic" style="background:var(--ok-dk)"><span class="ms fi">paid</span></div>
+              <div>
+                <div class="m">Escrow lage, 4 200 HTG, kòmand #A4F92</div>
+                <div class="why">« Achtè a konfime resepsyon ak kòd OTP la, pa gen okenn plent. »</div>
+                <div class="mt">Thrasher, sou Boutik Mirlande</div>
+              </div>
+              <div class="ts">Gen 12 minit</div>
+            </div>
+            <div class="jr">
+              <div class="ic" style="background:var(--rust)"><span class="ms fi">undo</span></div>
+              <div>
+                <div class="m">Ranbousman, 2 400 HTG, kòmand #Z7K44</div>
+                <div class="why">« Vandè a pa janm voye pwodwi a apre 11 jou. »</div>
+                <div class="mt">Thrasher, sou Bel Bagay PAP</div>
+              </div>
+              <div class="ts">Gen 2 èdtan</div>
+            </div>
+            <div class="jr">
+              <div class="ic" style="background:var(--err-dk)"><span class="ms fi">block</span></div>
+              <div>
+                <div class="m">Itilizatè bloke</div>
+                <div class="why">« Twa plent achtè sou menm pwodwi ki pa koresponn ak foto a. »</div>
+                <div class="mt">Thrasher, sou kont « Deal Express HT »</div>
+              </div>
+              <div class="ts">Yè, 16:42</div>
+            </div>
+            <div class="jr">
+              <div class="ic" style="background:var(--teal)"><span class="ms fi">how_to_reg</span></div>
+              <div>
+                <div class="m">Vandè verifye</div>
+                <div class="why">« CIN ak foto boutik la koresponn, adrès konfime nan Jakmèl. »</div>
+                <div class="mt">Thrasher, sou Atizana Jakmèl</div>
+              </div>
+              <div class="ts">Yè, 14:08</div>
+            </div>
+            <div class="jr">
+              <div class="ic" style="background:var(--warn)"><span class="ms fi">settings</span></div>
+              <div>
+                <div class="m">Komisyon chanje, 3 % vin 3.5 %</div>
+                <div class="why">« Ajisteman pou kouvri frè MonCash yo. »</div>
+                <div class="mt">Thrasher, sou app_settings.fee_percent</div>
+              </div>
+              <div class="ts">28 jiyè, 09:15</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ KONTNI ============ -->
+        <section class="pg" id="p-knt">
+          <div class="h2">Kontni</div>
+          <div class="sublead">Banyè, Anons ak Feedback. Menm fonksyon ki nan FAB la sou telefòn, kounye a nan sidebar la sou òdinatè.</div>
+
+          <div class="alert" style="background:#E7F5EF;border-color:#A8D9C4">
+            <span class="ms fi" style="color:var(--ok-dk)">check_circle</span>
+            <div>
+              <div class="t">Anyen pa retire, se sèlman pòt antre a ki chanje</div>
+              <div class="d">FAB la rete aktif sou telefòn anba 768 px. Kòd fonksyon yo pa touche.</div>
+            </div>
+          </div>
+
+          <div class="fbar">
+            <button class="f on">Banyè <span class="c">4</span></button>
+            <button class="f">Anons <span class="c">2</span></button>
+            <button class="f">Feedback <span class="c">18</span></button>
+          </div>
+
+          <div class="row2">
+            <div class="card">
+              <div class="ch">
+                <div class="t">Banyè akèy, hero_slides</div>
+                <button class="btn b-teal">+ Nouvo banyè</button>
+              </div>
+              <table>
+                <thead><tr><th style="width:22px"></th><th>Tit</th><th>CTA</th><th>Estati</th><th style="text-align:right">Aksyon</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">1</td><td class="strong">Byenveni sou Ekomat</td><td>Achte kounye a</td><td><span class="tag t-ok">Aktif</span></td><td style="text-align:right"><button class="btn b-gh">Modifye</button></td></tr>
+                  <tr><td class="mono">2</td><td class="strong">Livrezon moto rapid</td><td>Wè zòn yo</td><td><span class="tag t-ok">Aktif</span></td><td style="text-align:right"><button class="btn b-gh">Modifye</button></td></tr>
+                  <tr><td class="mono">3</td><td class="strong">Vann sou Ekomat</td><td>Vin vandè</td><td><span class="tag t-ok">Aktif</span></td><td style="text-align:right"><button class="btn b-gh">Modifye</button></td></tr>
+                  <tr><td class="mono">4</td><td class="strong">Pwomo mwa jiyè</td><td>Wè òf yo</td><td><span class="tag t-nu">Kache</span></td><td style="text-align:right"><button class="btn b-gh">Modifye</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="card">
+              <div class="ch"><div class="t">Kat mak la</div><span class="pill">app_settings</span></div>
+              <div style="border-radius:11px;padding:16px;background:linear-gradient(160deg,#00666f,#00818c);color:#fff;margin-bottom:12px">
+                <div style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:15px">Ekomat, mache w la</div>
+                <div style="font-size:11.5px;opacity:.82;margin-top:4px;line-height:1.45">Lajan w pwoteje jiskaske ou konfime livrezon an.</div>
+                <div style="margin-top:11px;display:inline-block;background:#fff;color:#00666f;border-radius:7px;padding:5px 12px;font-size:11px;font-weight:800">Dekouvri</div>
+              </div>
+              <div style="display:flex;gap:7px;align-items:center;margin-bottom:11px">
+                <span class="tag t-wa">Bouyon pa pibliye</span>
+                <span style="font-size:11px;color:var(--sub);font-weight:600">Chanjman depi 2 jou</span>
+              </div>
+              <div style="display:flex;gap:7px">
+                <button class="btn b-ok" style="flex:1">Pibliye</button>
+                <button class="btn b-gh" style="flex:1">Retounen</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- RIGHT PANEL -->
+    <aside class="rp">
+      <div class="lbl">Aksyon rapid</div>
+      <div class="qa">
+        <button class="qab"><span class="ic" style="background:var(--teal)"><span class="ms fi">how_to_reg</span></span>Verifye vandè<span class="n">3</span></button>
+        <button class="qab"><span class="ic" style="background:var(--rust)"><span class="ms fi">inventory_2</span></span>Apwouve pwodwi<span class="n">12</span></button>
+        <button class="qab"><span class="ic" style="background:var(--ok-dk)"><span class="ms fi">paid</span></span>Lage escrow<span class="n">7</span></button>
+        <button class="qab"><span class="ic" style="background:var(--err-dk)"><span class="ms fi">gavel</span></span>Rezoud litij<span class="n">1</span></button>
+      </div>
+
+      <div class="lbl">Aktivite</div>
+      <div>
+        <div class="act">
+          <div class="ic" style="background:var(--ok-dk)"><span class="ms fi">paid</span></div>
+          <div><div class="tx"><b>4 200 HTG</b> lage bay Boutik Mirlande</div><div class="tm">Gen 12 minit</div></div>
+        </div>
+        <div class="act">
+          <div class="ic" style="background:var(--teal)"><span class="ms fi">person_add</span></div>
+          <div><div class="tx"><b>Nadège P.</b> enskri kòm achtè</div><div class="tm">Gen 38 minit</div></div>
+        </div>
+        <div class="act">
+          <div class="ic" style="background:var(--rust)"><span class="ms fi">add_box</span></div>
+          <div><div class="tx"><b>5 pwodwi</b> ajoute pa Tech Delmas 33</div><div class="tm">Gen 1 èdtan</div></div>
+        </div>
+        <div class="act">
+          <div class="ic" style="background:var(--err-dk)"><span class="ms fi">gavel</span></div>
+          <div><div class="tx">Litij ouvè sou kòmand <b>#D9E14</b></div><div class="tm">Gen 3 èdtan</div></div>
+        </div>
+        <div class="act">
+          <div class="ic" style="background:var(--warn)"><span class="ms fi">schedule</span></div>
+          <div><div class="tx">Kòmand <b>#A4F92</b> gen 9 jou nan escrow</div><div class="tm">Gen 5 èdtan</div></div>
+        </div>
+        <div class="act">
+          <div class="ic" style="background:var(--teal)"><span class="ms fi">how_to_reg</span></div>
+          <div><div class="tx"><b>Atizana Jakmèl</b> vin verifye</div><div class="tm">Yè, 14:08</div></div>
+        </div>
+        <div class="act">
+          <div class="ic" style="background:var(--ok-dk)"><span class="ms fi">shopping_bag</span></div>
+          <div><div class="tx"><b>3 kòmand</b> nouvo nan dènye èdtan an</div><div class="tm">Yè, 11:20</div></div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var names = {rez:'Rezime', kmd:'Kòmand', jnl:'Jounal', knt:'Kontni'};
+  document.querySelectorAll('.nvi').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.nvi').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');
+      var p = b.getAttribute('data-p');
+      document.querySelectorAll('.pg').forEach(function(s){s.classList.remove('on')});
+      document.getElementById('p-'+p).classList.add('on');
+      document.getElementById('cr').textContent =
+        (p === 'rez') ? b.textContent.replace(/\d+$/,'').trim() : names[p];
+      document.querySelector('.wk').scrollTop = 0;
+    });
+  });
+  document.querySelectorAll('.fbar').forEach(function(bar){
+    bar.querySelectorAll('.f').forEach(function(f){
+      f.addEventListener('click', function(){
+        bar.querySelectorAll('.f').forEach(function(x){x.classList.remove('on')});
+        f.classList.add('on');
+      });
+    });
+  });
+})();
+</script>
